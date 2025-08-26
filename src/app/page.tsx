@@ -6,7 +6,7 @@ export default function Home() {
       <div style={{ background: '#f0f8ff', padding: '1rem', borderRadius: '8px', marginTop: '2rem' }}>
         <h2>✅ Тест деплоя</h2>
         <p>Если вы видите эту страницу, автоматический деплой работает!</p>
-        <p>Время обновления: 16:00 - Отладка сборки</p>
+        <p>Время обновления: 16:15 - Минимальная сборка</p>
       </div>
     </main>
   )
