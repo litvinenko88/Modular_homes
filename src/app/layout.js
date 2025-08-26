@@ -1,5 +1,5 @@
 export const metadata = {
-  title: 'Modular Homes',
+  title: 'Модульные дома',
   description: 'Модульные дома - современные решения для комфортного проживания',
 }
 
