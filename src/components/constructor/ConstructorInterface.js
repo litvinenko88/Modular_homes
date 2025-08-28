@@ -13,18 +13,8 @@ export default function ConstructorInterface({ initialData, onBack }) {
   const [selectedElement, setSelectedElement] = useState(null);
   const [draggedElement, setDraggedElement] = useState(null);
   const [resizeHandle, setResizeHandle] = useState(null);
-  const [elements, setElements] = useState([
-    {
-      id: 'house',
-      type: 'house',
-      x: 150,
-      y: 150,
-      width: initialData?.house.width * 30 || 180,
-      height: initialData?.house.height * 30 || 75,
-      realWidth: initialData?.house.width || 6,
-      realHeight: initialData?.house.height || 2.5
-    }
-  ]);
+  const [elements, setElements] = useState([]);
+  const [walls, setWalls] = useState([]);
 
   const SCALE = 30 * zoom;
 
@@ -48,7 +38,7 @@ export default function ConstructorInterface({ initialData, onBack }) {
   useEffect(() => {
     const timer = setTimeout(drawCanvas, 10);
     return () => clearTimeout(timer);
-  }, [zoom, panOffset, initialData, selectedElement, elements]);
+  }, [zoom, panOffset, initialData, selectedElement, elements, walls]);
   
   useEffect(() => {
     if (initialData) {
@@ -78,6 +68,7 @@ export default function ConstructorInterface({ initialData, onBack }) {
     drawGrid(ctx);
     drawLot(ctx);
     drawElements(ctx);
+    drawWalls(ctx);
     
     ctx.restore();
   };
@@ -86,146 +77,148 @@ export default function ConstructorInterface({ initialData, onBack }) {
     const canvas = canvasRef.current;
     if (!canvas) return;
     
-    // Адаптивный размер сетки в зависимости от масштаба
-    let baseGridSize = 20;
+    // Определяем размер сетки в зависимости от масштаба
+    let gridSize = 20 * zoom;
     
-    // Подбираем оптимальный размер сетки для текущего масштаба
-    if (zoom < 0.5) {
-      baseGridSize = 40;
-    } else if (zoom > 2) {
-      baseGridSize = 10;
-    }
+    // Адаптируем размер сетки для читаемости
+    while (gridSize < 8) gridSize *= 2;
+    while (gridSize > 80) gridSize /= 2;
     
-    const gridSize = baseGridSize * zoom;
+    // Минимальный размер сетки
+    if (gridSize < 5) return;
     
-    // Если сетка слишком мелкая или крупная, не рисуем её
-    if (gridSize < 5 || gridSize > 200) return;
+    // Вычисляем область для рисования с очень большим запасом
+    const margin = Math.max(canvas.width, canvas.height) * 2;
+    const worldLeft = -panOffset.x - margin;
+    const worldTop = -panOffset.y - margin;
+    const worldRight = -panOffset.x + canvas.width + margin;
+    const worldBottom = -panOffset.y + canvas.height + margin;
     
-    // Вычисляем границы видимой области с учетом панорамирования
-    const visibleLeft = -panOffset.x;
-    const visibleTop = -panOffset.y;
-    const visibleRight = visibleLeft + canvas.width;
-    const visibleBottom = visibleTop + canvas.height;
+    // Находим начальные точки сетки с запасом
+    const startX = Math.floor(worldLeft / gridSize) * gridSize;
+    const startY = Math.floor(worldTop / gridSize) * gridSize;
+    const endX = Math.ceil(worldRight / gridSize) * gridSize + gridSize;
+    const endY = Math.ceil(worldBottom / gridSize) * gridSize + gridSize;
     
-    // Расширяем область для полного покрытия с запасом
-    const margin = gridSize * 2;
-    const startX = Math.floor((visibleLeft - margin) / gridSize) * gridSize;
-    const startY = Math.floor((visibleTop - margin) / gridSize) * gridSize;
-    const endX = Math.ceil((visibleRight + margin) / gridSize) * gridSize;
-    const endY = Math.ceil((visibleBottom + margin) / gridSize) * gridSize;
-    
-    // Мелкая сетка (основная)
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+    // Основная сетка
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
     ctx.lineWidth = 0.5;
     
     // Рисуем вертикальные линии
     for (let x = startX; x <= endX; x += gridSize) {
       const screenX = x + panOffset.x;
+      // Рисуем линию даже если она выходит за границы экрана
       ctx.beginPath();
-      ctx.moveTo(screenX, 0);
-      ctx.lineTo(screenX, canvas.height);
+      ctx.moveTo(screenX, -margin);
+      ctx.lineTo(screenX, canvas.height + margin);
       ctx.stroke();
     }
     
     // Рисуем горизонтальные линии
     for (let y = startY; y <= endY; y += gridSize) {
       const screenY = y + panOffset.y;
+      // Рисуем линию даже если она выходит за границы экрана
       ctx.beginPath();
-      ctx.moveTo(0, screenY);
-      ctx.lineTo(canvas.width, screenY);
+      ctx.moveTo(-margin, screenY);
+      ctx.lineTo(canvas.width + margin, screenY);
       ctx.stroke();
     }
     
-    // Крупная сетка (каждые 5 линий) - только если основная сетка достаточно мелкая
+    // Крупная сетка (каждые 5 линий)
     if (gridSize <= 50) {
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
-      ctx.lineWidth = Math.max(0.5, Math.min(2, zoom));
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+      ctx.lineWidth = 1;
       
       const majorGridSize = gridSize * 5;
-      const majorStartX = Math.floor((visibleLeft - margin) / majorGridSize) * majorGridSize;
-      const majorStartY = Math.floor((visibleTop - margin) / majorGridSize) * majorGridSize;
-      const majorEndX = Math.ceil((visibleRight + margin) / majorGridSize) * majorGridSize;
-      const majorEndY = Math.ceil((visibleBottom + margin) / majorGridSize) * majorGridSize;
+      const majorStartX = Math.floor(worldLeft / majorGridSize) * majorGridSize;
+      const majorStartY = Math.floor(worldTop / majorGridSize) * majorGridSize;
+      const majorEndX = Math.ceil(worldRight / majorGridSize) * majorGridSize + majorGridSize;
+      const majorEndY = Math.ceil(worldBottom / majorGridSize) * majorGridSize + majorGridSize;
       
-      // Рисуем крупные вертикальные линии
+      // Крупные вертикальные линии
       for (let x = majorStartX; x <= majorEndX; x += majorGridSize) {
         const screenX = x + panOffset.x;
         ctx.beginPath();
-        ctx.moveTo(screenX, 0);
-        ctx.lineTo(screenX, canvas.height);
+        ctx.moveTo(screenX, -margin);
+        ctx.lineTo(screenX, canvas.height + margin);
         ctx.stroke();
       }
       
-      // Рисуем крупные горизонтальные линии
+      // Крупные горизонтальные линии
       for (let y = majorStartY; y <= majorEndY; y += majorGridSize) {
         const screenY = y + panOffset.y;
         ctx.beginPath();
-        ctx.moveTo(0, screenY);
-        ctx.lineTo(canvas.width, screenY);
-        ctx.stroke();
-      }
-    }
-    
-    // Супер крупная сетка для очень мелкого масштаба
-    if (zoom <= 0.3 && gridSize <= 20) {
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-      ctx.lineWidth = 1;
-      
-      const superGridSize = gridSize * 25;
-      const superStartX = Math.floor((visibleLeft - margin) / superGridSize) * superGridSize;
-      const superStartY = Math.floor((visibleTop - margin) / superGridSize) * superGridSize;
-      const superEndX = Math.ceil((visibleRight + margin) / superGridSize) * superGridSize;
-      const superEndY = Math.ceil((visibleBottom + margin) / superGridSize) * superGridSize;
-      
-      for (let x = superStartX; x <= superEndX; x += superGridSize) {
-        const screenX = x + panOffset.x;
-        ctx.beginPath();
-        ctx.moveTo(screenX, 0);
-        ctx.lineTo(screenX, canvas.height);
-        ctx.stroke();
-      }
-      
-      for (let y = superStartY; y <= superEndY; y += superGridSize) {
-        const screenY = y + panOffset.y;
-        ctx.beginPath();
-        ctx.moveTo(0, screenY);
-        ctx.lineTo(canvas.width, screenY);
+        ctx.moveTo(-margin, screenY);
+        ctx.lineTo(canvas.width + margin, screenY);
         ctx.stroke();
       }
     }
   };
 
   const drawLot = (ctx) => {
-    const lotX = 100;
-    const lotY = 100;
-    const lotW = initialData.lotSize.width * SCALE;
-    const lotH = initialData.lotSize.height * SCALE;
+    const houseElement = elements.find(el => el.type === 'house');
+    if (!houseElement) return;
+    
+    // Участок следует за домом, но размеры участка тоже масштабируются
+    const lotW = initialData.lotSize.width * 30 * zoom; // Фиксированный масштаб для участка
+    const lotH = initialData.lotSize.height * 30 * zoom;
+    const lotX = houseElement.x - 50 * zoom;
+    const lotY = houseElement.y - 50 * zoom;
+    
+    // Проверяем, выходит ли дом за границы участка
+    const houseExceedsLot = (
+      houseElement.x < lotX || 
+      houseElement.y < lotY ||
+      houseElement.x + houseElement.width > lotX + lotW ||
+      houseElement.y + houseElement.height > lotY + lotH
+    );
+    
+    // Заливка участка (красная если дом выходит за границы)
+    if (houseExceedsLot) {
+      ctx.fillStyle = 'rgba(255, 0, 0, 0.1)';
+      ctx.fillRect(lotX, lotY, lotW, lotH);
+    }
     
     // Контур участка
-    ctx.strokeStyle = '#666';
-    ctx.lineWidth = 3;
-    ctx.setLineDash([15, 10]);
+    ctx.strokeStyle = houseExceedsLot ? '#ff0000' : '#666';
+    ctx.lineWidth = Math.max(2, 3 * zoom);
+    const dashSize = Math.max(8, 15 * zoom);
+    ctx.setLineDash([dashSize, dashSize * 0.6]);
     ctx.strokeRect(lotX, lotY, lotW, lotH);
     ctx.setLineDash([]);
     
-    // Размеры участка
-    ctx.fillStyle = '#666';
-    ctx.font = `${Math.max(14, 14 * zoom)}px Arial`;
-    ctx.textAlign = 'center';
+    // Размеры участка (показываем только при достаточном масштабе)
+    if (zoom >= 0.3) {
+      ctx.fillStyle = houseExceedsLot ? '#ff0000' : '#666';
+      ctx.font = `${Math.max(10, 14 * zoom)}px Arial`;
+      ctx.textAlign = 'center';
+      
+      // Ширина участка (сверху)
+      ctx.fillText(
+        `${initialData.lotSize.width}м`,
+        lotX + lotW / 2,
+        lotY - 10 * zoom
+      );
+      
+      // Высота участка (слева)
+      ctx.save();
+      ctx.translate(lotX - 20 * zoom, lotY + lotH / 2);
+      ctx.rotate(-Math.PI / 2);
+      ctx.fillText(`${initialData.lotSize.height}м`, 0, 0);
+      ctx.restore();
+    }
     
-    // Ширина участка (сверху)
-    ctx.fillText(
-      `${initialData.lotSize.width}м`,
-      lotX + lotW / 2,
-      lotY - 10
-    );
-    
-    // Высота участка (слева)
-    ctx.save();
-    ctx.translate(lotX - 20, lotY + lotH / 2);
-    ctx.rotate(-Math.PI / 2);
-    ctx.fillText(`${initialData.lotSize.height}м`, 0, 0);
-    ctx.restore();
+    // Предупреждение если дом выходит за границы
+    if (houseExceedsLot && zoom >= 0.4) {
+      ctx.fillStyle = '#ff0000';
+      ctx.font = `${Math.max(10, 12 * zoom)}px Arial`;
+      ctx.textAlign = 'center';
+      ctx.fillText(
+        'Дом выходит за границы участка!',
+        lotX + lotW / 2,
+        lotY + lotH + 25 * zoom
+      );
+    }
   };
 
   const drawElements = (ctx) => {
@@ -237,6 +230,12 @@ export default function ConstructorInterface({ initialData, onBack }) {
   const drawElement = (ctx, element) => {
     const isSelected = selectedElement?.id === element.id;
     
+    // Масштабируем размеры элемента
+    const scaledWidth = element.width * zoom;
+    const scaledHeight = element.height * zoom;
+    const scaledX = element.x * zoom;
+    const scaledY = element.y * zoom;
+    
     // Основа элемента
     if (element.type === 'house') {
       ctx.fillStyle = isSelected ? '#d4c5e8' : '#eee8f4';
@@ -244,65 +243,141 @@ export default function ConstructorInterface({ initialData, onBack }) {
       ctx.fillStyle = isSelected ? '#c5d4e8' : '#e8f4ee';
     }
     
-    ctx.fillRect(element.x, element.y, element.width, element.height);
+    ctx.fillRect(scaledX, scaledY, scaledWidth, scaledHeight);
     
     // Контур
     ctx.strokeStyle = isSelected ? '#df682b' : '#31323d';
-    ctx.lineWidth = isSelected ? 3 : 2;
-    ctx.strokeRect(element.x, element.y, element.width, element.height);
+    ctx.lineWidth = isSelected ? Math.max(2, 3 * zoom) : Math.max(1, 2 * zoom);
+    ctx.strokeRect(scaledX, scaledY, scaledWidth, scaledHeight);
     
     // Информация об элементе
-    ctx.fillStyle = '#31323d';
-    ctx.font = `${Math.max(10, 10 * zoom)}px Arial`;
-    ctx.textAlign = 'center';
-    
-    const centerX = element.x + element.width / 2;
-    const centerY = element.y + element.height / 2;
-    
-    if (element.realWidth && element.realHeight) {
-      ctx.fillText(
-        `${element.realWidth.toFixed(1)}×${element.realHeight.toFixed(1)}м`,
-        centerX,
-        centerY - 5
-      );
+    if (zoom >= 0.3) {
+      ctx.fillStyle = '#31323d';
+      ctx.font = `${Math.max(8, 10 * zoom)}px Arial`;
+      ctx.textAlign = 'center';
       
-      if (element.type === 'house') {
+      const centerX = scaledX + scaledWidth / 2;
+      const centerY = scaledY + scaledHeight / 2;
+      
+      if (element.realWidth && element.realHeight) {
         ctx.fillText(
-          `${(element.realWidth * element.realHeight).toFixed(1)}м²`,
+          `${element.realWidth.toFixed(1)}×${element.realHeight.toFixed(1)}м`,
           centerX,
-          centerY + 10
+          centerY - 5 * zoom
         );
+        
+        if (element.type === 'house') {
+          ctx.fillText(
+            `${(element.realWidth * element.realHeight).toFixed(1)}м²`,
+            centerX,
+            centerY + 10 * zoom
+          );
+        }
       }
     }
     
     // Размеры по краям
     if (zoom >= 0.5) {
       ctx.fillStyle = '#df682b';
-      ctx.font = `${Math.max(8, 8 * zoom)}px Arial`;
+      ctx.font = `${Math.max(6, 8 * zoom)}px Arial`;
+      
+      const centerX = scaledX + scaledWidth / 2;
+      const centerY = scaledY + scaledHeight / 2;
       
       // Ширина (сверху)
       ctx.fillText(
         `${element.realWidth?.toFixed(1) || '0'}м`,
         centerX,
-        element.y - 8
+        scaledY - 8 * zoom
       );
       
       // Высота (слева)
       ctx.save();
-      ctx.translate(element.x - 12, centerY);
+      ctx.translate(scaledX - 12 * zoom, centerY);
       ctx.rotate(-Math.PI / 2);
       ctx.fillText(`${element.realHeight?.toFixed(1) || '0'}м`, 0, 0);
       ctx.restore();
     }
     
     // Маркеры для изменения размера
-    if (isSelected) {
-      drawResizeHandles(ctx, element);
+    if (isSelected && selectedTool === 'select') {
+      drawResizeHandles(ctx, { ...element, x: scaledX, y: scaledY, width: scaledWidth, height: scaledHeight });
+    }
+  };
+  
+  const drawWalls = (ctx) => {
+    walls.forEach(wall => {
+      drawWall(ctx, wall);
+    });
+  };
+  
+  const drawWall = (ctx, wall) => {
+    const isSelected = selectedElement?.id === wall.id;
+    
+    // Масштабируем координаты
+    const x1 = wall.x1 * zoom;
+    const y1 = wall.y1 * zoom;
+    const x2 = wall.x2 * zoom;
+    const y2 = wall.y2 * zoom;
+    
+    // Рисуем стену
+    ctx.strokeStyle = isSelected ? '#df682b' : '#8B4513';
+    ctx.lineWidth = Math.max(3, wall.thickness * 30 * zoom);
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+    
+    // Маркеры на концах стены
+    if (isSelected && selectedTool === 'select') {
+      ctx.fillStyle = '#df682b';
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 1;
+      
+      const handleSize = Math.max(6, 8 * zoom);
+      
+      // Маркеры на концах
+      ctx.beginPath();
+      ctx.arc(x1, y1, handleSize, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      
+      ctx.beginPath();
+      ctx.arc(x2, y2, handleSize, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      
+      // Маркер в центре для перемещения
+      const centerX = (x1 + x2) / 2;
+      const centerY = (y1 + y2) / 2;
+      ctx.fillStyle = '#2196f3';
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, handleSize, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+    }
+    
+    // Показываем длину стены
+    if (zoom >= 0.4) {
+      const centerX = (x1 + x2) / 2;
+      const centerY = (y1 + y2) / 2;
+      
+      ctx.fillStyle = '#8B4513';
+      ctx.font = `${Math.max(8, 10 * zoom)}px Arial`;
+      ctx.textAlign = 'center';
+      
+      // Фон для текста
+      const textWidth = ctx.measureText(`${wall.length.toFixed(1)}м`).width;
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+      ctx.fillRect(centerX - textWidth/2 - 2, centerY - 8, textWidth + 4, 16);
+      
+      ctx.fillStyle = '#8B4513';
+      ctx.fillText(`${wall.length.toFixed(1)}м`, centerX, centerY + 4);
     }
   };
   
   const drawResizeHandles = (ctx, element) => {
-    const handleSize = Math.max(6, 6 * zoom);
+    const handleSize = Math.max(6, 8 * zoom);
     const handles = [
       { id: 'nw', x: element.x - handleSize/2, y: element.y - handleSize/2 },
       { id: 'ne', x: element.x + element.width - handleSize/2, y: element.y - handleSize/2 },
@@ -331,34 +406,98 @@ export default function ConstructorInterface({ initialData, onBack }) {
     const rect = canvas.getBoundingClientRect();
     const clientX = e.clientX - rect.left;
     const clientY = e.clientY - rect.top;
-    const worldX = clientX - panOffset.x;
-    const worldY = clientY - panOffset.y;
+    const worldX = (clientX - panOffset.x) / zoom;
+    const worldY = (clientY - panOffset.y) / zoom;
     
-    // Проверяем клик по маркерам изменения размера
-    if (selectedElement) {
-      const handle = getResizeHandle(worldX, worldY, selectedElement);
-      if (handle) {
-        setResizeHandle({ elementId: selectedElement.id, handle });
+    if (selectedTool === 'select') {
+      // Проверяем клик по маркерам изменения размера
+      if (selectedElement) {
+        const handle = getResizeHandle(clientX, clientY, selectedElement);
+        if (handle) {
+          setResizeHandle({ elementId: selectedElement.id, handle });
+          return;
+        }
+      }
+      
+      // Проверяем клик по элементам
+      const clickedElement = getElementAt(worldX, worldY);
+      const clickedWall = getWallAt(worldX, worldY);
+      
+      if (clickedElement) {
+        setSelectedElement(clickedElement);
+        setDraggedElement({ 
+          element: clickedElement, 
+          startX: worldX - clickedElement.x, 
+          startY: worldY - clickedElement.y 
+        });
+        return;
+      } else if (clickedWall) {
+        setSelectedElement(clickedWall);
+        setDraggedElement({ 
+          element: clickedWall, 
+          startX: worldX, 
+          startY: worldY 
+        });
         return;
       }
-    }
-    
-    // Проверяем клик по элементам
-    const clickedElement = getElementAt(worldX, worldY);
-    if (clickedElement) {
-      setSelectedElement(clickedElement);
-      setDraggedElement({ 
-        element: clickedElement, 
-        startX: worldX - clickedElement.x, 
-        startY: worldY - clickedElement.y 
-      });
+      
+      setSelectedElement(null);
+    } else if (selectedTool === 'wall') {
+      // Добавляем новую стену
+      addWall(worldX, worldY);
       return;
     }
     
     // Начинаем панорамирование
-    setSelectedElement(null);
     setIsDragging(true);
     setDragStart({ x: e.clientX - panOffset.x, y: e.clientY - panOffset.y });
+  };
+  
+  const addWall = (x, y) => {
+    const newWall = {
+      id: Date.now(),
+      x1: x,
+      y1: y,
+      x2: x + 2, // 2 метра по умолчанию
+      y2: y,
+      length: 2,
+      thickness: 0.2, // 20 см
+      type: 'interior'
+    };
+    
+    setWalls(prev => [...prev, newWall]);
+    setSelectedElement(newWall);
+  };
+  
+  const getWallAt = (x, y) => {
+    for (let i = walls.length - 1; i >= 0; i--) {
+      const wall = walls[i];
+      const distance = distanceToLine(x, y, wall.x1, wall.y1, wall.x2, wall.y2);
+      if (distance < 0.3) {
+        return wall;
+      }
+    }
+    return null;
+  };
+  
+  const distanceToLine = (px, py, x1, y1, x2, y2) => {
+    const A = px - x1;
+    const B = py - y1;
+    const C = x2 - x1;
+    const D = y2 - y1;
+    
+    const dot = A * C + B * D;
+    const lenSq = C * C + D * D;
+    
+    if (lenSq === 0) return Math.sqrt(A * A + B * B);
+    
+    const param = Math.max(0, Math.min(1, dot / lenSq));
+    const xx = x1 + param * C;
+    const yy = y1 + param * D;
+    
+    const dx = px - xx;
+    const dy = py - yy;
+    return Math.sqrt(dx * dx + dy * dy);
   };
   
   const getElementAt = (x, y) => {
@@ -373,23 +512,31 @@ export default function ConstructorInterface({ initialData, onBack }) {
     return null;
   };
   
-  const getResizeHandle = (x, y, element) => {
-    const handleSize = Math.max(6, 6 * zoom);
+  const getResizeHandle = (clientX, clientY, element) => {
+    const handleSize = Math.max(6, 8 * zoom);
     const tolerance = handleSize;
     
+    // Преобразуем координаты элемента в экранные
+    const scaledX = element.x * zoom;
+    const scaledY = element.y * zoom;
+    const scaledWidth = element.width * zoom;
+    const scaledHeight = element.height * zoom;
+    
     const handles = [
-      { id: 'nw', x: element.x, y: element.y },
-      { id: 'ne', x: element.x + element.width, y: element.y },
-      { id: 'sw', x: element.x, y: element.y + element.height },
-      { id: 'se', x: element.x + element.width, y: element.y + element.height },
-      { id: 'n', x: element.x + element.width/2, y: element.y },
-      { id: 's', x: element.x + element.width/2, y: element.y + element.height },
-      { id: 'w', x: element.x, y: element.y + element.height/2 },
-      { id: 'e', x: element.x + element.width, y: element.y + element.height/2 }
+      { id: 'nw', x: scaledX, y: scaledY },
+      { id: 'ne', x: scaledX + scaledWidth, y: scaledY },
+      { id: 'sw', x: scaledX, y: scaledY + scaledHeight },
+      { id: 'se', x: scaledX + scaledWidth, y: scaledY + scaledHeight },
+      { id: 'n', x: scaledX + scaledWidth/2, y: scaledY },
+      { id: 's', x: scaledX + scaledWidth/2, y: scaledY + scaledHeight },
+      { id: 'w', x: scaledX, y: scaledY + scaledHeight/2 },
+      { id: 'e', x: scaledX + scaledWidth, y: scaledY + scaledHeight/2 }
     ];
     
     for (const handle of handles) {
-      if (Math.abs(x - handle.x) <= tolerance && Math.abs(y - handle.y) <= tolerance) {
+      const screenX = handle.x + panOffset.x;
+      const screenY = handle.y + panOffset.y;
+      if (Math.abs(clientX - screenX) <= tolerance && Math.abs(clientY - screenY) <= tolerance) {
         return handle.id;
       }
     }
@@ -403,8 +550,8 @@ export default function ConstructorInterface({ initialData, onBack }) {
     const rect = canvas.getBoundingClientRect();
     const clientX = e.clientX - rect.left;
     const clientY = e.clientY - rect.top;
-    const worldX = clientX - panOffset.x;
-    const worldY = clientY - panOffset.y;
+    const worldX = (clientX - panOffset.x) / zoom;
+    const worldY = (clientY - panOffset.y) / zoom;
     
     // Изменение размера
     if (resizeHandle) {
@@ -413,15 +560,35 @@ export default function ConstructorInterface({ initialData, onBack }) {
     }
     
     // Перетаскивание элемента
-    if (draggedElement) {
-      const newX = worldX - draggedElement.startX;
-      const newY = worldY - draggedElement.startY;
-      
-      setElements(prev => prev.map(el => 
-        el.id === draggedElement.element.id 
-          ? { ...el, x: newX, y: newY }
-          : el
-      ));
+    if (draggedElement && selectedTool === 'select') {
+      if (draggedElement.element.type === 'house') {
+        const newX = worldX - draggedElement.startX;
+        const newY = worldY - draggedElement.startY;
+        
+        setElements(prev => prev.map(el => 
+          el.id === draggedElement.element.id 
+            ? { ...el, x: newX, y: newY }
+            : el
+        ));
+      } else if (draggedElement.element.x1 !== undefined) {
+        // Перетаскивание стены
+        const deltaX = worldX - draggedElement.startX;
+        const deltaY = worldY - draggedElement.startY;
+        
+        setWalls(prev => prev.map(wall => 
+          wall.id === draggedElement.element.id 
+            ? { 
+                ...wall, 
+                x1: wall.x1 + deltaX, 
+                y1: wall.y1 + deltaY,
+                x2: wall.x2 + deltaX, 
+                y2: wall.y2 + deltaY
+              }
+            : wall
+        ));
+        
+        setDraggedElement({ ...draggedElement, startX: worldX, startY: worldY });
+      }
       return;
     }
     
@@ -434,7 +601,7 @@ export default function ConstructorInterface({ initialData, onBack }) {
     }
     
     // Обновляем курсор
-    updateCursor(worldX, worldY);
+    updateCursor(clientX, clientY);
   };
   
   const resizeElement = (worldX, worldY) => {
@@ -519,36 +686,87 @@ export default function ConstructorInterface({ initialData, onBack }) {
     ));
   };
   
-  const updateCursor = (worldX, worldY) => {
+  const updateCursor = (clientX, clientY) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     
-    let cursor = 'grab';
+    let cursor = 'default';
     
-    if (selectedElement) {
-      const handle = getResizeHandle(worldX, worldY, selectedElement);
-      if (handle) {
-        const cursors = {
-          'nw': 'nw-resize',
-          'ne': 'ne-resize', 
-          'sw': 'sw-resize',
-          'se': 'se-resize',
-          'n': 'n-resize',
-          's': 's-resize',
-          'w': 'w-resize',
-          'e': 'e-resize'
-        };
-        cursor = cursors[handle] || 'pointer';
-      } else if (getElementAt(worldX, worldY)) {
-        cursor = 'move';
+    if (selectedTool === 'select') {
+      cursor = 'grab';
+      
+      if (selectedElement) {
+        const handle = getResizeHandle(clientX, clientY, selectedElement);
+        if (handle) {
+          const cursors = {
+            'nw': 'nw-resize',
+            'ne': 'ne-resize', 
+            'sw': 'sw-resize',
+            'se': 'se-resize',
+            'n': 'n-resize',
+            's': 's-resize',
+            'w': 'w-resize',
+            'e': 'e-resize'
+          };
+          cursor = cursors[handle] || 'pointer';
+        }
       }
-    } else if (getElementAt(worldX, worldY)) {
-      cursor = 'pointer';
+      
+      if (isDragging) cursor = 'grabbing';
+    } else if (selectedTool === 'wall') {
+      cursor = 'crosshair';
     }
     
-    if (isDragging) cursor = 'grabbing';
-    
     canvas.style.cursor = cursor;
+  };
+  
+  const rotateElement = (elementId) => {
+    const element = elements.find(el => el.id === elementId) || walls.find(w => w.id === elementId);
+    if (!element) return;
+    
+    if (element.type === 'house') {
+      // Поворачиваем дом (меняем местами ширину и высоту)
+      setElements(prev => prev.map(el => 
+        el.id === elementId 
+          ? { 
+              ...el, 
+              width: el.height, 
+              height: el.width,
+              realWidth: el.realHeight,
+              realHeight: el.realWidth
+            }
+          : el
+      ));
+    } else if (element.x1 !== undefined) {
+      // Поворачиваем стену на 90 градусов
+      const centerX = (element.x1 + element.x2) / 2;
+      const centerY = (element.y1 + element.y2) / 2;
+      const length = element.length;
+      
+      // Определяем новое направление
+      const isHorizontal = Math.abs(element.x2 - element.x1) > Math.abs(element.y2 - element.y1);
+      
+      let newX1, newY1, newX2, newY2;
+      if (isHorizontal) {
+        // Была горизонтальная, становится вертикальная
+        newX1 = centerX;
+        newY1 = centerY - length / 2;
+        newX2 = centerX;
+        newY2 = centerY + length / 2;
+      } else {
+        // Была вертикальная, становится горизонтальная
+        newX1 = centerX - length / 2;
+        newY1 = centerY;
+        newX2 = centerX + length / 2;
+        newY2 = centerY;
+      }
+      
+      setWalls(prev => prev.map(wall => 
+        wall.id === elementId 
+          ? { ...wall, x1: newX1, y1: newY1, x2: newX2, y2: newY2 }
+          : wall
+      ));
+    }
   };
 
   const handleCanvasMouseUp = () => {
@@ -715,12 +933,18 @@ export default function ConstructorInterface({ initialData, onBack }) {
                 { id: 'door', name: 'Дверь', icon: '🚪' },
                 { id: 'window', name: 'Окно', icon: '🪟' },
                 { id: 'room', name: 'Комната', icon: '🏠' },
-                { id: 'stairs', name: 'Лестница', icon: '🪜' }
+                { id: 'rotate', name: 'Поворот', icon: '🔄' }
               ].map(tool => (
                 <button
                   key={tool.id}
                   className={`tool-btn ${selectedTool === tool.id ? 'active' : ''}`}
-                  onClick={() => setSelectedTool(tool.id)}
+                  onClick={() => {
+                    if (tool.id === 'rotate' && selectedElement) {
+                      rotateElement(selectedElement.id);
+                    } else {
+                      setSelectedTool(tool.id);
+                    }
+                  }}
                 >
                   <span className="tool-icon">{tool.icon}</span>
                   <span className="tool-name">{tool.name}</span>
@@ -872,7 +1096,6 @@ export default function ConstructorInterface({ initialData, onBack }) {
         canvas {
           width: 100%;
           height: 100%;
-          cursor: ${isDragging ? 'grabbing' : 'grab'};
           touch-action: none;
         }
 
