@@ -15,6 +15,8 @@ export default function ConstructorInterface({ initialData, onBack }) {
   const [resizeHandle, setResizeHandle] = useState(null);
   const [elements, setElements] = useState([]);
   const [walls, setWalls] = useState([]);
+  const [fixedElements, setFixedElements] = useState(new Set());
+  const [lotFixed, setLotFixed] = useState(false);
 
   const SCALE = 30 * zoom;
 
@@ -159,48 +161,77 @@ export default function ConstructorInterface({ initialData, onBack }) {
     const houseElement = elements.find(el => el.type === 'house');
     if (!houseElement) return;
     
-    // Участок следует за домом, но размеры участка тоже масштабируются
-    const lotW = initialData.lotSize.width * 30 * zoom; // Фиксированный масштаб для участка
+    // Расчет позиции участка
+    let lotX, lotY;
+    const lotW = initialData.lotSize.width * 30 * zoom;
     const lotH = initialData.lotSize.height * 30 * zoom;
-    const lotX = houseElement.x - 50 * zoom;
-    const lotY = houseElement.y - 50 * zoom;
     
-    // Проверяем, выходит ли дом за границы участка
-    const houseExceedsLot = (
-      houseElement.x < lotX || 
-      houseElement.y < lotY ||
-      houseElement.x + houseElement.width > lotX + lotW ||
-      houseElement.y + houseElement.height > lotY + lotH
-    );
-    
-    // Заливка участка (красная если дом выходит за границы)
-    if (houseExceedsLot) {
-      ctx.fillStyle = 'rgba(255, 0, 0, 0.1)';
-      ctx.fillRect(lotX, lotY, lotW, lotH);
+    if (lotFixed) {
+      // Если участок зафиксирован, он остается на месте
+      lotX = 100;
+      lotY = 100;
+    } else {
+      // Участок следует за домом
+      lotX = houseElement.x * zoom - 50 * zoom;
+      lotY = houseElement.y * zoom - 50 * zoom;
     }
     
+    // Проверяем, выходит ли дом за границы участка
+    const scaledHouseX = houseElement.x * zoom;
+    const scaledHouseY = houseElement.y * zoom;
+    const scaledHouseW = houseElement.width * zoom;
+    const scaledHouseH = houseElement.height * zoom;
+    
+    const houseExceedsLot = (
+      scaledHouseX < lotX || 
+      scaledHouseY < lotY ||
+      scaledHouseX + scaledHouseW > lotX + lotW ||
+      scaledHouseY + scaledHouseH > lotY + lotH
+    );
+    
+    // Заливка участка
+    ctx.fillStyle = houseExceedsLot ? 'rgba(255, 0, 0, 0.1)' : 'rgba(200, 200, 200, 0.05)';
+    ctx.fillRect(lotX, lotY, lotW, lotH);
+    
     // Контур участка
-    ctx.strokeStyle = houseExceedsLot ? '#ff0000' : '#666';
+    ctx.strokeStyle = houseExceedsLot ? '#ff0000' : (lotFixed ? '#2196f3' : '#666');
     ctx.lineWidth = Math.max(2, 3 * zoom);
     const dashSize = Math.max(8, 15 * zoom);
     ctx.setLineDash([dashSize, dashSize * 0.6]);
     ctx.strokeRect(lotX, lotY, lotW, lotH);
     ctx.setLineDash([]);
     
-    // Размеры участка (показываем только при достаточном масштабе)
+    // Иконка фиксации для участка
+    if (selectedTool === 'fix' && zoom >= 0.4) {
+      const fixButtonX = lotX + lotW - 20 * zoom;
+      const fixButtonY = lotY + 10 * zoom;
+      const buttonSize = 15 * zoom;
+      
+      ctx.fillStyle = lotFixed ? '#4caf50' : '#2196f3';
+      ctx.fillRect(fixButtonX, fixButtonY, buttonSize, buttonSize);
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(fixButtonX, fixButtonY, buttonSize, buttonSize);
+      
+      // Иконка замка
+      ctx.fillStyle = '#fff';
+      ctx.font = `${Math.max(8, 10 * zoom)}px Arial`;
+      ctx.textAlign = 'center';
+      ctx.fillText(lotFixed ? '🔒' : '🔓', fixButtonX + buttonSize/2, fixButtonY + buttonSize * 0.7);
+    }
+    
+    // Размеры участка
     if (zoom >= 0.3) {
       ctx.fillStyle = houseExceedsLot ? '#ff0000' : '#666';
       ctx.font = `${Math.max(10, 14 * zoom)}px Arial`;
       ctx.textAlign = 'center';
       
-      // Ширина участка (сверху)
       ctx.fillText(
         `${initialData.lotSize.width}м`,
         lotX + lotW / 2,
         lotY - 10 * zoom
       );
       
-      // Высота участка (слева)
       ctx.save();
       ctx.translate(lotX - 20 * zoom, lotY + lotH / 2);
       ctx.rotate(-Math.PI / 2);
@@ -208,7 +239,6 @@ export default function ConstructorInterface({ initialData, onBack }) {
       ctx.restore();
     }
     
-    // Предупреждение если дом выходит за границы
     if (houseExceedsLot && zoom >= 0.4) {
       ctx.fillStyle = '#ff0000';
       ctx.font = `${Math.max(10, 12 * zoom)}px Arial`;
@@ -229,6 +259,7 @@ export default function ConstructorInterface({ initialData, onBack }) {
   
   const drawElement = (ctx, element) => {
     const isSelected = selectedElement?.id === element.id;
+    const isFixed = fixedElements.has(element.id);
     
     // Масштабируем размеры элемента
     const scaledWidth = element.width * zoom;
@@ -238,17 +269,35 @@ export default function ConstructorInterface({ initialData, onBack }) {
     
     // Основа элемента
     if (element.type === 'house') {
-      ctx.fillStyle = isSelected ? '#d4c5e8' : '#eee8f4';
+      ctx.fillStyle = isSelected ? '#d4c5e8' : (isFixed ? '#e8f4d4' : '#eee8f4');
     } else {
-      ctx.fillStyle = isSelected ? '#c5d4e8' : '#e8f4ee';
+      ctx.fillStyle = isSelected ? '#c5d4e8' : (isFixed ? '#d4e8c5' : '#e8f4ee');
     }
     
     ctx.fillRect(scaledX, scaledY, scaledWidth, scaledHeight);
     
     // Контур
-    ctx.strokeStyle = isSelected ? '#df682b' : '#31323d';
+    ctx.strokeStyle = isSelected ? '#df682b' : (isFixed ? '#4caf50' : '#31323d');
     ctx.lineWidth = isSelected ? Math.max(2, 3 * zoom) : Math.max(1, 2 * zoom);
     ctx.strokeRect(scaledX, scaledY, scaledWidth, scaledHeight);
+    
+    // Иконка фиксации
+    if (selectedTool === 'fix' && zoom >= 0.4) {
+      const fixButtonX = scaledX + scaledWidth - 20 * zoom;
+      const fixButtonY = scaledY + 5 * zoom;
+      const buttonSize = 15 * zoom;
+      
+      ctx.fillStyle = isFixed ? '#4caf50' : '#2196f3';
+      ctx.fillRect(fixButtonX, fixButtonY, buttonSize, buttonSize);
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(fixButtonX, fixButtonY, buttonSize, buttonSize);
+      
+      ctx.fillStyle = '#fff';
+      ctx.font = `${Math.max(8, 10 * zoom)}px Arial`;
+      ctx.textAlign = 'center';
+      ctx.fillText(isFixed ? '🔒' : '🔓', fixButtonX + buttonSize/2, fixButtonY + buttonSize * 0.7);
+    }
     
     // Информация об элементе
     if (zoom >= 0.3) {
@@ -284,14 +333,12 @@ export default function ConstructorInterface({ initialData, onBack }) {
       const centerX = scaledX + scaledWidth / 2;
       const centerY = scaledY + scaledHeight / 2;
       
-      // Ширина (сверху)
       ctx.fillText(
         `${element.realWidth?.toFixed(1) || '0'}м`,
         centerX,
         scaledY - 8 * zoom
       );
       
-      // Высота (слева)
       ctx.save();
       ctx.translate(scaledX - 12 * zoom, centerY);
       ctx.rotate(-Math.PI / 2);
@@ -300,7 +347,7 @@ export default function ConstructorInterface({ initialData, onBack }) {
     }
     
     // Маркеры для изменения размера
-    if (isSelected && selectedTool === 'select') {
+    if (isSelected && selectedTool === 'select' && !isFixed) {
       drawResizeHandles(ctx, { ...element, x: scaledX, y: scaledY, width: scaledWidth, height: scaledHeight });
     }
   };
@@ -409,9 +456,22 @@ export default function ConstructorInterface({ initialData, onBack }) {
     const worldX = (clientX - panOffset.x) / zoom;
     const worldY = (clientY - panOffset.y) / zoom;
     
-    if (selectedTool === 'select') {
+    if (selectedTool === 'fix') {
+      // Проверяем клик по кнопке фиксации участка
+      if (checkLotFixButton(clientX, clientY)) {
+        setLotFixed(!lotFixed);
+        return;
+      }
+      
+      // Проверяем клик по кнопке фиксации элемента
+      const elementFixButton = checkElementFixButton(clientX, clientY);
+      if (elementFixButton) {
+        toggleElementFix(elementFixButton.id);
+        return;
+      }
+    } else if (selectedTool === 'select') {
       // Проверяем клик по маркерам изменения размера
-      if (selectedElement) {
+      if (selectedElement && !fixedElements.has(selectedElement.id)) {
         const handle = getResizeHandle(clientX, clientY, selectedElement);
         if (handle) {
           setResizeHandle({ elementId: selectedElement.id, handle });
@@ -425,32 +485,101 @@ export default function ConstructorInterface({ initialData, onBack }) {
       
       if (clickedElement) {
         setSelectedElement(clickedElement);
-        setDraggedElement({ 
-          element: clickedElement, 
-          startX: worldX - clickedElement.x, 
-          startY: worldY - clickedElement.y 
-        });
+        if (!fixedElements.has(clickedElement.id)) {
+          setDraggedElement({ 
+            element: clickedElement, 
+            startX: worldX - clickedElement.x, 
+            startY: worldY - clickedElement.y 
+          });
+        }
         return;
       } else if (clickedWall) {
         setSelectedElement(clickedWall);
-        setDraggedElement({ 
-          element: clickedWall, 
-          startX: worldX, 
-          startY: worldY 
-        });
+        if (!fixedElements.has(clickedWall.id)) {
+          setDraggedElement({ 
+            element: clickedWall, 
+            startX: worldX, 
+            startY: worldY 
+          });
+        }
         return;
       }
       
       setSelectedElement(null);
     } else if (selectedTool === 'wall') {
-      // Добавляем новую стену
       addWall(worldX, worldY);
       return;
     }
     
-    // Начинаем панорамирование
     setIsDragging(true);
     setDragStart({ x: e.clientX - panOffset.x, y: e.clientY - panOffset.y });
+  };
+  
+  const checkLotFixButton = (clientX, clientY) => {
+    const houseElement = elements.find(el => el.type === 'house');
+    if (!houseElement || zoom < 0.4) return false;
+    
+    let lotX, lotY;
+    const lotW = initialData.lotSize.width * 30 * zoom;
+    
+    if (lotFixed) {
+      lotX = 100;
+      lotY = 100;
+    } else {
+      lotX = houseElement.x * zoom - 50 * zoom;
+      lotY = houseElement.y * zoom - 50 * zoom;
+    }
+    
+    const fixButtonX = lotX + lotW - 20 * zoom + panOffset.x;
+    const fixButtonY = lotY + 10 * zoom + panOffset.y;
+    const buttonSize = 15 * zoom;
+    
+    return clientX >= fixButtonX && clientX <= fixButtonX + buttonSize &&
+           clientY >= fixButtonY && clientY <= fixButtonY + buttonSize;
+  };
+  
+  const checkElementFixButton = (clientX, clientY) => {
+    if (zoom < 0.4) return null;
+    
+    for (const element of elements) {
+      const scaledX = element.x * zoom + panOffset.x;
+      const scaledY = element.y * zoom + panOffset.y;
+      const scaledWidth = element.width * zoom;
+      
+      const fixButtonX = scaledX + scaledWidth - 20 * zoom;
+      const fixButtonY = scaledY + 5 * zoom;
+      const buttonSize = 15 * zoom;
+      
+      if (clientX >= fixButtonX && clientX <= fixButtonX + buttonSize &&
+          clientY >= fixButtonY && clientY <= fixButtonY + buttonSize) {
+        return element;
+      }
+    }
+    
+    for (const wall of walls) {
+      const centerX = ((wall.x1 + wall.x2) / 2) * zoom + panOffset.x;
+      const centerY = ((wall.y1 + wall.y2) / 2) * zoom + panOffset.y;
+      const buttonSize = 15 * zoom;
+      
+      if (clientX >= centerX - buttonSize/2 && clientX <= centerX + buttonSize/2 &&
+          clientY >= centerY - buttonSize/2 && clientY <= centerY + buttonSize/2) {
+        return wall;
+      }
+    }
+    
+    return null;
+  };
+  
+  const toggleElementFix = (elementId) => {
+    setFixedElements(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(elementId)) {
+        newSet.delete(elementId);
+      } else {
+        newSet.add(elementId);
+      }
+      return newSet;
+    });
   };
   
   const addWall = (x, y) => {
@@ -553,17 +682,26 @@ export default function ConstructorInterface({ initialData, onBack }) {
     const worldX = (clientX - panOffset.x) / zoom;
     const worldY = (clientY - panOffset.y) / zoom;
     
-    // Изменение размера
-    if (resizeHandle) {
+    if (resizeHandle && !fixedElements.has(resizeHandle.elementId)) {
       resizeElement(worldX, worldY);
       return;
     }
     
-    // Перетаскивание элемента
-    if (draggedElement && selectedTool === 'select') {
+    if (draggedElement && selectedTool === 'select' && !fixedElements.has(draggedElement.element.id)) {
       if (draggedElement.element.type === 'house') {
-        const newX = worldX - draggedElement.startX;
-        const newY = worldY - draggedElement.startY;
+        let newX = worldX - draggedElement.startX;
+        let newY = worldY - draggedElement.startY;
+        
+        // Ограничиваем перемещение дома в пределах участка (если участок зафиксирован)
+        if (lotFixed) {
+          const lotX = 100 / zoom;
+          const lotY = 100 / zoom;
+          const lotW = initialData.lotSize.width * 30;
+          const lotH = initialData.lotSize.height * 30;
+          
+          newX = Math.max(lotX, Math.min(lotX + lotW - draggedElement.element.width, newX));
+          newY = Math.max(lotY, Math.min(lotY + lotH - draggedElement.element.height, newY));
+        }
         
         setElements(prev => prev.map(el => 
           el.id === draggedElement.element.id 
@@ -571,7 +709,6 @@ export default function ConstructorInterface({ initialData, onBack }) {
             : el
         ));
       } else if (draggedElement.element.x1 !== undefined) {
-        // Перетаскивание стены
         const deltaX = worldX - draggedElement.startX;
         const deltaY = worldY - draggedElement.startY;
         
@@ -592,7 +729,6 @@ export default function ConstructorInterface({ initialData, onBack }) {
       return;
     }
     
-    // Панорамирование
     if (isDragging) {
       setPanOffset({
         x: e.clientX - dragStart.x,
@@ -600,7 +736,6 @@ export default function ConstructorInterface({ initialData, onBack }) {
       });
     }
     
-    // Обновляем курсор
     updateCursor(clientX, clientY);
   };
   
@@ -932,7 +1067,7 @@ export default function ConstructorInterface({ initialData, onBack }) {
                 { id: 'wall', name: 'Стена', icon: '🧱' },
                 { id: 'door', name: 'Дверь', icon: '🚪' },
                 { id: 'window', name: 'Окно', icon: '🪟' },
-                { id: 'room', name: 'Комната', icon: '🏠' },
+                { id: 'fix', name: 'Фиксация', icon: '🔒' },
                 { id: 'rotate', name: 'Поворот', icon: '🔄' }
               ].map(tool => (
                 <button
