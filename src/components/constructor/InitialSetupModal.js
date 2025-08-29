@@ -251,8 +251,8 @@ export default function InitialSetupModal({ onComplete }) {
 
         .modal-container {
           background: var(--white);
-          border-radius: 16px;
-          max-width: 900px;
+          border-radius: 12px;
+          max-width: 700px;
           width: 100%;
           max-height: 90vh;
           overflow-y: auto;
@@ -262,65 +262,68 @@ export default function InitialSetupModal({ onComplete }) {
         .modal-header {
           background: var(--primary-dark);
           color: var(--white);
-          padding: 24px;
-          border-radius: 16px 16px 0 0;
+          padding: 16px;
+          border-radius: 12px 12px 0 0;
           text-align: center;
         }
 
         .modal-header h2 {
-          font-size: 24px;
-          margin-bottom: 8px;
+          font-size: 18px;
+          margin-bottom: 6px;
+          font-weight: 500;
         }
 
         .modal-header p {
           opacity: 0.9;
-          font-size: 14px;
+          font-size: 12px;
+          margin: 0;
         }
 
         .modal-content {
-          padding: 24px;
+          padding: 16px;
         }
 
         .section {
-          margin-bottom: 32px;
+          margin-bottom: 20px;
         }
 
         .section h3 {
           display: flex;
           align-items: center;
-          gap: 8px;
-          font-size: 18px;
-          margin-bottom: 16px;
+          gap: 6px;
+          font-size: 14px;
+          margin-bottom: 12px;
           color: var(--primary-dark);
+          font-weight: 500;
         }
 
         .section-icon {
-          font-size: 20px;
+          font-size: 16px;
         }
 
         .lot-inputs {
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 16px;
+          gap: 12px;
         }
 
         .input-group {
           display: flex;
           flex-direction: column;
-          gap: 6px;
+          gap: 4px;
         }
 
         .input-group label {
           font-weight: 500;
           color: var(--text-dark);
-          font-size: 14px;
+          font-size: 12px;
         }
 
         .input-group input {
-          padding: 12px;
-          border: 2px solid var(--border-gray);
-          border-radius: 8px;
-          font-size: 16px;
+          padding: 8px 10px;
+          border: 1px solid var(--border-gray);
+          border-radius: 4px;
+          font-size: 13px;
           transition: border-color 0.2s;
         }
 
@@ -332,20 +335,21 @@ export default function InitialSetupModal({ onComplete }) {
         .house-selection-tabs {
           display: flex;
           background: var(--light-purple);
-          border-radius: 8px;
-          padding: 4px;
-          margin-bottom: 20px;
+          border-radius: 6px;
+          padding: 3px;
+          margin-bottom: 12px;
         }
 
         .house-selection-tabs button {
           flex: 1;
-          padding: 12px;
+          padding: 8px 10px;
           border: none;
           background: transparent;
-          border-radius: 6px;
+          border-radius: 4px;
           cursor: pointer;
           font-weight: 500;
           transition: all 0.2s;
+          font-size: 12px;
         }
 
         .house-selection-tabs button.active {
@@ -355,22 +359,22 @@ export default function InitialSetupModal({ onComplete }) {
 
         .series-selector {
           display: flex;
-          gap: 8px;
-          margin-bottom: 16px;
+          gap: 6px;
+          margin-bottom: 12px;
           flex-wrap: wrap;
         }
 
         .series-selector button {
           display: flex;
           align-items: center;
-          gap: 8px;
-          padding: 8px 16px;
-          border: 2px solid var(--border-gray);
+          gap: 6px;
+          padding: 6px 12px;
+          border: 1px solid var(--border-gray);
           background: var(--white);
-          border-radius: 8px;
+          border-radius: 6px;
           cursor: pointer;
           transition: all 0.2s;
-          font-size: 14px;
+          font-size: 11px;
         }
 
         .series-selector button.active {
@@ -379,19 +383,19 @@ export default function InitialSetupModal({ onComplete }) {
         }
 
         .series-icon {
-          font-size: 16px;
+          font-size: 14px;
         }
 
         .houses-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-          gap: 16px;
+          grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+          gap: 10px;
         }
 
         .house-card {
-          border: 2px solid var(--border-gray);
-          border-radius: 12px;
-          padding: 16px;
+          border: 1px solid var(--border-gray);
+          border-radius: 8px;
+          padding: 12px;
           cursor: pointer;
           transition: all 0.2s;
           background: var(--white);
@@ -410,84 +414,85 @@ export default function InitialSetupModal({ onComplete }) {
 
         .house-visual {
           text-align: center;
-          margin-bottom: 12px;
+          margin-bottom: 8px;
         }
 
         .house-icon {
-          font-size: 32px;
-          margin-bottom: 8px;
+          font-size: 24px;
+          margin-bottom: 4px;
         }
 
         .house-dimensions {
-          font-weight: bold;
+          font-weight: 500;
           color: var(--accent-orange);
-          font-size: 16px;
+          font-size: 13px;
         }
 
         .house-info h4 {
-          font-size: 14px;
-          margin-bottom: 8px;
+          font-size: 11px;
+          margin-bottom: 6px;
           color: var(--text-dark);
+          font-weight: 500;
         }
 
         .house-specs {
           display: flex;
           justify-content: space-between;
-          font-size: 12px;
+          font-size: 10px;
           color: var(--text-light);
         }
 
         .custom-house {
-          border: 2px solid var(--border-gray);
-          border-radius: 12px;
-          padding: 20px;
+          border: 1px solid var(--border-gray);
+          border-radius: 8px;
+          padding: 14px;
           background: var(--light-purple);
         }
 
         .custom-visual {
           text-align: center;
-          margin-bottom: 20px;
+          margin-bottom: 12px;
         }
 
         .custom-icon {
-          font-size: 32px;
-          margin-bottom: 8px;
+          font-size: 24px;
+          margin-bottom: 4px;
         }
 
         .custom-inputs {
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 16px;
-          margin-bottom: 16px;
+          gap: 10px;
+          margin-bottom: 12px;
         }
 
         .custom-info {
           display: flex;
           justify-content: space-between;
-          padding: 12px;
+          padding: 8px;
           background: var(--white);
-          border-radius: 8px;
+          border-radius: 6px;
         }
 
         .info-item {
           display: flex;
           flex-direction: column;
-          gap: 4px;
+          gap: 2px;
           text-align: center;
         }
 
         .info-item span {
-          font-size: 12px;
+          font-size: 10px;
           color: var(--text-light);
         }
 
         .info-item strong {
-          font-size: 14px;
+          font-size: 12px;
           color: var(--accent-orange);
         }
 
         .modal-footer {
-          padding: 24px;
+          padding: 16px;
           border-top: 1px solid var(--border-gray);
           text-align: center;
         }
@@ -496,13 +501,13 @@ export default function InitialSetupModal({ onComplete }) {
           background: var(--dark-green);
           color: var(--white);
           border: none;
-          padding: 16px 32px;
-          border-radius: 8px;
-          font-size: 16px;
-          font-weight: bold;
+          padding: 10px 24px;
+          border-radius: 6px;
+          font-size: 13px;
+          font-weight: 500;
           cursor: pointer;
           transition: all 0.2s;
-          margin-bottom: 12px;
+          margin-bottom: 8px;
         }
 
         .proceed-btn:hover:not(:disabled) {
@@ -517,7 +522,7 @@ export default function InitialSetupModal({ onComplete }) {
 
         .warning {
           color: var(--accent-orange);
-          font-size: 14px;
+          font-size: 11px;
           margin: 0;
         }
 

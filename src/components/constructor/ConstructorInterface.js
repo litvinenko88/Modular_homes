@@ -2231,11 +2231,12 @@ export default function ConstructorInterface({ initialData, onBack }) {
         .constructor-header {
           background: var(--primary-dark);
           color: var(--white);
-          padding: 16px 24px;
+          padding: 8px 16px;
           display: flex;
           justify-content: space-between;
           align-items: center;
           box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+          min-height: 50px;
         }
 
         .header-left {
@@ -2248,10 +2249,10 @@ export default function ConstructorInterface({ initialData, onBack }) {
           background: var(--accent-orange);
           color: var(--white);
           border: none;
-          padding: 8px 16px;
-          border-radius: 6px;
+          padding: 6px 12px;
+          border-radius: 4px;
           cursor: pointer;
-          font-size: 14px;
+          font-size: 12px;
           transition: all 0.2s;
         }
 
@@ -2260,14 +2261,15 @@ export default function ConstructorInterface({ initialData, onBack }) {
         }
 
         .constructor-header h1 {
-          font-size: 20px;
+          font-size: 16px;
           margin: 0;
+          font-weight: 500;
         }
 
         .header-right .project-info {
           display: flex;
-          gap: 20px;
-          font-size: 14px;
+          gap: 12px;
+          font-size: 11px;
           opacity: 0.9;
         }
 
@@ -2290,16 +2292,16 @@ export default function ConstructorInterface({ initialData, onBack }) {
         }
 
         .control-panel {
-          width: 25%;
-          min-width: 300px;
-          max-width: 400px;
+          width: 280px;
+          min-width: 280px;
+          max-width: 280px;
           background: var(--primary-dark);
           color: var(--white);
-          padding: 20px;
+          padding: 12px;
           overflow-y: auto;
           display: flex;
           flex-direction: column;
-          gap: 24px;
+          gap: 12px;
           transition: transform 0.3s ease, width 0.3s ease;
           position: relative;
         }
@@ -2341,8 +2343,8 @@ export default function ConstructorInterface({ initialData, onBack }) {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin-bottom: 16px;
-          padding-bottom: 12px;
+          margin-bottom: 8px;
+          padding-bottom: 8px;
           border-bottom: 1px solid rgba(255, 255, 255, 0.2);
         }
         
@@ -2350,10 +2352,10 @@ export default function ConstructorInterface({ initialData, onBack }) {
           background: var(--accent-orange);
           color: var(--white);
           border: none;
-          padding: 8px 12px;
-          border-radius: 6px;
+          padding: 6px 10px;
+          border-radius: 4px;
           cursor: pointer;
-          font-size: 12px;
+          font-size: 11px;
           transition: all 0.2s;
           display: flex;
           align-items: center;
@@ -2369,10 +2371,10 @@ export default function ConstructorInterface({ initialData, onBack }) {
           background: transparent;
           color: var(--white);
           border: 1px solid rgba(255, 255, 255, 0.3);
-          padding: 6px 8px;
-          border-radius: 4px;
+          padding: 4px 6px;
+          border-radius: 3px;
           cursor: pointer;
-          font-size: 14px;
+          font-size: 12px;
           transition: all 0.2s;
         }
         
@@ -2382,11 +2384,12 @@ export default function ConstructorInterface({ initialData, onBack }) {
         }
 
         .panel-section h3 {
-          margin: 0 0 12px 0;
-          font-size: 16px;
+          margin: 0 0 8px 0;
+          font-size: 13px;
           color: var(--white);
           border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-          padding-bottom: 8px;
+          padding-bottom: 4px;
+          font-weight: 500;
         }
 
         .view-toggle {
@@ -2398,12 +2401,13 @@ export default function ConstructorInterface({ initialData, onBack }) {
 
         .view-toggle button {
           flex: 1;
-          padding: 10px;
+          padding: 6px 8px;
           border: none;
           background: transparent;
           color: var(--white);
           cursor: pointer;
           transition: all 0.2s;
+          font-size: 11px;
         }
 
         .view-toggle button.active {
@@ -2412,20 +2416,20 @@ export default function ConstructorInterface({ initialData, onBack }) {
 
         .tools-grid {
           display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 8px;
+          grid-template-columns: 1fr 1fr 1fr;
+          gap: 6px;
         }
 
         .tool-btn {
           display: flex;
           flex-direction: column;
           align-items: center;
-          gap: 4px;
-          padding: 12px 8px;
+          gap: 2px;
+          padding: 8px 4px;
           border: 1px solid rgba(255, 255, 255, 0.2);
           background: transparent;
           color: var(--white);
-          border-radius: 6px;
+          border-radius: 4px;
           cursor: pointer;
           transition: all 0.2s;
         }
@@ -2440,28 +2444,29 @@ export default function ConstructorInterface({ initialData, onBack }) {
         }
 
         .tool-icon {
-          font-size: 20px;
+          font-size: 16px;
         }
 
         .tool-name {
-          font-size: 11px;
+          font-size: 9px;
         }
 
         .zoom-controls {
           display: grid;
           grid-template-columns: 1fr auto 1fr 1fr;
-          gap: 8px;
+          gap: 4px;
           align-items: center;
         }
 
         .zoom-controls button {
-          padding: 8px;
+          padding: 4px 6px;
           border: 1px solid rgba(255, 255, 255, 0.2);
           background: transparent;
           color: var(--white);
-          border-radius: 4px;
+          border-radius: 3px;
           cursor: pointer;
           transition: all 0.2s;
+          font-size: 11px;
         }
 
         .zoom-controls button:hover {
@@ -2470,12 +2475,12 @@ export default function ConstructorInterface({ initialData, onBack }) {
 
         .zoom-controls span {
           text-align: center;
-          font-size: 12px;
+          font-size: 10px;
         }
         
         .hotkeys-info {
-          margin-top: 12px;
-          padding-top: 12px;
+          margin-top: 8px;
+          padding-top: 8px;
           border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
         
@@ -2483,30 +2488,31 @@ export default function ConstructorInterface({ initialData, onBack }) {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          padding: 4px 0;
-          font-size: 11px;
+          padding: 2px 0;
+          font-size: 9px;
         }
         
         .hotkey-item span:first-child {
           background: rgba(255, 255, 255, 0.1);
-          padding: 2px 6px;
-          border-radius: 3px;
+          padding: 1px 4px;
+          border-radius: 2px;
           font-family: monospace;
+          font-size: 8px;
         }
 
         .project-details {
           display: flex;
           flex-direction: column;
-          gap: 8px;
+          gap: 4px;
         }
 
         .detail-item {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          padding: 6px 0;
+          padding: 3px 0;
           border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-          font-size: 13px;
+          font-size: 10px;
         }
 
         .detail-item span {
@@ -2519,35 +2525,35 @@ export default function ConstructorInterface({ initialData, onBack }) {
         
         .selected-info {
           background: rgba(223, 104, 43, 0.1);
-          padding: 4px 8px;
-          border-radius: 4px;
-          margin: 4px 0;
+          padding: 2px 6px;
+          border-radius: 3px;
+          margin: 2px 0;
         }
         
         .size-controls {
           display: flex;
           flex-direction: column;
-          gap: 8px;
+          gap: 6px;
         }
         
         .size-input {
           display: flex;
           flex-direction: column;
-          gap: 4px;
+          gap: 2px;
         }
         
         .size-input label {
-          font-size: 12px;
+          font-size: 10px;
           opacity: 0.8;
         }
         
         .size-input input {
-          padding: 6px;
+          padding: 4px 6px;
           border: 1px solid rgba(255, 255, 255, 0.2);
-          border-radius: 4px;
+          border-radius: 3px;
           background: rgba(255, 255, 255, 0.1);
           color: var(--white);
-          font-size: 14px;
+          font-size: 11px;
         }
         
         .size-input input:focus {

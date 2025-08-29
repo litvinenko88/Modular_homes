@@ -669,53 +669,54 @@ export default function ModuleSelection({ data, updateData, onNext }) {
           overflow: hidden;
         }
         .controls {
-          width: 25%;
+          width: 280px;
           min-width: 280px;
-          max-width: 350px;
+          max-width: 280px;
           display: flex;
           flex-direction: column;
-          gap: 15px;
-          padding: 20px;
+          gap: 12px;
+          padding: 12px;
           background: white;
           border-right: 1px solid #e0e0e0;
           overflow-y: auto;
         }
         .lot-settings, .module-palette {
           background: #f5f5f5;
-          padding: 15px;
-          border-radius: 8px;
+          padding: 10px;
+          border-radius: 6px;
         }
         .input-group {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin-bottom: 10px;
+          margin-bottom: 6px;
         }
         .input-group input {
-          width: 80px;
-          padding: 5px;
+          width: 70px;
+          padding: 4px;
           border: 1px solid #ddd;
-          border-radius: 4px;
+          border-radius: 3px;
+          font-size: 12px;
         }
         .module-selection-panel {
           background: #f5f5f5;
-          padding: 15px;
-          border-radius: 8px;
+          padding: 10px;
+          border-radius: 6px;
         }
         .selection-mode {
           display: flex;
           background: #e0e0e0;
-          border-radius: 6px;
-          margin-bottom: 15px;
+          border-radius: 4px;
+          margin-bottom: 10px;
           overflow: hidden;
         }
         .selection-mode button {
           flex: 1;
-          padding: 8px 12px;
+          padding: 6px 8px;
           border: none;
           background: transparent;
           cursor: pointer;
-          font-size: 12px;
+          font-size: 11px;
         }
         .selection-mode button.active {
           background: #2196f3;
@@ -723,22 +724,23 @@ export default function ModuleSelection({ data, updateData, onNext }) {
         }
         .series-selector select {
           width: 100%;
-          padding: 8px;
+          padding: 6px;
           border: 1px solid #ddd;
-          border-radius: 4px;
-          margin-bottom: 10px;
+          border-radius: 3px;
+          margin-bottom: 8px;
+          font-size: 11px;
         }
         .modules-grid {
           display: grid;
           grid-template-columns: 1fr;
-          gap: 8px;
-          max-height: 300px;
+          gap: 6px;
+          max-height: 200px;
           overflow-y: auto;
         }
         .module-card {
-          padding: 10px;
-          border: 2px solid #ddd;
-          border-radius: 6px;
+          padding: 8px;
+          border: 1px solid #ddd;
+          border-radius: 4px;
           cursor: pointer;
           background: white;
           transition: all 0.2s;
@@ -749,60 +751,63 @@ export default function ModuleSelection({ data, updateData, onNext }) {
           box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
         .module-title {
-          font-size: 11px;
-          font-weight: bold;
-          margin-bottom: 5px;
+          font-size: 10px;
+          font-weight: 500;
+          margin-bottom: 3px;
+          line-height: 1.2;
         }
         .module-specs {
           display: flex;
           justify-content: space-between;
-          font-size: 10px;
+          font-size: 9px;
           color: #666;
         }
         .custom-module h4 {
-          margin: 0 0 10px 0;
-          font-size: 14px;
+          margin: 0 0 8px 0;
+          font-size: 12px;
+          font-weight: 500;
         }
         .custom-info {
           background: #e8f5e8;
-          padding: 8px;
-          border-radius: 4px;
-          margin: 10px 0;
-          font-size: 11px;
+          padding: 6px;
+          border-radius: 3px;
+          margin: 6px 0;
+          font-size: 9px;
         }
         .add-custom-btn {
           width: 100%;
-          padding: 10px;
+          padding: 8px;
           background: #4caf50;
           color: white;
           border: none;
-          border-radius: 4px;
+          border-radius: 3px;
           cursor: pointer;
-          font-weight: bold;
+          font-weight: 500;
+          font-size: 11px;
         }
         .canvas-controls {
           background: #f5f5f5;
-          padding: 10px;
-          border-radius: 8px;
-          margin-top: 10px;
+          padding: 8px;
+          border-radius: 6px;
         }
         .zoom-controls {
           display: flex;
           align-items: center;
-          gap: 8px;
+          gap: 6px;
         }
         .zoom-controls button {
-          width: 30px;
-          height: 30px;
+          width: 24px;
+          height: 24px;
           border: 1px solid #ddd;
           background: white;
-          border-radius: 4px;
+          border-radius: 3px;
           cursor: pointer;
-          font-weight: bold;
+          font-weight: 500;
+          font-size: 11px;
         }
         .zoom-controls span {
-          font-size: 12px;
-          min-width: 40px;
+          font-size: 10px;
+          min-width: 35px;
           text-align: center;
         }
         .canvas-area {
@@ -822,24 +827,26 @@ export default function ModuleSelection({ data, updateData, onNext }) {
         .actions {
           display: flex;
           flex-direction: column;
-          gap: 10px;
+          gap: 8px;
         }
         .delete-btn {
           background: #f44336;
           color: white;
           border: none;
-          padding: 10px;
-          border-radius: 4px;
+          padding: 8px;
+          border-radius: 3px;
           cursor: pointer;
+          font-size: 11px;
         }
         .next-btn {
           background: #4caf50;
           color: white;
           border: none;
-          padding: 15px;
+          padding: 10px;
           border-radius: 4px;
           cursor: pointer;
-          font-size: 16px;
+          font-size: 12px;
+          font-weight: 500;
         }
         .next-btn:disabled {
           background: #ccc;

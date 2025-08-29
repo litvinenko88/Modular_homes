@@ -51,13 +51,43 @@ a {
 /* Адаптивные стили для мобильных устройств */
 @media (max-width: 768px) {
   body {
-    font-size: 14px;
+    font-size: 13px;
   }
 }
 
 @media (max-width: 480px) {
   body {
     font-size: 12px;
+  }
+}
+
+/* Улучшенная типографика */
+h1, h2, h3, h4, h5, h6 {
+  line-height: 1.2;
+  margin: 0;
+}
+
+p {
+  line-height: 1.4;
+  margin: 0;
+}
+
+/* Компактные кнопки */
+button {
+  font-family: inherit;
+  line-height: 1;
+}
+
+/* Компактные поля ввода */
+input, select, textarea {
+  font-family: inherit;
+  line-height: 1.2;
+}
+
+/* Оптимизация для маленьких экранов */
+@media (max-width: 320px) {
+  body {
+    font-size: 11px;
   }
 }
 
