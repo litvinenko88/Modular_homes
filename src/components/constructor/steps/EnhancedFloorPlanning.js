@@ -295,6 +295,59 @@ export default function EnhancedFloorPlanning({ data, updateData, onNext, onPrev
     });
   };
 
+  const drawOpeningHandles = (ctx, opening) => {
+    const wall = data.walls?.find(w => w.id === opening.wallId);
+    if (!wall) return;
+    
+    const wallLength = Math.sqrt(
+      Math.pow(wall.x2 - wall.x1, 2) + Math.pow(wall.y2 - wall.y1, 2)
+    );
+    const ratio = opening.position / wallLength;
+    const openingX = wall.x1 + (wall.x2 - wall.x1) * ratio;
+    const openingY = wall.y1 + (wall.y2 - wall.y1) * ratio;
+    
+    const centerX = 100 + openingX * SCALE;
+    const centerY = 100 + openingY * SCALE;
+    
+    // Кнопка удаления
+    ctx.fillStyle = '#f44336';
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(centerX, centerY - 30, 15, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    
+    // Символ корзины
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    // Крышка корзины
+    ctx.moveTo(centerX - 6, centerY - 34);
+    ctx.lineTo(centerX + 6, centerY - 34);
+    // Корпус корзины
+    ctx.moveTo(centerX - 4, centerY - 32);
+    ctx.lineTo(centerX - 3, centerY - 23);
+    ctx.lineTo(centerX + 3, centerY - 23);
+    ctx.lineTo(centerX + 4, centerY - 32);
+    // Вертикальные линии
+    ctx.moveTo(centerX - 2, centerY - 31);
+    ctx.lineTo(centerX - 2, centerY - 25);
+    ctx.moveTo(centerX + 2, centerY - 31);
+    ctx.lineTo(centerX + 2, centerY - 25);
+    ctx.stroke();
+    
+    // Линия к проему
+    ctx.strokeStyle = '#ccc';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath();
+    ctx.moveTo(centerX, centerY - 15);
+    ctx.lineTo(centerX, centerY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  };
+
   const drawOpenings2D = (ctx) => {
     (data.openings || []).forEach(opening => {
       const wall = data.walls?.find(w => w.id === opening.wallId);
@@ -369,53 +422,9 @@ export default function EnhancedFloorPlanning({ data, updateData, onNext, onPrev
           );
         }
         
-        // Маркеры для перетаскивания если выбран
-        if (isSelected && !view3D) {
-          ctx.fillStyle = '#ff5722';
-          ctx.strokeStyle = '#fff';
-          ctx.lineWidth = 2;
-          ctx.beginPath();
-          ctx.arc(100 + openingX * SCALE, 100 + openingY * SCALE, 12, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.stroke();
-          
-          // Иконка корзины для удаления
-          const deleteX = 100 + openingX * SCALE + 30;
-          const deleteY = 100 + openingY * SCALE - 30;
-          
-          // Тень для корзины
-          ctx.fillStyle = 'rgba(0,0,0,0.3)';
-          ctx.beginPath();
-          ctx.arc(deleteX + 2, deleteY + 2, 15, 0, Math.PI * 2);
-          ctx.fill();
-          
-          // Основной круг корзины
-          ctx.fillStyle = '#f44336';
-          ctx.strokeStyle = '#fff';
-          ctx.lineWidth = 3;
-          ctx.beginPath();
-          ctx.arc(deleteX, deleteY, 15, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.stroke();
-          
-          // Символ корзины
-          ctx.strokeStyle = '#fff';
-          ctx.lineWidth = 2.5;
-          ctx.beginPath();
-          // Крышка корзины
-          ctx.moveTo(deleteX - 7, deleteY - 5);
-          ctx.lineTo(deleteX + 7, deleteY - 5);
-          // Корпус корзины
-          ctx.moveTo(deleteX - 5, deleteY - 3);
-          ctx.lineTo(deleteX - 4, deleteY + 7);
-          ctx.lineTo(deleteX + 4, deleteY + 7);
-          ctx.lineTo(deleteX + 5, deleteY - 3);
-          // Вертикальные линии
-          ctx.moveTo(deleteX - 2, deleteY - 1);
-          ctx.lineTo(deleteX - 2, deleteY + 5);
-          ctx.moveTo(deleteX + 2, deleteY - 1);
-          ctx.lineTo(deleteX + 2, deleteY + 5);
-          ctx.stroke();
+        // Маркеры для выбранного проема
+        if (isSelected) {
+          drawOpeningHandles(ctx, opening);
         }
       }
     });
@@ -576,7 +585,7 @@ export default function EnhancedFloorPlanning({ data, updateData, onNext, onPrev
         const openingX = wall.x1 + (wall.x2 - wall.x1) * ratio;
         const openingY = wall.y1 + (wall.y2 - wall.y1) * ratio;
         
-        const deleteX = 100 + openingX * SCALE + 30;
+        const deleteX = 100 + openingX * SCALE;
         const deleteY = 100 + openingY * SCALE - 30;
         const distanceToDelete = Math.sqrt(
           Math.pow(clientX - deleteX, 2) + Math.pow(clientY - deleteY, 2)
