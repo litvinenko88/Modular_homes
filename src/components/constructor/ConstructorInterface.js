@@ -16,7 +16,7 @@ export default function ConstructorInterface({ initialData, onBack }) {
   const [elements, setElements] = useState([]);
   const [walls, setWalls] = useState([]);
   const [fixedElements, setFixedElements] = useState(new Set());
-  const [lotFixed, setLotFixed] = useState(false);
+  const [lotFixed, setLotFixed] = useState(true);
 
   const SCALE = 30 * zoom;
 
@@ -201,23 +201,37 @@ export default function ConstructorInterface({ initialData, onBack }) {
     ctx.strokeRect(lotX, lotY, lotW, lotH);
     ctx.setLineDash([]);
     
-    // Иконка фиксации для участка
-    if (selectedTool === 'fix' && zoom >= 0.4) {
-      const fixButtonX = lotX + lotW - 20 * zoom;
+    // Иконка фиксации для участка - всегда видна
+    if (zoom >= 0.4) {
+      const fixButtonX = lotX + lotW - 25 * zoom;
       const fixButtonY = lotY + 10 * zoom;
-      const buttonSize = 15 * zoom;
+      const buttonSize = 20 * zoom;
       
-      ctx.fillStyle = lotFixed ? '#4caf50' : '#2196f3';
-      ctx.fillRect(fixButtonX, fixButtonY, buttonSize, buttonSize);
-      ctx.strokeStyle = '#fff';
-      ctx.lineWidth = 1;
-      ctx.strokeRect(fixButtonX, fixButtonY, buttonSize, buttonSize);
-      
-      // Иконка замка
-      ctx.fillStyle = '#fff';
-      ctx.font = `${Math.max(8, 10 * zoom)}px Arial`;
-      ctx.textAlign = 'center';
-      ctx.fillText(lotFixed ? '🔒' : '🔓', fixButtonX + buttonSize/2, fixButtonY + buttonSize * 0.7);
+      if (lotFixed) {
+        // Красный замок для зафиксированного участка
+        ctx.fillStyle = '#ff0000';
+        ctx.fillRect(fixButtonX, fixButtonY, buttonSize, buttonSize);
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(fixButtonX, fixButtonY, buttonSize, buttonSize);
+        
+        ctx.fillStyle = '#fff';
+        ctx.font = `${Math.max(10, 12 * zoom)}px Arial`;
+        ctx.textAlign = 'center';
+        ctx.fillText('🔒', fixButtonX + buttonSize/2, fixButtonY + buttonSize * 0.7);
+      } else if (selectedTool === 'fix') {
+        // Зеленый замок при снятии фиксации (появляется только в режиме фиксации)
+        ctx.fillStyle = '#00ff00';
+        ctx.fillRect(fixButtonX, fixButtonY, buttonSize, buttonSize);
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(fixButtonX, fixButtonY, buttonSize, buttonSize);
+        
+        ctx.fillStyle = '#fff';
+        ctx.font = `${Math.max(10, 12 * zoom)}px Arial`;
+        ctx.textAlign = 'center';
+        ctx.fillText('🔓', fixButtonX + buttonSize/2, fixButtonY + buttonSize * 0.7);
+      }
     }
     
     // Размеры участка
@@ -281,22 +295,37 @@ export default function ConstructorInterface({ initialData, onBack }) {
     ctx.lineWidth = isSelected ? Math.max(2, 3 * zoom) : Math.max(1, 2 * zoom);
     ctx.strokeRect(scaledX, scaledY, scaledWidth, scaledHeight);
     
-    // Иконка фиксации
-    if (selectedTool === 'fix' && zoom >= 0.4) {
-      const fixButtonX = scaledX + scaledWidth - 20 * zoom;
+    // Иконка фиксации элемента
+    if (zoom >= 0.4) {
+      const fixButtonX = scaledX + scaledWidth - 25 * zoom;
       const fixButtonY = scaledY + 5 * zoom;
-      const buttonSize = 15 * zoom;
+      const buttonSize = 20 * zoom;
       
-      ctx.fillStyle = isFixed ? '#4caf50' : '#2196f3';
-      ctx.fillRect(fixButtonX, fixButtonY, buttonSize, buttonSize);
-      ctx.strokeStyle = '#fff';
-      ctx.lineWidth = 1;
-      ctx.strokeRect(fixButtonX, fixButtonY, buttonSize, buttonSize);
-      
-      ctx.fillStyle = '#fff';
-      ctx.font = `${Math.max(8, 10 * zoom)}px Arial`;
-      ctx.textAlign = 'center';
-      ctx.fillText(isFixed ? '🔒' : '🔓', fixButtonX + buttonSize/2, fixButtonY + buttonSize * 0.7);
+      if (isFixed) {
+        // Красный замок для зафиксированного элемента
+        ctx.fillStyle = '#ff0000';
+        ctx.fillRect(fixButtonX, fixButtonY, buttonSize, buttonSize);
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(fixButtonX, fixButtonY, buttonSize, buttonSize);
+        
+        ctx.fillStyle = '#fff';
+        ctx.font = `${Math.max(10, 12 * zoom)}px Arial`;
+        ctx.textAlign = 'center';
+        ctx.fillText('🔒', fixButtonX + buttonSize/2, fixButtonY + buttonSize * 0.7);
+      } else if (selectedTool === 'fix') {
+        // Зеленый замок при возможности фиксации
+        ctx.fillStyle = '#00ff00';
+        ctx.fillRect(fixButtonX, fixButtonY, buttonSize, buttonSize);
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(fixButtonX, fixButtonY, buttonSize, buttonSize);
+        
+        ctx.fillStyle = '#fff';
+        ctx.font = `${Math.max(10, 12 * zoom)}px Arial`;
+        ctx.textAlign = 'center';
+        ctx.fillText('🔓', fixButtonX + buttonSize/2, fixButtonY + buttonSize * 0.7);
+      }
     }
     
     // Информация об элементе
@@ -530,9 +559,9 @@ export default function ConstructorInterface({ initialData, onBack }) {
       lotY = houseElement.y * zoom - 50 * zoom;
     }
     
-    const fixButtonX = lotX + lotW - 20 * zoom + panOffset.x;
+    const fixButtonX = lotX + lotW - 25 * zoom + panOffset.x;
     const fixButtonY = lotY + 10 * zoom + panOffset.y;
-    const buttonSize = 15 * zoom;
+    const buttonSize = 20 * zoom;
     
     return clientX >= fixButtonX && clientX <= fixButtonX + buttonSize &&
            clientY >= fixButtonY && clientY <= fixButtonY + buttonSize;
@@ -546,9 +575,9 @@ export default function ConstructorInterface({ initialData, onBack }) {
       const scaledY = element.y * zoom + panOffset.y;
       const scaledWidth = element.width * zoom;
       
-      const fixButtonX = scaledX + scaledWidth - 20 * zoom;
+      const fixButtonX = scaledX + scaledWidth - 25 * zoom;
       const fixButtonY = scaledY + 5 * zoom;
-      const buttonSize = 15 * zoom;
+      const buttonSize = 20 * zoom;
       
       if (clientX >= fixButtonX && clientX <= fixButtonX + buttonSize &&
           clientY >= fixButtonY && clientY <= fixButtonY + buttonSize) {
@@ -559,7 +588,7 @@ export default function ConstructorInterface({ initialData, onBack }) {
     for (const wall of walls) {
       const centerX = ((wall.x1 + wall.x2) / 2) * zoom + panOffset.x;
       const centerY = ((wall.y1 + wall.y2) / 2) * zoom + panOffset.y;
-      const buttonSize = 15 * zoom;
+      const buttonSize = 20 * zoom;
       
       if (clientX >= centerX - buttonSize/2 && clientX <= centerX + buttonSize/2 &&
           clientY >= centerY - buttonSize/2 && clientY <= centerY + buttonSize/2) {
