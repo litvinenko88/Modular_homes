@@ -370,7 +370,7 @@ export default function EnhancedFloorPlanning({ data, updateData, onNext, onPrev
         }
         
         // Маркеры для перетаскивания если выбран
-        if (isSelected) {
+        if (isSelected && !view3D) {
           ctx.fillStyle = '#ff5722';
           ctx.strokeStyle = '#fff';
           ctx.lineWidth = 2;
@@ -599,7 +599,27 @@ export default function EnhancedFloorPlanning({ data, updateData, onNext, onPrev
       // Сначала проверяем клик по проему
       const clickedOpening = selectOpening(x, y);
       if (clickedOpening) {
-        startDragOpening(clickedOpening.id, clientX, clientY);
+        // Проверяем, не кликнули ли по корзине
+        const wall = (data.walls || []).find(w => w.id === clickedOpening.wallId);
+        if (wall) {
+          const wallLength = Math.sqrt(
+            Math.pow(wall.x2 - wall.x1, 2) + Math.pow(wall.y2 - wall.y1, 2)
+          );
+          const ratio = clickedOpening.position / wallLength;
+          const openingX = wall.x1 + (wall.x2 - wall.x1) * ratio;
+          const openingY = wall.y1 + (wall.y2 - wall.y1) * ratio;
+          
+          const deleteX = 100 + openingX * SCALE + 30;
+          const deleteY = 100 + openingY * SCALE - 30;
+          const distanceToDelete = Math.sqrt(
+            Math.pow(clientX - deleteX, 2) + Math.pow(clientY - deleteY, 2)
+          );
+          
+          // Если кликнули не по корзине, то начинаем перетаскивание
+          if (distanceToDelete > 15) {
+            startDragOpening(clickedOpening.id, clientX, clientY);
+          }
+        }
       } else {
         // Затем проверяем клик по стене
         const clickedWall = selectWall(x, y);
