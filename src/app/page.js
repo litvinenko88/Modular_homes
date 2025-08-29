@@ -1,3 +1,5 @@
+import InteractiveButton from '../components/InteractiveButton';
+
 export default function Home() {
   return (
     <main style={{ 
@@ -50,8 +52,8 @@ export default function Home() {
       </div>
       
       <div style={{ textAlign: 'center' }}>
-        <a 
-          href="/constructor" 
+        <InteractiveButton
+          href="/constructor"
           style={{ 
             display: 'inline-block',
             background: 'linear-gradient(135deg, #2e672c 0%, #4caf50 100%)', 
@@ -65,17 +67,9 @@ export default function Home() {
             transition: 'all 0.2s ease',
             border: 'none'
           }}
-          onMouseOver={(e) => {
-            e.target.style.transform = 'translateY(-2px)';
-            e.target.style.boxShadow = '0 6px 16px rgba(46, 103, 44, 0.4)';
-          }}
-          onMouseOut={(e) => {
-            e.target.style.transform = 'translateY(0)';
-            e.target.style.boxShadow = '0 4px 12px rgba(46, 103, 44, 0.3)';
-          }}
         >
           🏗️ Открыть конструктор
-        </a>
+        </InteractiveButton>
       </div>
       
       <div style={{ 
