@@ -1656,28 +1656,59 @@ export default function ConstructorInterface({ initialData, onBack }) {
     }
   };
   
-  // Функция разъединения стен
-  const disconnectWall = (wallId) => {
+  // Функция объединения стен
+  const connectWall = (wallId) => {
     const wall = walls.find(w => w.id === wallId);
     if (!wall) return;
     
-    // Сдвигаем концы стены на небольшое расстояние
-    const offset = 10;
-    const isHorizontal = Math.abs(wall.x2 - wall.x1) > Math.abs(wall.y2 - wall.y1);
+    const connectionThreshold = 20;
+    const connectedWalls = [];
     
-    const newWalls = walls.map(w => {
-      if (w.id === wallId) {
-        if (isHorizontal) {
-          return { ...w, x1: w.x1 + offset, x2: w.x2 - offset };
-        } else {
-          return { ...w, y1: w.y1 + offset, y2: w.y2 - offset };
+    // Находим стены для объединения
+    walls.forEach(otherWall => {
+      if (otherWall.id === wallId) return;
+      
+      const isParallel = (
+        (Math.abs(wall.x2 - wall.x1) > Math.abs(wall.y2 - wall.y1)) === 
+        (Math.abs(otherWall.x2 - otherWall.x1) > Math.abs(otherWall.y2 - otherWall.y1))
+      );
+      
+      if (isParallel) {
+        const distance1 = Math.sqrt(Math.pow(wall.x2 - otherWall.x1, 2) + Math.pow(wall.y2 - otherWall.y1, 2));
+        const distance2 = Math.sqrt(Math.pow(wall.x1 - otherWall.x2, 2) + Math.pow(wall.y1 - otherWall.y2, 2));
+        
+        if (distance1 < connectionThreshold || distance2 < connectionThreshold) {
+          connectedWalls.push(otherWall);
         }
       }
-      return w;
     });
     
-    setWalls(newWalls);
-    saveToHistory({ elements, walls: newWalls });
+    if (connectedWalls.length > 0) {
+      // Объединяем стены
+      const allWalls = [wall, ...connectedWalls];
+      const minX = Math.min(...allWalls.map(w => Math.min(w.x1, w.x2)));
+      const maxX = Math.max(...allWalls.map(w => Math.max(w.x1, w.x2)));
+      const minY = Math.min(...allWalls.map(w => Math.min(w.y1, w.y2)));
+      const maxY = Math.max(...allWalls.map(w => Math.max(w.y1, w.y2)));
+      
+      const isHorizontal = Math.abs(wall.x2 - wall.x1) > Math.abs(wall.y2 - wall.y1);
+      
+      const newWall = {
+        ...wall,
+        x1: isHorizontal ? minX : wall.x1,
+        y1: isHorizontal ? wall.y1 : minY,
+        x2: isHorizontal ? maxX : wall.x2,
+        y2: isHorizontal ? wall.y2 : maxY,
+        length: isHorizontal ? (maxX - minX) / 30 : (maxY - minY) / 30
+      };
+      
+      const newWalls = walls.filter(w => w.id !== wallId && !connectedWalls.some(cw => cw.id === w.id));
+      newWalls.push(newWall);
+      
+      setWalls(newWalls);
+      setSelectedElement(newWall);
+      saveToHistory({ elements, walls: newWalls });
+    }
   };
 
   // Проверка клика по кнопкам управления
@@ -1717,11 +1748,11 @@ export default function ConstructorInterface({ initialData, onBack }) {
         return true;
       }
       
-      // Кнопка разъединения (если есть)
+      // Кнопка объединения (если есть)
       if (isConnected && clientX >= startX + 2 * (buttonSize + 5) && 
           clientX <= startX + 3 * buttonSize + 10 &&
           clientY >= buttonY && clientY <= buttonY + buttonSize) {
-        disconnectWall(element.id);
+        connectWall(element.id);
         return true;
       }
     }
