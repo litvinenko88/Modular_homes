@@ -17,6 +17,8 @@ export default function ConstructorInterface({ initialData, onBack }) {
   const [walls, setWalls] = useState([]);
   const [fixedElements, setFixedElements] = useState(new Set());
   const [lotFixed, setLotFixed] = useState(true);
+  const [hoveredElement, setHoveredElement] = useState(null);
+  const [unlockAnimation, setUnlockAnimation] = useState(null);
 
   const SCALE = 30 * zoom;
 
@@ -201,37 +203,45 @@ export default function ConstructorInterface({ initialData, onBack }) {
     ctx.strokeRect(lotX, lotY, lotW, lotH);
     ctx.setLineDash([]);
     
-    // Иконка фиксации для участка - всегда видна
-    if (zoom >= 0.4) {
-      const fixButtonX = lotX + lotW - 25 * zoom;
-      const fixButtonY = lotY + 10 * zoom;
-      const buttonSize = 20 * zoom;
+    // Подсветка участка при наведении в режиме фиксации
+    if (selectedTool === 'fix' && hoveredElement?.type === 'lot') {
+      ctx.strokeStyle = '#ffff00';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(lotX, lotY, lotW, lotH);
+    }
+    
+    // Красный замок для зафиксированного участка (всегда видим)
+    if (lotFixed && zoom >= 0.4) {
+      const lockX = lotX + lotW - 30;
+      const lockY = lotY + 10;
       
-      if (lotFixed) {
-        // Красный замок для зафиксированного участка
-        ctx.fillStyle = '#ff0000';
-        ctx.fillRect(fixButtonX, fixButtonY, buttonSize, buttonSize);
-        ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 1;
-        ctx.strokeRect(fixButtonX, fixButtonY, buttonSize, buttonSize);
-        
-        ctx.fillStyle = '#fff';
-        ctx.font = `${Math.max(10, 12 * zoom)}px Arial`;
-        ctx.textAlign = 'center';
-        ctx.fillText('🔒', fixButtonX + buttonSize/2, fixButtonY + buttonSize * 0.7);
-      } else if (selectedTool === 'fix') {
-        // Зеленый замок при снятии фиксации (появляется только в режиме фиксации)
-        ctx.fillStyle = '#00ff00';
-        ctx.fillRect(fixButtonX, fixButtonY, buttonSize, buttonSize);
-        ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 1;
-        ctx.strokeRect(fixButtonX, fixButtonY, buttonSize, buttonSize);
-        
-        ctx.fillStyle = '#fff';
-        ctx.font = `${Math.max(10, 12 * zoom)}px Arial`;
-        ctx.textAlign = 'center';
-        ctx.fillText('🔓', fixButtonX + buttonSize/2, fixButtonY + buttonSize * 0.7);
-      }
+      ctx.fillStyle = '#ff0000';
+      ctx.fillRect(lockX, lockY, 20, 20);
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(lockX, lockY, 20, 20);
+      
+      ctx.fillStyle = '#fff';
+      ctx.font = '12px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('🔒', lockX + 10, lockY + 14);
+    }
+    
+    // Анимация зеленого замка при снятии фиксации
+    if (unlockAnimation?.type === 'lot' && zoom >= 0.4) {
+      const lockX = lotX + lotW - 30;
+      const lockY = lotY + 10;
+      
+      ctx.fillStyle = '#00ff00';
+      ctx.fillRect(lockX, lockY, 20, 20);
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(lockX, lockY, 20, 20);
+      
+      ctx.fillStyle = '#fff';
+      ctx.font = '12px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('🔓', lockX + 10, lockY + 14);
     }
     
     // Размеры участка
@@ -295,37 +305,45 @@ export default function ConstructorInterface({ initialData, onBack }) {
     ctx.lineWidth = isSelected ? Math.max(2, 3 * zoom) : Math.max(1, 2 * zoom);
     ctx.strokeRect(scaledX, scaledY, scaledWidth, scaledHeight);
     
-    // Иконка фиксации элемента
-    if (zoom >= 0.4) {
-      const fixButtonX = scaledX + scaledWidth - 25 * zoom;
-      const fixButtonY = scaledY + 5 * zoom;
-      const buttonSize = 20 * zoom;
+    // Подсветка элемента при наведении в режиме фиксации
+    if (selectedTool === 'fix' && hoveredElement?.id === element.id) {
+      ctx.strokeStyle = '#ffff00';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(scaledX - 2, scaledY - 2, scaledWidth + 4, scaledHeight + 4);
+    }
+    
+    // Красный замок для зафиксированного элемента (всегда видим)
+    if (isFixed && zoom >= 0.4) {
+      const lockX = scaledX + scaledWidth - 25;
+      const lockY = scaledY + 5;
       
-      if (isFixed) {
-        // Красный замок для зафиксированного элемента
-        ctx.fillStyle = '#ff0000';
-        ctx.fillRect(fixButtonX, fixButtonY, buttonSize, buttonSize);
-        ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 1;
-        ctx.strokeRect(fixButtonX, fixButtonY, buttonSize, buttonSize);
-        
-        ctx.fillStyle = '#fff';
-        ctx.font = `${Math.max(10, 12 * zoom)}px Arial`;
-        ctx.textAlign = 'center';
-        ctx.fillText('🔒', fixButtonX + buttonSize/2, fixButtonY + buttonSize * 0.7);
-      } else if (selectedTool === 'fix') {
-        // Зеленый замок при возможности фиксации
-        ctx.fillStyle = '#00ff00';
-        ctx.fillRect(fixButtonX, fixButtonY, buttonSize, buttonSize);
-        ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 1;
-        ctx.strokeRect(fixButtonX, fixButtonY, buttonSize, buttonSize);
-        
-        ctx.fillStyle = '#fff';
-        ctx.font = `${Math.max(10, 12 * zoom)}px Arial`;
-        ctx.textAlign = 'center';
-        ctx.fillText('🔓', fixButtonX + buttonSize/2, fixButtonY + buttonSize * 0.7);
-      }
+      ctx.fillStyle = '#ff0000';
+      ctx.fillRect(lockX, lockY, 20, 20);
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(lockX, lockY, 20, 20);
+      
+      ctx.fillStyle = '#fff';
+      ctx.font = '12px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('🔒', lockX + 10, lockY + 14);
+    }
+    
+    // Анимация зеленого замка при снятии фиксации
+    if (unlockAnimation?.id === element.id && zoom >= 0.4) {
+      const lockX = scaledX + scaledWidth - 25;
+      const lockY = scaledY + 5;
+      
+      ctx.fillStyle = '#00ff00';
+      ctx.fillRect(lockX, lockY, 20, 20);
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(lockX, lockY, 20, 20);
+      
+      ctx.fillStyle = '#fff';
+      ctx.font = '12px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('🔓', lockX + 10, lockY + 14);
     }
     
     // Информация об элементе
@@ -486,16 +504,49 @@ export default function ConstructorInterface({ initialData, onBack }) {
     const worldY = (clientY - panOffset.y) / zoom;
     
     if (selectedTool === 'fix') {
-      // Проверяем клик по кнопке фиксации участка
-      if (checkLotFixButton(clientX, clientY)) {
-        setLotFixed(!lotFixed);
+      // Проверяем клик по участку
+      if (isPointInLot(worldX, worldY)) {
+        if (lotFixed) {
+          setLotFixed(false);
+          setUnlockAnimation({ type: 'lot' });
+          setTimeout(() => setUnlockAnimation(null), 2000);
+        } else {
+          setLotFixed(true);
+        }
         return;
       }
       
-      // Проверяем клик по кнопке фиксации элемента
-      const elementFixButton = checkElementFixButton(clientX, clientY);
-      if (elementFixButton) {
-        toggleElementFix(elementFixButton.id);
+      // Проверяем клик по элементам
+      const clickedElement = getElementAt(worldX, worldY);
+      const clickedWall = getWallAt(worldX, worldY);
+      
+      if (clickedElement) {
+        if (fixedElements.has(clickedElement.id)) {
+          setFixedElements(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(clickedElement.id);
+            return newSet;
+          });
+          setUnlockAnimation({ id: clickedElement.id });
+          setTimeout(() => setUnlockAnimation(null), 2000);
+        } else {
+          setFixedElements(prev => new Set(prev).add(clickedElement.id));
+        }
+        return;
+      }
+      
+      if (clickedWall) {
+        if (fixedElements.has(clickedWall.id)) {
+          setFixedElements(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(clickedWall.id);
+            return newSet;
+          });
+          setUnlockAnimation({ id: clickedWall.id });
+          setTimeout(() => setUnlockAnimation(null), 2000);
+        } else {
+          setFixedElements(prev => new Set(prev).add(clickedWall.id));
+        }
         return;
       }
     } else if (selectedTool === 'select') {
@@ -544,71 +595,25 @@ export default function ConstructorInterface({ initialData, onBack }) {
     setDragStart({ x: e.clientX - panOffset.x, y: e.clientY - panOffset.y });
   };
   
-  const checkLotFixButton = (clientX, clientY) => {
+
+  
+  const isPointInLot = (x, y) => {
     const houseElement = elements.find(el => el.type === 'house');
-    if (!houseElement || zoom < 0.4) return false;
+    if (!houseElement) return false;
     
     let lotX, lotY;
-    const lotW = initialData.lotSize.width * 30 * zoom;
+    const lotW = initialData.lotSize.width * 30;
+    const lotH = initialData.lotSize.height * 30;
     
     if (lotFixed) {
-      lotX = 100;
-      lotY = 100;
+      lotX = 100 / zoom;
+      lotY = 100 / zoom;
     } else {
-      lotX = houseElement.x * zoom - 50 * zoom;
-      lotY = houseElement.y * zoom - 50 * zoom;
+      lotX = houseElement.x - 50;
+      lotY = houseElement.y - 50;
     }
     
-    const fixButtonX = lotX + lotW - 25 * zoom + panOffset.x;
-    const fixButtonY = lotY + 10 * zoom + panOffset.y;
-    const buttonSize = 20 * zoom;
-    
-    return clientX >= fixButtonX && clientX <= fixButtonX + buttonSize &&
-           clientY >= fixButtonY && clientY <= fixButtonY + buttonSize;
-  };
-  
-  const checkElementFixButton = (clientX, clientY) => {
-    if (zoom < 0.4) return null;
-    
-    for (const element of elements) {
-      const scaledX = element.x * zoom + panOffset.x;
-      const scaledY = element.y * zoom + panOffset.y;
-      const scaledWidth = element.width * zoom;
-      
-      const fixButtonX = scaledX + scaledWidth - 25 * zoom;
-      const fixButtonY = scaledY + 5 * zoom;
-      const buttonSize = 20 * zoom;
-      
-      if (clientX >= fixButtonX && clientX <= fixButtonX + buttonSize &&
-          clientY >= fixButtonY && clientY <= fixButtonY + buttonSize) {
-        return element;
-      }
-    }
-    
-    for (const wall of walls) {
-      const centerX = ((wall.x1 + wall.x2) / 2) * zoom + panOffset.x;
-      const centerY = ((wall.y1 + wall.y2) / 2) * zoom + panOffset.y;
-      const buttonSize = 20 * zoom;
-      
-      if (clientX >= centerX - buttonSize/2 && clientX <= centerX + buttonSize/2 &&
-          clientY >= centerY - buttonSize/2 && clientY <= centerY + buttonSize/2) {
-        return wall;
-      }
-    }
-    
-    return null;
-  };
-  
-  const toggleElementFix = (elementId) => {
-    setFixedElements(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(elementId)) {
-        newSet.delete(elementId);
-      } else {
-        newSet.add(elementId);
-      }
-      return newSet;
-    });
+    return x >= lotX && x <= lotX + lotW && y >= lotY && y <= lotY + lotH;
   };
   
   const addWall = (x, y) => {
@@ -710,6 +715,23 @@ export default function ConstructorInterface({ initialData, onBack }) {
     const clientY = e.clientY - rect.top;
     const worldX = (clientX - panOffset.x) / zoom;
     const worldY = (clientY - panOffset.y) / zoom;
+    
+    // Обновляем курсор и подсветку в режиме фиксации
+    if (selectedTool === 'fix') {
+      canvas.style.cursor = 'pointer';
+      
+      // Проверяем наведение на участок
+      if (isPointInLot(worldX, worldY)) {
+        setHoveredElement({ type: 'lot' });
+      } else {
+        // Проверяем наведение на элементы
+        const hoveredEl = getElementAt(worldX, worldY) || getWallAt(worldX, worldY);
+        setHoveredElement(hoveredEl);
+      }
+    } else {
+      setHoveredElement(null);
+      canvas.style.cursor = selectedTool === 'select' ? 'grab' : selectedTool === 'wall' ? 'crosshair' : 'default';
+    }
     
     if (resizeHandle && !fixedElements.has(resizeHandle.elementId)) {
       resizeElement(worldX, worldY);
