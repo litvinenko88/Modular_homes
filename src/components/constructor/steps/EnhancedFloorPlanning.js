@@ -1054,6 +1054,16 @@ export default function EnhancedFloorPlanning({ data, updateData, onNext, onPrev
     setSelectedOpeningId(null);
   };
 
+  const deleteSelectedElement = () => {
+    if (selectedWallId) {
+      deleteWall(selectedWallId);
+    } else if (selectedOpeningId) {
+      deleteOpening(selectedOpeningId);
+    } else if (selectedRoomId) {
+      deleteRoom(selectedRoomId);
+    }
+  };
+
   const updateOpeningType = (openingId, newType) => {
     const openingType = OPENING_TYPES.find(t => t.id === newType);
     const updatedOpenings = (data.openings || []).map(opening => {
@@ -1155,6 +1165,13 @@ export default function EnhancedFloorPlanning({ data, updateData, onNext, onPrev
               {tool.name}
             </button>
           ))}
+          <button 
+            className={`tools button ${!selectedWallId && !selectedOpeningId && !selectedRoomId ? 'disabled' : 'delete-active'}`}
+            onClick={deleteSelectedElement}
+            disabled={!selectedWallId && !selectedOpeningId && !selectedRoomId}
+          >
+            🗑️ Удалить
+          </button>
         </div>
 
         {selectedTool === 'wall' && (
@@ -1466,6 +1483,15 @@ export default function EnhancedFloorPlanning({ data, updateData, onNext, onPrev
           background: #2196f3;
           color: white;
         }
+        .tools button.delete-active {
+          background: #f44336;
+          color: white;
+        }
+        .tools button.disabled {
+          background: #ccc;
+          color: #666;
+          cursor: not-allowed;
+        }
         .input-group {
           display: flex;
           justify-content: space-between;
@@ -1504,6 +1530,25 @@ export default function EnhancedFloorPlanning({ data, updateData, onNext, onPrev
         }
         .delete-btn:hover {
           background: #d32f2f;
+        }
+        .delete-tool-btn {
+          width: 100%;
+          padding: 10px;
+          border: none;
+          border-radius: 4px;
+          background: #f44336;
+          color: white;
+          cursor: pointer;
+          margin-top: 10px;
+          font-weight: bold;
+          font-size: 14px;
+        }
+        .delete-tool-btn:hover:not(:disabled) {
+          background: #d32f2f;
+        }
+        .delete-tool-btn:disabled {
+          background: #ccc;
+          cursor: not-allowed;
         }
         .area-summary {
           background: #e8f5e8;
