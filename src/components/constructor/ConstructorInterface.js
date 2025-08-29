@@ -27,6 +27,8 @@ export default function ConstructorInterface({ initialData, onBack }) {
   const [roomNames, setRoomNames] = useState({});
   const [history, setHistory] = useState([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
+  const [doors, setDoors] = useState([]);
+  const [windows, setWindows] = useState([]);
 
   const SCALE = 30;
 
@@ -50,7 +52,7 @@ export default function ConstructorInterface({ initialData, onBack }) {
   useEffect(() => {
     const timer = setTimeout(drawCanvas, 10);
     return () => clearTimeout(timer);
-  }, [zoom, panOffset, initialData, selectedElement, elements, walls, isDrawingWall, wallDrawStart, currentWallEnd, hoveredElement, hoveredWall, roomNames]);
+  }, [zoom, panOffset, initialData, selectedElement, elements, walls, doors, windows, isDrawingWall, wallDrawStart, currentWallEnd, hoveredElement, hoveredWall, roomNames]);
 
   // Обработка клавиш
   useEffect(() => {
@@ -109,6 +111,8 @@ export default function ConstructorInterface({ initialData, onBack }) {
     drawLot(ctx);
     drawElements(ctx);
     drawWalls(ctx);
+    drawDoors(ctx);
+    drawWindows(ctx);
     
     // Рисуем предварительный просмотр стены
     if (isDrawingWall && wallDrawStart && currentWallEnd) {
@@ -482,7 +486,9 @@ export default function ConstructorInterface({ initialData, onBack }) {
     const newHistory = history.slice(0, historyIndex + 1);
     newHistory.push({
       elements: JSON.parse(JSON.stringify(state.elements || elements)),
-      walls: JSON.parse(JSON.stringify(state.walls || walls))
+      walls: JSON.parse(JSON.stringify(state.walls || walls)),
+      doors: JSON.parse(JSON.stringify(state.doors || doors)),
+      windows: JSON.parse(JSON.stringify(state.windows || windows))
     });
     
     // Ограничиваем историю 50 шагами
@@ -500,6 +506,8 @@ export default function ConstructorInterface({ initialData, onBack }) {
       const prevState = history[historyIndex - 1];
       setElements(prevState.elements);
       setWalls(prevState.walls);
+      setDoors(prevState.doors || []);
+      setWindows(prevState.windows || []);
       setHistoryIndex(prev => prev - 1);
       setSelectedElement(null);
     }
@@ -1102,6 +1110,13 @@ export default function ConstructorInterface({ initialData, onBack }) {
         // Сохраняем координаты в пикселях (worldX уже в пикселях)
         setWallDrawStart({ x: worldX, y: worldY });
         setCurrentWallEnd({ x: worldX, y: worldY });
+      }
+      return;
+    } else if (selectedTool === 'door' || selectedTool === 'window') {
+      // Проверяем клик по стене для размещения двери/окна
+      const clickedWall = getWallAt(worldX, worldY) || getHouseBoundaryWall(worldX, worldY);
+      if (clickedWall) {
+        addDoorOrWindow(clickedWall, worldX, worldY, selectedTool);
       }
       return;
     } else if (selectedTool === 'select') {
@@ -2011,6 +2026,157 @@ export default function ConstructorInterface({ initialData, onBack }) {
     setResizeHandle(null);
     setTouchDistance(null);
     setTouchStart(null);
+  };
+
+  // Получение стены границы дома
+  const getHouseBoundaryWall = (x, y) => {
+    const houseElement = elements.find(el => el.type === 'house');
+    if (!houseElement) return null;
+    
+    const tolerance = 10;
+    const hx = houseElement.x;
+    const hy = houseElement.y;
+    const hw = houseElement.width;
+    const hh = houseElement.height;
+    
+    // Проверяем границы дома
+    if (Math.abs(y - hy) < tolerance && x >= hx && x <= hx + hw) {
+      return { id: 'house-top', x1: hx, y1: hy, x2: hx + hw, y2: hy, type: 'boundary' };
+    }
+    if (Math.abs(y - (hy + hh)) < tolerance && x >= hx && x <= hx + hw) {
+      return { id: 'house-bottom', x1: hx, y1: hy + hh, x2: hx + hw, y2: hy + hh, type: 'boundary' };
+    }
+    if (Math.abs(x - hx) < tolerance && y >= hy && y <= hy + hh) {
+      return { id: 'house-left', x1: hx, y1: hy, x2: hx, y2: hy + hh, type: 'boundary' };
+    }
+    if (Math.abs(x - (hx + hw)) < tolerance && y >= hy && y <= hy + hh) {
+      return { id: 'house-right', x1: hx + hw, y1: hy, x2: hx + hw, y2: hy + hh, type: 'boundary' };
+    }
+    
+    return null;
+  };
+
+  // Добавление двери или окна
+  const addDoorOrWindow = (wall, clickX, clickY, type) => {
+    const isHorizontal = Math.abs(wall.x2 - wall.x1) > Math.abs(wall.y2 - wall.y1);
+    const wallLength = Math.sqrt(Math.pow(wall.x2 - wall.x1, 2) + Math.pow(wall.y2 - wall.y1, 2));
+    
+    // Находим позицию на стене
+    let position;
+    if (isHorizontal) {
+      position = (clickX - Math.min(wall.x1, wall.x2)) / wallLength;
+    } else {
+      position = (clickY - Math.min(wall.y1, wall.y2)) / wallLength;
+    }
+    
+    const newItem = {
+      id: Date.now(),
+      wallId: wall.id,
+      position: Math.max(0.1, Math.min(0.9, position)),
+      width: type === 'door' ? 30 : 40, // пиксели
+      type: type
+    };
+    
+    if (type === 'door') {
+      setDoors(prev => [...prev, newItem]);
+    } else {
+      setWindows(prev => [...prev, newItem]);
+    }
+  };
+
+  // Рисование дверей
+  const drawDoors = (ctx) => {
+    doors.forEach(door => {
+      const wall = walls.find(w => w.id === door.wallId) || getHouseBoundaryById(door.wallId);
+      if (!wall) return;
+      
+      const isHorizontal = Math.abs(wall.x2 - wall.x1) > Math.abs(wall.y2 - wall.y1);
+      const doorX = wall.x1 + (wall.x2 - wall.x1) * door.position;
+      const doorY = wall.y1 + (wall.y2 - wall.y1) * door.position;
+      
+      // Рисуем проем в стене (белая линия)
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = Math.max(4, 6 * zoom);
+      
+      if (isHorizontal) {
+        ctx.beginPath();
+        ctx.moveTo((doorX - door.width/2) * zoom, doorY * zoom);
+        ctx.lineTo((doorX + door.width/2) * zoom, doorY * zoom);
+        ctx.stroke();
+        
+        // Рисуем дверь (дуга)
+        ctx.strokeStyle = '#8B4513';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(doorX * zoom, doorY * zoom, door.width/2 * zoom, 0, Math.PI);
+        ctx.stroke();
+      } else {
+        ctx.beginPath();
+        ctx.moveTo(doorX * zoom, (doorY - door.width/2) * zoom);
+        ctx.lineTo(doorX * zoom, (doorY + door.width/2) * zoom);
+        ctx.stroke();
+        
+        // Рисуем дверь (дуга)
+        ctx.strokeStyle = '#8B4513';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(doorX * zoom, doorY * zoom, door.width/2 * zoom, -Math.PI/2, Math.PI/2);
+        ctx.stroke();
+      }
+    });
+  };
+
+  // Рисование окон
+  const drawWindows = (ctx) => {
+    windows.forEach(window => {
+      const wall = walls.find(w => w.id === window.wallId) || getHouseBoundaryById(window.wallId);
+      if (!wall) return;
+      
+      const isHorizontal = Math.abs(wall.x2 - wall.x1) > Math.abs(wall.y2 - wall.y1);
+      const windowX = wall.x1 + (wall.x2 - wall.x1) * window.position;
+      const windowY = wall.y1 + (wall.y2 - wall.y1) * window.position;
+      
+      // Рисуем проем в стене (белая линия)
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = Math.max(4, 6 * zoom);
+      
+      if (isHorizontal) {
+        ctx.beginPath();
+        ctx.moveTo((windowX - window.width/2) * zoom, windowY * zoom);
+        ctx.lineTo((windowX + window.width/2) * zoom, windowY * zoom);
+        ctx.stroke();
+        
+        // Рисуем окно (прямоугольник)
+        ctx.strokeStyle = '#4169E1';
+        ctx.lineWidth = 3;
+        ctx.strokeRect((windowX - window.width/2) * zoom, (windowY - 5) * zoom, window.width * zoom, 10 * zoom);
+      } else {
+        ctx.beginPath();
+        ctx.moveTo(windowX * zoom, (windowY - window.width/2) * zoom);
+        ctx.lineTo(windowX * zoom, (windowY + window.width/2) * zoom);
+        ctx.stroke();
+        
+        // Рисуем окно (прямоугольник)
+        ctx.strokeStyle = '#4169E1';
+        ctx.lineWidth = 3;
+        ctx.strokeRect((windowX - 5) * zoom, (windowY - window.width/2) * zoom, 10 * zoom, window.width * zoom);
+      }
+    });
+  };
+
+  // Получение границы дома по ID
+  const getHouseBoundaryById = (id) => {
+    const houseElement = elements.find(el => el.type === 'house');
+    if (!houseElement) return null;
+    
+    const boundaries = {
+      'house-top': { x1: houseElement.x, y1: houseElement.y, x2: houseElement.x + houseElement.width, y2: houseElement.y },
+      'house-bottom': { x1: houseElement.x, y1: houseElement.y + houseElement.height, x2: houseElement.x + houseElement.width, y2: houseElement.y + houseElement.height },
+      'house-left': { x1: houseElement.x, y1: houseElement.y, x2: houseElement.x, y2: houseElement.y + houseElement.height },
+      'house-right': { x1: houseElement.x + houseElement.width, y1: houseElement.y, x2: houseElement.x + houseElement.width, y2: houseElement.y + houseElement.height }
+    };
+    
+    return boundaries[id] ? { id, ...boundaries[id], type: 'boundary' } : null;
   };
 
   return (
