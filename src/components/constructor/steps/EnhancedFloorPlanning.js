@@ -378,6 +378,44 @@ export default function EnhancedFloorPlanning({ data, updateData, onNext, onPrev
           ctx.arc(100 + openingX * SCALE, 100 + openingY * SCALE, 12, 0, Math.PI * 2);
           ctx.fill();
           ctx.stroke();
+          
+          // Иконка корзины для удаления
+          const deleteX = 100 + openingX * SCALE + 30;
+          const deleteY = 100 + openingY * SCALE - 30;
+          
+          // Тень для корзины
+          ctx.fillStyle = 'rgba(0,0,0,0.3)';
+          ctx.beginPath();
+          ctx.arc(deleteX + 2, deleteY + 2, 15, 0, Math.PI * 2);
+          ctx.fill();
+          
+          // Основной круг корзины
+          ctx.fillStyle = '#f44336';
+          ctx.strokeStyle = '#fff';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.arc(deleteX, deleteY, 15, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+          
+          // Символ корзины
+          ctx.strokeStyle = '#fff';
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          // Крышка корзины
+          ctx.moveTo(deleteX - 7, deleteY - 5);
+          ctx.lineTo(deleteX + 7, deleteY - 5);
+          // Корпус корзины
+          ctx.moveTo(deleteX - 5, deleteY - 3);
+          ctx.lineTo(deleteX - 4, deleteY + 7);
+          ctx.lineTo(deleteX + 4, deleteY + 7);
+          ctx.lineTo(deleteX + 5, deleteY - 3);
+          // Вертикальные линии
+          ctx.moveTo(deleteX - 2, deleteY - 1);
+          ctx.lineTo(deleteX - 2, deleteY + 5);
+          ctx.moveTo(deleteX + 2, deleteY - 1);
+          ctx.lineTo(deleteX + 2, deleteY + 5);
+          ctx.stroke();
         }
       }
     });
@@ -521,6 +559,31 @@ export default function EnhancedFloorPlanning({ data, updateData, onNext, onPrev
         
         if (distanceToRotate <= 15) {
           rotateSelectedWall(1);
+          return;
+        }
+      }
+    }
+    
+    // Проверяем клик по кнопке удаления проема
+    if (selectedOpeningId) {
+      const selectedOpening = (data.openings || []).find(o => o.id === selectedOpeningId);
+      const wall = (data.walls || []).find(w => w.id === selectedOpening?.wallId);
+      if (selectedOpening && wall) {
+        const wallLength = Math.sqrt(
+          Math.pow(wall.x2 - wall.x1, 2) + Math.pow(wall.y2 - wall.y1, 2)
+        );
+        const ratio = selectedOpening.position / wallLength;
+        const openingX = wall.x1 + (wall.x2 - wall.x1) * ratio;
+        const openingY = wall.y1 + (wall.y2 - wall.y1) * ratio;
+        
+        const deleteX = 100 + openingX * SCALE + 30;
+        const deleteY = 100 + openingY * SCALE - 30;
+        const distanceToDelete = Math.sqrt(
+          Math.pow(clientX - deleteX, 2) + Math.pow(clientY - deleteY, 2)
+        );
+        
+        if (distanceToDelete <= 15) {
+          deleteOpening(selectedOpeningId);
           return;
         }
       }
