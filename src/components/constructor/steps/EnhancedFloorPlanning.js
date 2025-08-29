@@ -34,6 +34,7 @@ export default function EnhancedFloorPlanning({ data, updateData, onNext, onPrev
   const [showDimensions, setShowDimensions] = useState(true);
   const [editingWall, setEditingWall] = useState(null);
   const [draggedElement, setDraggedElement] = useState(null);
+  const [showAreaInfo, setShowAreaInfo] = useState(true);
 
   const [canvasSize, setCanvasSize] = useState({ width: 900, height: 700 });
   const SCALE = view3D ? 25 : 30;
@@ -170,7 +171,10 @@ export default function EnhancedFloorPlanning({ data, updateData, onNext, onPrev
 
   const drawRooms = (ctx) => {
     (data.rooms || []).forEach(room => {
-      ctx.fillStyle = 'rgba(100, 200, 100, 0.1)';
+      const area = room.width * room.height;
+      const isSelected = room.id === selectedRoomId;
+      
+      ctx.fillStyle = 'rgba(100, 200, 100, 0.15)';
       ctx.fillRect(
         100 + room.x * SCALE,
         100 + room.y * SCALE,
@@ -178,8 +182,8 @@ export default function EnhancedFloorPlanning({ data, updateData, onNext, onPrev
         room.height * SCALE
       );
       
-      ctx.strokeStyle = room.id === selectedRoomId ? '#4caf50' : '#90ee90';
-      ctx.lineWidth = 2;
+      ctx.strokeStyle = isSelected ? '#4caf50' : '#90ee90';
+      ctx.lineWidth = isSelected ? 3 : 2;
       ctx.setLineDash([5, 5]);
       ctx.strokeRect(
         100 + room.x * SCALE,
@@ -189,15 +193,35 @@ export default function EnhancedFloorPlanning({ data, updateData, onNext, onPrev
       );
       ctx.setLineDash([]);
       
-      // Название комнаты
+      // Название и площадь комнаты
+      const centerX = 100 + (room.x + room.width/2) * SCALE;
+      const centerY = 100 + (room.y + room.height/2) * SCALE;
+      
       ctx.fillStyle = '#2e7d32';
-      ctx.font = 'bold 14px Arial';
+      ctx.font = 'bold 12px Arial';
       ctx.textAlign = 'center';
-      ctx.fillText(
-        room.name,
-        100 + (room.x + room.width/2) * SCALE,
-        100 + (room.y + room.height/2) * SCALE
-      );
+      ctx.fillText(room.name, centerX, centerY - 8);
+      
+      ctx.font = '11px Arial';
+      ctx.fillText(`${area.toFixed(1)} м²`, centerX, centerY + 8);
+      
+      // Размеры комнаты
+      if (showDimensions) {
+        ctx.fillStyle = '#666';
+        ctx.font = '10px Arial';
+        // Ширина
+        ctx.fillText(
+          `${room.width.toFixed(1)}м`,
+          centerX,
+          100 + room.y * SCALE - 5
+        );
+        // Высота
+        ctx.save();
+        ctx.translate(100 + room.x * SCALE - 15, centerY);
+        ctx.rotate(-Math.PI/2);
+        ctx.fillText(`${room.height.toFixed(1)}м`, 0, 0);
+        ctx.restore();
+      }
     });
   };
 
@@ -445,9 +469,18 @@ export default function EnhancedFloorPlanning({ data, updateData, onNext, onPrev
     } else if (selectedTool === 'room') {
       addRoom(x, y);
     } else if (selectedTool === 'select') {
+      // Сначала проверяем клик по стене
       const clickedWall = selectWall(x, y);
       if (clickedWall) {
         startDragWall(clickedWall.id, clientX, clientY);
+      } else {
+        // Если не попали в стену, проверяем комнаты
+        const clickedRoom = selectRoom(x, y);
+        if (!clickedRoom) {
+          // Если ничего не выбрано, сбрасываем выделение
+          setSelectedWallId(null);
+          setSelectedRoomId(null);
+        }
       }
     }
   };
@@ -632,12 +665,67 @@ export default function EnhancedFloorPlanning({ data, updateData, onNext, onPrev
   const selectWall = (x, y) => {
     const clickedWall = (data.walls || []).find(wall => {
       const distance = distanceToLine(x, y, wall.x1, wall.y1, wall.x2, wall.y2);
-      return distance < 0.5; // Увеличиваем область клика
+      return distance < 0.5;
     });
     
     setSelectedWallId(clickedWall ? clickedWall.id : null);
-    setSelectedRoomId(null); // Сбрасываем выбор комнаты
+    setSelectedRoomId(null);
     return clickedWall;
+  };
+
+  const selectRoom = (x, y) => {
+    const clickedRoom = (data.rooms || []).find(room => {
+      return x >= room.x && x <= room.x + room.width &&
+             y >= room.y && y <= room.y + room.height;
+    });
+    
+    setSelectedRoomId(clickedRoom ? clickedRoom.id : null);
+    setSelectedWallId(null);
+    return clickedRoom;
+  };
+
+  const calculateTotalHouseArea = () => {
+    if (!data.modules || data.modules.length === 0) return 0;
+    return data.modules.reduce((total, module) => {
+      return total + (module.width * module.height);
+    }, 0);
+  };
+
+  const calculateUsedArea = () => {
+    if (!data.rooms || data.rooms.length === 0) return 0;
+    return data.rooms.reduce((total, room) => {
+      return total + (room.width * room.height);
+    }, 0);
+  };
+
+  const calculateRemainingArea = () => {
+    return calculateTotalHouseArea() - calculateUsedArea();
+  };
+
+  const updateRoomName = (roomId, newName) => {
+    const updatedRooms = (data.rooms || []).map(room => {
+      if (room.id === roomId) {
+        return { ...room, name: newName };
+      }
+      return room;
+    });
+    updateData({ rooms: updatedRooms });
+  };
+
+  const updateRoomSize = (roomId, width, height) => {
+    const updatedRooms = (data.rooms || []).map(room => {
+      if (room.id === roomId) {
+        return { ...room, width: Math.max(1, width), height: Math.max(1, height) };
+      }
+      return room;
+    });
+    updateData({ rooms: updatedRooms });
+  };
+
+  const deleteRoom = (roomId) => {
+    const updatedRooms = (data.rooms || []).filter(room => room.id !== roomId);
+    updateData({ rooms: updatedRooms });
+    setSelectedRoomId(null);
   };
 
   const rotateSelectedWall = (direction) => {
@@ -857,6 +945,56 @@ export default function EnhancedFloorPlanning({ data, updateData, onNext, onPrev
           </div>
         )}
 
+        {selectedRoomId && (
+          <div className="room-edit">
+            <h4>Редактирование комнаты</h4>
+            <div className="input-group">
+              <label>Название:</label>
+              <select 
+                value={(data.rooms || []).find(r => r.id === selectedRoomId)?.name || ''}
+                onChange={(e) => updateRoomName(selectedRoomId, e.target.value)}
+              >
+                {ROOM_TYPES.map(type => (
+                  <option key={type} value={type}>{type}</option>
+                ))}
+              </select>
+            </div>
+            <div className="input-group">
+              <label>Ширина (м):</label>
+              <input 
+                type="number" 
+                value={(data.rooms || []).find(r => r.id === selectedRoomId)?.width || 0}
+                onChange={(e) => {
+                  const room = (data.rooms || []).find(r => r.id === selectedRoomId);
+                  if (room) updateRoomSize(selectedRoomId, Number(e.target.value), room.height);
+                }}
+                min="1" max="20" step="0.1"
+              />
+            </div>
+            <div className="input-group">
+              <label>Высота (м):</label>
+              <input 
+                type="number" 
+                value={(data.rooms || []).find(r => r.id === selectedRoomId)?.height || 0}
+                onChange={(e) => {
+                  const room = (data.rooms || []).find(r => r.id === selectedRoomId);
+                  if (room) updateRoomSize(selectedRoomId, room.width, Number(e.target.value));
+                }}
+                min="1" max="20" step="0.1"
+              />
+            </div>
+            <div className="area-info">
+              <p>Площадь: {((data.rooms || []).find(r => r.id === selectedRoomId)?.width * (data.rooms || []).find(r => r.id === selectedRoomId)?.height || 0).toFixed(1)} м²</p>
+            </div>
+            <button 
+              className="delete-btn"
+              onClick={() => deleteRoom(selectedRoomId)}
+            >
+              Удалить комнату
+            </button>
+          </div>
+        )}
+
         {view3D && (
           <div className="view3d-controls">
             <h4>3D Управление</h4>
@@ -884,7 +1022,33 @@ export default function EnhancedFloorPlanning({ data, updateData, onNext, onPrev
             />
             Показать размеры
           </label>
+          <label>
+            <input 
+              type="checkbox" 
+              checked={showAreaInfo}
+              onChange={(e) => setShowAreaInfo(e.target.checked)}
+            />
+            Показать площади
+          </label>
         </div>
+
+        {showAreaInfo && (
+          <div className="area-summary">
+            <h4>Площади</h4>
+            <div className="area-item">
+              <span>Общая площадь дома:</span>
+              <strong>{calculateTotalHouseArea().toFixed(1)} м²</strong>
+            </div>
+            <div className="area-item">
+              <span>Использовано:</span>
+              <strong>{calculateUsedArea().toFixed(1)} м²</strong>
+            </div>
+            <div className="area-item remaining">
+              <span>Остается:</span>
+              <strong>{calculateRemainingArea().toFixed(1)} м²</strong>
+            </div>
+          </div>
+        )}
 
         <div className="navigation">
           <button onClick={onPrev} className="prev-btn">Назад</button>
@@ -958,7 +1122,7 @@ export default function EnhancedFloorPlanning({ data, updateData, onNext, onPrev
           background: #2196f3;
           color: white;
         }
-        .tools, .wall-settings, .wall-edit, .view3d-controls, .display-options, .opening-settings {
+        .tools, .wall-settings, .wall-edit, .view3d-controls, .display-options, .opening-settings, .room-edit, .area-summary {
           background: #f5f5f5;
           padding: 15px;
           border-radius: 8px;
@@ -1015,6 +1179,28 @@ export default function EnhancedFloorPlanning({ data, updateData, onNext, onPrev
         }
         .delete-btn:hover {
           background: #d32f2f;
+        }
+        .area-summary {
+          background: #e8f5e8;
+        }
+        .area-item {
+          display: flex;
+          justify-content: space-between;
+          margin: 8px 0;
+          padding: 5px 0;
+        }
+        .area-item.remaining {
+          border-top: 1px solid #ccc;
+          padding-top: 10px;
+          margin-top: 10px;
+          font-weight: bold;
+        }
+        .area-info {
+          background: #f0f8ff;
+          padding: 8px;
+          border-radius: 4px;
+          margin: 10px 0;
+          text-align: center;
         }
         .canvas-area {
           flex: 1;
