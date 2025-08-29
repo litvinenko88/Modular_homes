@@ -15,7 +15,7 @@ export default function ConstructorInterface({ initialData, onBack }) {
   const [resizeHandle, setResizeHandle] = useState(null);
   const [elements, setElements] = useState([]);
   const [walls, setWalls] = useState([]);
-  const [fixedElements, setFixedElements] = useState(new Set());
+  const [fixedElements, setFixedElements] = useState(new Set(['house']));
   const [lotFixed, setLotFixed] = useState(true);
   const [hoveredElement, setHoveredElement] = useState(null);
   const [unlockAnimation, setUnlockAnimation] = useState(null);
@@ -52,18 +52,26 @@ export default function ConstructorInterface({ initialData, onBack }) {
   
   useEffect(() => {
     if (initialData) {
-      setElements([{
+      const lotCenterX = 100 / zoom + (initialData.lotSize.width * 30) / 2;
+      const lotCenterY = 100 / zoom + (initialData.lotSize.height * 30) / 2;
+      const houseWidth = initialData.house.width * 30;
+      const houseHeight = initialData.house.height * 30;
+      
+      const houseElement = {
         id: 'house',
         type: 'house',
-        x: 150,
-        y: 150,
-        width: initialData.house.width * 30,
-        height: initialData.house.height * 30,
+        x: lotCenterX - houseWidth / 2,
+        y: lotCenterY - houseHeight / 2,
+        width: houseWidth,
+        height: houseHeight,
         realWidth: initialData.house.width,
         realHeight: initialData.house.height
-      }]);
+      };
+      
+      setElements([houseElement]);
+      setFixedElements(new Set(['house']));
     }
-  }, [initialData]);
+  }, [initialData, zoom]);
 
   const drawCanvas = () => {
     const canvas = canvasRef.current;
