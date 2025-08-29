@@ -421,8 +421,8 @@ export default function ConstructorInterface({ initialData, onBack }) {
       ctx.fillText('🔓', lockX + 10, lockY + 14);
     }
     
-    // Информация об элементе
-    if (zoom >= 0.3) {
+    // Информация об элементе (скрыто для дома)
+    if (zoom >= 0.3 && element.type !== 'house') {
       ctx.fillStyle = '#31323d';
       ctx.font = '10px Arial';
       ctx.textAlign = 'center';
@@ -436,14 +436,6 @@ export default function ConstructorInterface({ initialData, onBack }) {
           centerX,
           centerY - 5 * zoom
         );
-        
-        if (element.type === 'house') {
-          ctx.fillText(
-            `${(element.realWidth * element.realHeight).toFixed(1)}м²`,
-            centerX,
-            centerY + 10 * zoom
-          );
-        }
       }
     }
     
@@ -927,7 +919,7 @@ export default function ConstructorInterface({ initialData, onBack }) {
       ctx.strokeStyle = '#fff';
       ctx.lineWidth = 1;
       
-      const handleSize = Math.max(3, 4 * zoom);
+      const handleSize = Math.max(6, 8 * zoom);
       
       // Маркеры на концах
       ctx.beginPath();
@@ -1022,7 +1014,7 @@ export default function ConstructorInterface({ initialData, onBack }) {
   };
   
   const drawResizeHandles = (ctx, element) => {
-    const handleSize = Math.max(4, 6 * zoom);
+    const handleSize = Math.max(8, 12 * zoom);
     const handles = [
       { id: 'nw', x: element.x - handleSize/2, y: element.y - handleSize/2 },
       { id: 'ne', x: element.x + element.width - handleSize/2, y: element.y - handleSize/2 },
@@ -1293,8 +1285,8 @@ export default function ConstructorInterface({ initialData, onBack }) {
   };
   
   const getResizeHandle = (clientX, clientY, element) => {
-    const handleSize = Math.max(4, 6 * zoom);
-    const tolerance = handleSize;
+    const handleSize = Math.max(8, 12 * zoom);
+    const tolerance = handleSize + 4;
     
     // Преобразуем координаты элемента в экранные
     const scaledX = element.x * zoom;
@@ -1327,8 +1319,8 @@ export default function ConstructorInterface({ initialData, onBack }) {
   const getWallResizeHandle = (clientX, clientY, wall) => {
     if (!wall || wall.x1 === undefined) return null;
     
-    const handleSize = Math.max(3, 4 * zoom);
-    const tolerance = handleSize + 2;
+    const handleSize = Math.max(6, 8 * zoom);
+    const tolerance = handleSize + 4;
     
     const x1 = wall.x1 * zoom + panOffset.x;
     const y1 = wall.y1 * zoom + panOffset.y;
@@ -2751,7 +2743,7 @@ export default function ConstructorInterface({ initialData, onBack }) {
 
         .panel-section h3 {
           margin: 0 0 8px 0;
-          font-size: 13px;
+          font-size: 15px;
           color: var(--white);
           border-bottom: 1px solid rgba(255, 255, 255, 0.2);
           padding-bottom: 4px;
@@ -2767,13 +2759,13 @@ export default function ConstructorInterface({ initialData, onBack }) {
 
         .view-toggle button {
           flex: 1;
-          padding: 6px 8px;
+          padding: 8px 10px;
           border: none;
           background: transparent;
           color: var(--white);
           cursor: pointer;
           transition: all 0.2s;
-          font-size: 11px;
+          font-size: 13px;
         }
 
         .view-toggle button.active {
@@ -2810,11 +2802,11 @@ export default function ConstructorInterface({ initialData, onBack }) {
         }
 
         .tool-icon {
-          font-size: 16px;
+          font-size: 20px;
         }
 
         .tool-name {
-          font-size: 9px;
+          font-size: 11px;
         }
 
         .zoom-controls {
@@ -2825,14 +2817,14 @@ export default function ConstructorInterface({ initialData, onBack }) {
         }
 
         .zoom-controls button {
-          padding: 4px 6px;
+          padding: 6px 8px;
           border: 1px solid rgba(255, 255, 255, 0.2);
           background: transparent;
           color: var(--white);
           border-radius: 3px;
           cursor: pointer;
           transition: all 0.2s;
-          font-size: 11px;
+          font-size: 13px;
         }
 
         .zoom-controls button:hover {
@@ -2841,7 +2833,7 @@ export default function ConstructorInterface({ initialData, onBack }) {
 
         .zoom-controls span {
           text-align: center;
-          font-size: 10px;
+          font-size: 12px;
         }
         
         .hotkeys-info {
@@ -2876,9 +2868,9 @@ export default function ConstructorInterface({ initialData, onBack }) {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          padding: 3px 0;
+          padding: 4px 0;
           border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-          font-size: 10px;
+          font-size: 12px;
         }
 
         .detail-item span {

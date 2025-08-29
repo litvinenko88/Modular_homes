@@ -14,6 +14,8 @@ export default function InteractiveButton({ href, children, style }) {
   return (
     <a 
       href={href}
+      target="_blank"
+      rel="noopener noreferrer"
       style={style}
       onMouseOver={handleMouseOver}
       onMouseOut={handleMouseOut}
