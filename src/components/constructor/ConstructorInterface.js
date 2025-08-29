@@ -22,6 +22,7 @@ export default function ConstructorInterface({ initialData, onBack }) {
   const [isDrawingWall, setIsDrawingWall] = useState(false);
   const [wallDrawStart, setWallDrawStart] = useState(null);
   const [currentWallEnd, setCurrentWallEnd] = useState(null);
+  const [hoveredWall, setHoveredWall] = useState(null);
 
   const SCALE = 30 * zoom;
 
@@ -45,7 +46,7 @@ export default function ConstructorInterface({ initialData, onBack }) {
   useEffect(() => {
     const timer = setTimeout(drawCanvas, 10);
     return () => clearTimeout(timer);
-  }, [zoom, panOffset, initialData, selectedElement, elements, walls, isDrawingWall, wallDrawStart, currentWallEnd]);
+  }, [zoom, panOffset, initialData, selectedElement, elements, walls, isDrawingWall, wallDrawStart, currentWallEnd, hoveredElement, hoveredWall]);
   
   useEffect(() => {
     if (initialData) {
@@ -87,6 +88,21 @@ export default function ConstructorInterface({ initialData, onBack }) {
       ctx.lineTo(currentWallEnd.x * zoom, currentWallEnd.y * zoom);
       ctx.stroke();
       ctx.setLineDash([]);
+      
+      // Показываем длину при рисовании
+      const pixelLength = Math.sqrt(
+        Math.pow((currentWallEnd.x - wallDrawStart.x), 2) + 
+        Math.pow((currentWallEnd.y - wallDrawStart.y), 2)
+      );
+      const lengthInMm = (pixelLength / 30) * 1000;
+      
+      const centerX = ((wallDrawStart.x + currentWallEnd.x) / 2) * zoom;
+      const centerY = ((wallDrawStart.y + currentWallEnd.y) / 2) * zoom;
+      
+      ctx.fillStyle = '#ff9800';
+      ctx.font = `${Math.max(10, 12 * zoom)}px Arial`;
+      ctx.textAlign = 'center';
+      ctx.fillText(`${lengthInMm.toFixed(0)}мм`, centerX, centerY - 10);
     }
     
     ctx.restore();
@@ -265,8 +281,10 @@ export default function ConstructorInterface({ initialData, onBack }) {
       ctx.font = `${Math.max(10, 14 * zoom)}px Arial`;
       ctx.textAlign = 'center';
       
+      const lotArea = (initialData.lotSize.width * initialData.lotSize.height / 100).toFixed(2);
+      
       ctx.fillText(
-        `${initialData.lotSize.width}м`,
+        `${(initialData.lotSize.width * 1000).toFixed(0)}мм`,
         lotX + lotW / 2,
         lotY - 10 * zoom
       );
@@ -274,8 +292,15 @@ export default function ConstructorInterface({ initialData, onBack }) {
       ctx.save();
       ctx.translate(lotX - 20 * zoom, lotY + lotH / 2);
       ctx.rotate(-Math.PI / 2);
-      ctx.fillText(`${initialData.lotSize.height}м`, 0, 0);
+      ctx.fillText(`${(initialData.lotSize.height * 1000).toFixed(0)}мм`, 0, 0);
       ctx.restore();
+      
+      // Показываем площадь в сотках
+      ctx.fillText(
+        `${lotArea} соток`,
+        lotX + lotW / 2,
+        lotY + lotH + 20 * zoom
+      );
     }
     
     if (houseExceedsLot && zoom >= 0.4) {
@@ -299,6 +324,7 @@ export default function ConstructorInterface({ initialData, onBack }) {
   const drawElement = (ctx, element) => {
     const isSelected = selectedElement?.id === element.id;
     const isFixed = fixedElements.has(element.id);
+    const isHovered = selectedTool === 'select' && hoveredElement?.id === element.id;
     
     // Масштабируем размеры элемента
     const scaledWidth = element.width * zoom;
@@ -308,16 +334,16 @@ export default function ConstructorInterface({ initialData, onBack }) {
     
     // Основа элемента
     if (element.type === 'house') {
-      ctx.fillStyle = isSelected ? '#d4c5e8' : (isFixed ? '#e8f4d4' : '#eee8f4');
+      ctx.fillStyle = isSelected ? '#d4c5e8' : (isHovered ? '#f0e8ff' : (isFixed ? '#e8f4d4' : '#eee8f4'));
     } else {
-      ctx.fillStyle = isSelected ? '#c5d4e8' : (isFixed ? '#d4e8c5' : '#e8f4ee');
+      ctx.fillStyle = isSelected ? '#c5d4e8' : (isHovered ? '#e8f0ff' : (isFixed ? '#d4e8c5' : '#e8f4ee'));
     }
     
     ctx.fillRect(scaledX, scaledY, scaledWidth, scaledHeight);
     
     // Контур
-    ctx.strokeStyle = isSelected ? '#df682b' : (isFixed ? '#4caf50' : '#31323d');
-    ctx.lineWidth = isSelected ? Math.max(2, 3 * zoom) : Math.max(1, 2 * zoom);
+    ctx.strokeStyle = isSelected ? '#df682b' : (isHovered ? '#9c27b0' : (isFixed ? '#4caf50' : '#31323d'));
+    ctx.lineWidth = isSelected ? Math.max(2, 3 * zoom) : (isHovered ? Math.max(2, 2 * zoom) : Math.max(1, 2 * zoom));
     ctx.strokeRect(scaledX, scaledY, scaledWidth, scaledHeight);
     
     // Подсветка элемента при наведении в режиме фиксации
@@ -372,7 +398,7 @@ export default function ConstructorInterface({ initialData, onBack }) {
       
       if (element.realWidth && element.realHeight) {
         ctx.fillText(
-          `${element.realWidth.toFixed(1)}×${element.realHeight.toFixed(1)}м`,
+          `${(element.realWidth * 1000).toFixed(0)}×${(element.realHeight * 1000).toFixed(0)}мм`,
           centerX,
           centerY - 5 * zoom
         );
@@ -396,7 +422,7 @@ export default function ConstructorInterface({ initialData, onBack }) {
       const centerY = scaledY + scaledHeight / 2;
       
       ctx.fillText(
-        `${element.realWidth?.toFixed(1) || '0'}м`,
+        `${((element.realWidth || 0) * 1000).toFixed(0)}мм`,
         centerX,
         scaledY - 8 * zoom
       );
@@ -404,7 +430,7 @@ export default function ConstructorInterface({ initialData, onBack }) {
       ctx.save();
       ctx.translate(scaledX - 12 * zoom, centerY);
       ctx.rotate(-Math.PI / 2);
-      ctx.fillText(`${element.realHeight?.toFixed(1) || '0'}м`, 0, 0);
+      ctx.fillText(`${((element.realHeight || 0) * 1000).toFixed(0)}мм`, 0, 0);
       ctx.restore();
     }
     
@@ -422,6 +448,7 @@ export default function ConstructorInterface({ initialData, onBack }) {
   
   const drawWall = (ctx, wall) => {
     const isSelected = selectedElement?.id === wall.id;
+    const isHovered = selectedTool === 'select' && hoveredWall?.id === wall.id;
     
     // Масштабируем координаты
     const x1 = wall.x1 * zoom;
@@ -430,7 +457,7 @@ export default function ConstructorInterface({ initialData, onBack }) {
     const y2 = wall.y2 * zoom;
     
     // Рисуем стену
-    ctx.strokeStyle = isSelected ? '#df682b' : '#8B4513';
+    ctx.strokeStyle = isSelected ? '#df682b' : (isHovered ? '#ff9800' : '#8B4513');
     ctx.lineWidth = Math.max(3, wall.thickness * 30 * zoom);
     ctx.beginPath();
     ctx.moveTo(x1, y1);
@@ -506,7 +533,7 @@ export default function ConstructorInterface({ initialData, onBack }) {
       ctx.fillRect(centerX - textWidth/2 - 2, textY - 8, textWidth + 4, 16);
       
       ctx.fillStyle = '#8B4513';
-      ctx.fillText(`${wall.length.toFixed(1)}м`, centerX, textY);
+      ctx.fillText(`${(wall.length * 1000).toFixed(0)}мм`, centerX, textY);
     }
   };
   
@@ -596,6 +623,7 @@ export default function ConstructorInterface({ initialData, onBack }) {
       // Проверяем, что клик внутри дома
       if (isPointInHouse(worldX, worldY)) {
         setIsDrawingWall(true);
+        // Сохраняем координаты в пикселях (worldX уже в пикселях)
         setWallDrawStart({ x: worldX, y: worldY });
         setCurrentWallEnd({ x: worldX, y: worldY });
       }
@@ -673,8 +701,14 @@ export default function ConstructorInterface({ initialData, onBack }) {
     const houseElement = elements.find(el => el.type === 'house');
     if (!houseElement) return false;
     
-    return x >= houseElement.x && x <= houseElement.x + houseElement.width &&
-           y >= houseElement.y && y <= houseElement.y + houseElement.height;
+    // Переводим координаты в пиксели для сравнения
+    const houseX = houseElement.x;
+    const houseY = houseElement.y;
+    const houseW = houseElement.width;
+    const houseH = houseElement.height;
+    
+    return x >= houseX && x <= houseX + houseW &&
+           y >= houseY && y <= houseY + houseH;
   };
   
   const addWall = (x, y) => {
@@ -777,7 +811,7 @@ export default function ConstructorInterface({ initialData, onBack }) {
     const worldX = (clientX - panOffset.x) / zoom;
     const worldY = (clientY - panOffset.y) / zoom;
     
-    // Обновляем курсор и подсветку в режиме фиксации
+    // Обновляем курсор и подсветку
     if (selectedTool === 'fix') {
       canvas.style.cursor = 'pointer';
       
@@ -791,9 +825,28 @@ export default function ConstructorInterface({ initialData, onBack }) {
       } else {
         setHoveredElement(null);
       }
+    } else if (selectedTool === 'select') {
+      // Подсветка при наведении в режиме выбора
+      const hoveredWallEl = getWallAt(worldX, worldY);
+      const hoveredEl = getElementAt(worldX, worldY);
+      
+      if (hoveredWallEl) {
+        setHoveredWall(hoveredWallEl);
+        setHoveredElement(null);
+        canvas.style.cursor = 'pointer';
+      } else if (hoveredEl) {
+        setHoveredElement(hoveredEl);
+        setHoveredWall(null);
+        canvas.style.cursor = 'pointer';
+      } else {
+        setHoveredElement(null);
+        setHoveredWall(null);
+        canvas.style.cursor = 'grab';
+      }
     } else {
       setHoveredElement(null);
-      canvas.style.cursor = selectedTool === 'select' ? 'grab' : selectedTool === 'wall' ? 'crosshair' : 'default';
+      setHoveredWall(null);
+      canvas.style.cursor = selectedTool === 'wall' ? 'crosshair' : 'default';
     }
     
     // Обновляем конец стены при рисовании
@@ -1078,20 +1131,21 @@ export default function ConstructorInterface({ initialData, onBack }) {
 
   const handleCanvasMouseUp = () => {
     if (isDrawingWall && wallDrawStart && currentWallEnd) {
-      // Создаем стену только если есть длина
-      const length = Math.sqrt(
+      // Создаем стену только если есть длина (в пикселях)
+      const pixelLength = Math.sqrt(
         Math.pow(currentWallEnd.x - wallDrawStart.x, 2) + 
         Math.pow(currentWallEnd.y - wallDrawStart.y, 2)
       );
       
-      if (length > 0.5) { // Минимальная длина стены в метрах
+      if (pixelLength > 15) { // Минимальная длина стены в пикселях
+        const lengthInMeters = pixelLength / 30; // Переводим в метры
         const newWall = {
           id: Date.now(),
           x1: wallDrawStart.x,
           y1: wallDrawStart.y,
           x2: currentWallEnd.x,
           y2: currentWallEnd.y,
-          length: length, // Уже в метрах
+          length: lengthInMeters, // В метрах
           thickness: 0.121, // 121 мм
           type: 'interior'
         };
@@ -1216,8 +1270,8 @@ export default function ConstructorInterface({ initialData, onBack }) {
         </div>
         <div className="header-right">
           <div className="project-info">
-            <span>Дом: {initialData.house.width}×{initialData.house.height}м</span>
-            <span>Участок: {initialData.lotSize.width}×{initialData.lotSize.height}м</span>
+            <span>Дом: {(initialData.house.width * 1000).toFixed(0)}×{(initialData.house.height * 1000).toFixed(0)}мм</span>
+            <span>Участок: {(initialData.lotSize.width * 1000).toFixed(0)}×{(initialData.lotSize.height * 1000).toFixed(0)}мм ({((initialData.lotSize.width * initialData.lotSize.height) / 100).toFixed(2)} соток)</span>
           </div>
         </div>
       </div>
@@ -1316,7 +1370,7 @@ export default function ConstructorInterface({ initialData, onBack }) {
                   <>
                     <div className="detail-item">
                       <span>Размеры дома:</span>
-                      <strong>{houseElement.realWidth?.toFixed(1) || 0}×{houseElement.realHeight?.toFixed(1) || 0}м</strong>
+                      <strong>{((houseElement.realWidth || 0) * 1000).toFixed(0)}×{((houseElement.realHeight || 0) * 1000).toFixed(0)}мм</strong>
                     </div>
                     <div className="detail-item">
                       <span>Площадь:</span>
@@ -1327,7 +1381,7 @@ export default function ConstructorInterface({ initialData, onBack }) {
                   <>
                     <div className="detail-item">
                       <span>Размеры дома:</span>
-                      <strong>{initialData.house.width}×{initialData.house.height}м</strong>
+                      <strong>{(initialData.house.width * 1000).toFixed(0)}×{(initialData.house.height * 1000).toFixed(0)}мм</strong>
                     </div>
                     <div className="detail-item">
                       <span>Площадь:</span>
@@ -1338,7 +1392,7 @@ export default function ConstructorInterface({ initialData, onBack }) {
               })()}
               <div className="detail-item">
                 <span>Участок:</span>
-                <strong>{initialData.lotSize.width}×{initialData.lotSize.height}м</strong>
+                <strong>{(initialData.lotSize.width * 1000).toFixed(0)}×{(initialData.lotSize.height * 1000).toFixed(0)}мм ({((initialData.lotSize.width * initialData.lotSize.height) / 100).toFixed(2)} соток)</strong>
               </div>
               {selectedElement && (
                 <div className="detail-item selected-info">
