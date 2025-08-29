@@ -496,25 +496,46 @@ export default function ConstructorInterface({ initialData, onBack }) {
       const buttonY = Math.min(y1, y2) - 40;
       const buttonSize = 24;
       
+      // Проверяем, соединена ли стена с другими
+      const isConnected = walls.some(w => w.id !== wall.id && 
+        ((Math.abs(w.x1 - wall.x1) < 5 && Math.abs(w.y1 - wall.y1) < 5) ||
+         (Math.abs(w.x2 - wall.x2) < 5 && Math.abs(w.y2 - wall.y2) < 5) ||
+         (Math.abs(w.x1 - wall.x2) < 5 && Math.abs(w.y1 - wall.y2) < 5) ||
+         (Math.abs(w.x2 - wall.x1) < 5 && Math.abs(w.y2 - wall.y1) < 5)));
+      
+      const buttonCount = isConnected ? 3 : 2;
+      const startX = centerX - (buttonCount * buttonSize + (buttonCount - 1) * 5) / 2;
+      
       // Кнопка удаления
       ctx.fillStyle = '#ff4444';
-      ctx.fillRect(centerX - buttonSize - 5, buttonY, buttonSize, buttonSize);
+      ctx.fillRect(startX, buttonY, buttonSize, buttonSize);
       ctx.strokeStyle = '#fff';
       ctx.lineWidth = 1;
-      ctx.strokeRect(centerX - buttonSize - 5, buttonY, buttonSize, buttonSize);
+      ctx.strokeRect(startX, buttonY, buttonSize, buttonSize);
       ctx.fillStyle = '#fff';
       ctx.font = '16px Arial';
       ctx.textAlign = 'center';
-      ctx.fillText('🗑️', centerX - buttonSize/2 - 5, buttonY + 16);
+      ctx.fillText('🗑️', startX + buttonSize/2, buttonY + 16);
       
       // Кнопка поворота
       ctx.fillStyle = '#4CAF50';
-      ctx.fillRect(centerX + 5, buttonY, buttonSize, buttonSize);
+      ctx.fillRect(startX + buttonSize + 5, buttonY, buttonSize, buttonSize);
       ctx.strokeStyle = '#fff';
       ctx.lineWidth = 1;
-      ctx.strokeRect(centerX + 5, buttonY, buttonSize, buttonSize);
+      ctx.strokeRect(startX + buttonSize + 5, buttonY, buttonSize, buttonSize);
       ctx.fillStyle = '#fff';
-      ctx.fillText('🔄', centerX + buttonSize/2 + 5, buttonY + 16);
+      ctx.fillText('🔄', startX + buttonSize + 5 + buttonSize/2, buttonY + 16);
+      
+      // Кнопка разъединения (если стена соединена)
+      if (isConnected) {
+        ctx.fillStyle = '#ff9800';
+        ctx.fillRect(startX + 2 * (buttonSize + 5), buttonY, buttonSize, buttonSize);
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(startX + 2 * (buttonSize + 5), buttonY, buttonSize, buttonSize);
+        ctx.fillStyle = '#fff';
+        ctx.fillText('🔗', startX + 2 * (buttonSize + 5) + buttonSize/2, buttonY + 16);
+      }
     }
     
     // Показываем длину стены (ниже кнопок)
@@ -866,6 +887,13 @@ export default function ConstructorInterface({ initialData, onBack }) {
         endY = worldY;
       }
       
+      // Ограничиваем координаты границами дома
+      const houseElement = elements.find(el => el.type === 'house');
+      if (houseElement) {
+        endX = Math.max(houseElement.x, Math.min(houseElement.x + houseElement.width, endX));
+        endY = Math.max(houseElement.y, Math.min(houseElement.y + houseElement.height, endY));
+      }
+      
       setCurrentWallEnd({ x: endX, y: endY });
     }
     
@@ -1060,10 +1088,10 @@ export default function ConstructorInterface({ initialData, onBack }) {
           : el
       ));
     } else if (element.x1 !== undefined) {
-      // Поворачиваем стену на 90 градусов
+      // Поворачиваем стену на 90 градусов, сохраняя длину
       const centerX = (element.x1 + element.x2) / 2;
       const centerY = (element.y1 + element.y2) / 2;
-      const length = element.length;
+      const lengthInPixels = element.length * 30; // Переводим метры в пиксели
       
       // Определяем новое направление
       const isHorizontal = Math.abs(element.x2 - element.x1) > Math.abs(element.y2 - element.y1);
@@ -1072,14 +1100,14 @@ export default function ConstructorInterface({ initialData, onBack }) {
       if (isHorizontal) {
         // Была горизонтальная, становится вертикальная
         newX1 = centerX;
-        newY1 = centerY - length / 2;
+        newY1 = centerY - lengthInPixels / 2;
         newX2 = centerX;
-        newY2 = centerY + length / 2;
+        newY2 = centerY + lengthInPixels / 2;
       } else {
         // Была вертикальная, становится горизонтальная
-        newX1 = centerX - length / 2;
+        newX1 = centerX - lengthInPixels / 2;
         newY1 = centerY;
-        newX2 = centerX + length / 2;
+        newX2 = centerX + lengthInPixels / 2;
         newY2 = centerY;
       }
       
@@ -1089,6 +1117,27 @@ export default function ConstructorInterface({ initialData, onBack }) {
           : wall
       ));
     }
+  };
+  
+  // Функция разъединения стен
+  const disconnectWall = (wallId) => {
+    const wall = walls.find(w => w.id === wallId);
+    if (!wall) return;
+    
+    // Сдвигаем концы стены на небольшое расстояние
+    const offset = 10;
+    const isHorizontal = Math.abs(wall.x2 - wall.x1) > Math.abs(wall.y2 - wall.y1);
+    
+    setWalls(prev => prev.map(w => {
+      if (w.id === wallId) {
+        if (isHorizontal) {
+          return { ...w, x1: w.x1 + offset, x2: w.x2 - offset };
+        } else {
+          return { ...w, y1: w.y1 + offset, y2: w.y2 - offset };
+        }
+      }
+      return w;
+    }));
   };
 
   // Проверка клика по кнопкам управления
@@ -1104,17 +1153,35 @@ export default function ConstructorInterface({ initialData, onBack }) {
       const buttonY = Math.min(y1, y2) - 40;
       const buttonSize = 24;
       
+      // Проверяем, соединена ли стена
+      const isConnected = walls.some(w => w.id !== element.id && 
+        ((Math.abs(w.x1 - element.x1) < 5 && Math.abs(w.y1 - element.y1) < 5) ||
+         (Math.abs(w.x2 - element.x2) < 5 && Math.abs(w.y2 - element.y2) < 5) ||
+         (Math.abs(w.x1 - element.x2) < 5 && Math.abs(w.y1 - element.y2) < 5) ||
+         (Math.abs(w.x2 - element.x1) < 5 && Math.abs(w.y2 - element.y1) < 5)));
+      
+      const buttonCount = isConnected ? 3 : 2;
+      const startX = centerX - (buttonCount * buttonSize + (buttonCount - 1) * 5) / 2;
+      
       // Кнопка удаления
-      if (clientX >= centerX - buttonSize - 5 && clientX <= centerX - 5 &&
+      if (clientX >= startX && clientX <= startX + buttonSize &&
           clientY >= buttonY && clientY <= buttonY + buttonSize) {
         deleteElement(element.id);
         return true;
       }
       
       // Кнопка поворота
-      if (clientX >= centerX + 5 && clientX <= centerX + buttonSize + 5 &&
+      if (clientX >= startX + buttonSize + 5 && clientX <= startX + 2 * buttonSize + 5 &&
           clientY >= buttonY && clientY <= buttonY + buttonSize) {
         rotateElement(element.id);
+        return true;
+      }
+      
+      // Кнопка разъединения (если есть)
+      if (isConnected && clientX >= startX + 2 * (buttonSize + 5) && 
+          clientX <= startX + 3 * buttonSize + 10 &&
+          clientY >= buttonY && clientY <= buttonY + buttonSize) {
+        disconnectWall(element.id);
         return true;
       }
     }
@@ -1122,11 +1189,97 @@ export default function ConstructorInterface({ initialData, onBack }) {
     return false;
   };
   
+  // Проверка и соединение стен
+  const checkWallConnections = (newWall) => {
+    const connectionThreshold = 15; // Порог для соединения в пикселях
+    
+    walls.forEach(existingWall => {
+      // Проверяем все возможные соединения концов стен
+      const connections = [
+        { new: 'start', existing: 'start', newCoord: [newWall.x1, newWall.y1], existingCoord: [existingWall.x1, existingWall.y1] },
+        { new: 'start', existing: 'end', newCoord: [newWall.x1, newWall.y1], existingCoord: [existingWall.x2, existingWall.y2] },
+        { new: 'end', existing: 'start', newCoord: [newWall.x2, newWall.y2], existingCoord: [existingWall.x1, existingWall.y1] },
+        { new: 'end', existing: 'end', newCoord: [newWall.x2, newWall.y2], existingCoord: [existingWall.x2, existingWall.y2] }
+      ];
+      
+      connections.forEach(conn => {
+        const distance = Math.sqrt(
+          Math.pow(conn.newCoord[0] - conn.existingCoord[0], 2) + 
+          Math.pow(conn.newCoord[1] - conn.existingCoord[1], 2)
+        );
+        
+        if (distance < connectionThreshold) {
+          // Соединяем стены
+          if (conn.new === 'start') {
+            newWall.x1 = conn.existingCoord[0];
+            newWall.y1 = conn.existingCoord[1];
+          } else {
+            newWall.x2 = conn.existingCoord[0];
+            newWall.y2 = conn.existingCoord[1];
+          }
+        }
+      });
+    });
+    
+    return newWall;
+  };
+  
   // Удаление элемента
   const deleteElement = (elementId) => {
     setElements(prev => prev.filter(el => el.id !== elementId));
     setWalls(prev => prev.filter(wall => wall.id !== elementId));
     setSelectedElement(null);
+  };
+
+  // Функции для изменения размеров элементов
+  const updateElementSize = (dimension, value) => {
+    if (!selectedElement) return;
+    
+    if (selectedElement.type === 'house') {
+      const newWidth = dimension === 'width' ? value : selectedElement.realWidth;
+      const newHeight = dimension === 'height' ? value : selectedElement.realHeight;
+      
+      setElements(prev => prev.map(el => 
+        el.id === selectedElement.id 
+          ? { 
+              ...el, 
+              width: newWidth * 30,
+              height: newHeight * 30,
+              realWidth: newWidth,
+              realHeight: newHeight
+            }
+          : el
+      ));
+    }
+  };
+  
+  const updateWallLength = (newLength) => {
+    if (!selectedElement || selectedElement.x1 === undefined) return;
+    
+    const wall = selectedElement;
+    const centerX = (wall.x1 + wall.x2) / 2;
+    const centerY = (wall.y1 + wall.y2) / 2;
+    const isHorizontal = Math.abs(wall.x2 - wall.x1) > Math.abs(wall.y2 - wall.y1);
+    const lengthInPixels = newLength * 30;
+    
+    let newX1, newY1, newX2, newY2;
+    if (isHorizontal) {
+      newX1 = centerX - lengthInPixels / 2;
+      newY1 = wall.y1;
+      newX2 = centerX + lengthInPixels / 2;
+      newY2 = wall.y2;
+    } else {
+      newX1 = wall.x1;
+      newY1 = centerY - lengthInPixels / 2;
+      newX2 = wall.x2;
+      newY2 = centerY + lengthInPixels / 2;
+    }
+    
+    setWalls(prev => prev.map(w => 
+      w.id === selectedElement.id 
+        ? { ...w, x1: newX1, y1: newY1, x2: newX2, y2: newY2, length: newLength }
+        : w
+    ));
   };
 
   const handleCanvasMouseUp = () => {
@@ -1150,8 +1303,10 @@ export default function ConstructorInterface({ initialData, onBack }) {
           type: 'interior'
         };
         
-        setWalls(prev => [...prev, newWall]);
-        setSelectedElement(newWall);
+        // Проверяем пересечения с существующими стенами и соединяем их
+        const connectedWall = checkWallConnections(newWall);
+        setWalls(prev => [...prev, connectedWall]);
+        setSelectedElement(connectedWall);
       }
     }
     
@@ -1356,6 +1511,44 @@ export default function ConstructorInterface({ initialData, onBack }) {
               </button>
             </div>
           </div>
+
+          {selectedElement && (
+            <div className="panel-section">
+              <h3>Размеры элемента</h3>
+              <div className="size-controls">
+                {selectedElement.realWidth !== undefined && (
+                  <div className="size-input">
+                    <label>Ширина (мм):</label>
+                    <input 
+                      type="number" 
+                      value={Math.round((selectedElement.realWidth || 0) * 1000)}
+                      onChange={(e) => updateElementSize('width', parseInt(e.target.value) / 1000)}
+                    />
+                  </div>
+                )}
+                {selectedElement.realHeight !== undefined && (
+                  <div className="size-input">
+                    <label>Высота (мм):</label>
+                    <input 
+                      type="number" 
+                      value={Math.round((selectedElement.realHeight || 0) * 1000)}
+                      onChange={(e) => updateElementSize('height', parseInt(e.target.value) / 1000)}
+                    />
+                  </div>
+                )}
+                {selectedElement.length !== undefined && (
+                  <div className="size-input">
+                    <label>Длина (мм):</label>
+                    <input 
+                      type="number" 
+                      value={Math.round((selectedElement.length || 0) * 1000)}
+                      onChange={(e) => updateWallLength(parseInt(e.target.value) / 1000)}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           <div className="panel-section">
             <h3>Информация о проекте</h3>
@@ -1620,6 +1813,32 @@ export default function ConstructorInterface({ initialData, onBack }) {
           padding: 4px 8px;
           border-radius: 4px;
           margin: 4px 0;
+        }
+        
+        .size-controls {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+        
+        .size-input {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+        
+        .size-input label {
+          font-size: 12px;
+          opacity: 0.8;
+        }
+        
+        .size-input input {
+          padding: 6px;
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          border-radius: 4px;
+          background: rgba(255, 255, 255, 0.1);
+          color: var(--white);
+          font-size: 14px;
         }
 
         @media (max-width: 768px) {
