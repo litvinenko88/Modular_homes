@@ -23,6 +23,7 @@ export default function ConstructorInterface({ initialData, onBack }) {
   const [wallDrawStart, setWallDrawStart] = useState(null);
   const [currentWallEnd, setCurrentWallEnd] = useState(null);
   const [hoveredWall, setHoveredWall] = useState(null);
+  const [panelCollapsed, setPanelCollapsed] = useState(false);
 
   const SCALE = 30 * zoom;
 
@@ -554,7 +555,8 @@ export default function ConstructorInterface({ initialData, onBack }) {
       ctx.fillRect(centerX - textWidth/2 - 2, textY - 8, textWidth + 4, 16);
       
       ctx.fillStyle = '#8B4513';
-      ctx.fillText(`${(wall.length * 1000).toFixed(0)}мм`, centerX, textY);
+      ctx.font = `${Math.max(6, 8 * zoom)}px Arial`;
+      ctx.fillText(`${(wall.length * 1000).toFixed(0)}мм`, centerX, textY - 15);
     }
   };
   
@@ -1481,7 +1483,24 @@ export default function ConstructorInterface({ initialData, onBack }) {
         </div>
 
         {/* Панель управления */}
-        <div className="control-panel">
+        <div className={`control-panel ${panelCollapsed ? 'collapsed' : ''}`}>
+          <div className="panel-header">
+            <button 
+              className="calculate-btn"
+              title="Отправить проект на расчет"
+              onClick={() => alert('Проект отправлен на расчет!')}
+            >
+              📊 На расчет
+            </button>
+            <button 
+              className="collapse-btn"
+              title="Свернуть"
+              onClick={() => setPanelCollapsed(!panelCollapsed)}
+            >
+              {panelCollapsed ? '◀' : '▶'}
+            </button>
+          </div>
+
           <div className="panel-section">
             <h3>Режим просмотра</h3>
             <div className="view-toggle">
@@ -1665,6 +1684,19 @@ export default function ConstructorInterface({ initialData, onBack }) {
             </div>
           </div>
         </div>
+        
+        {/* Свернутая панель */}
+        {panelCollapsed && (
+          <div className="collapsed-panel">
+            <button 
+              className="expand-btn"
+              onClick={() => setPanelCollapsed(false)}
+              title="Развернуть панель"
+            >
+              ◀
+            </button>
+          </div>
+        )}
       </div>
 
       <style jsx>{`
@@ -1748,6 +1780,85 @@ export default function ConstructorInterface({ initialData, onBack }) {
           display: flex;
           flex-direction: column;
           gap: 24px;
+          transition: transform 0.3s ease, width 0.3s ease;
+          position: relative;
+        }
+        
+        .control-panel.collapsed {
+          transform: translateX(100%);
+          width: 0;
+          min-width: 0;
+          padding: 0;
+          overflow: hidden;
+        }
+        
+        .collapsed-panel {
+          position: fixed;
+          right: 0;
+          top: 50%;
+          transform: translateY(-50%);
+          z-index: 1000;
+        }
+        
+        .expand-btn {
+          background: var(--primary-dark);
+          color: var(--white);
+          border: none;
+          padding: 20px 8px;
+          border-radius: 8px 0 0 8px;
+          cursor: pointer;
+          font-size: 20px;
+          box-shadow: -2px 0 8px rgba(0, 0, 0, 0.2);
+          transition: all 0.3s ease;
+        }
+        
+        .expand-btn:hover {
+          background: var(--accent-orange);
+          padding-left: 12px;
+        }
+        
+        .panel-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 16px;
+          padding-bottom: 12px;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .calculate-btn {
+          background: var(--accent-orange);
+          color: var(--white);
+          border: none;
+          padding: 8px 12px;
+          border-radius: 6px;
+          cursor: pointer;
+          font-size: 12px;
+          transition: all 0.2s;
+          display: flex;
+          align-items: center;
+          gap: 4px;
+        }
+        
+        .calculate-btn:hover {
+          background: #c55a24;
+          transform: translateY(-1px);
+        }
+        
+        .collapse-btn {
+          background: transparent;
+          color: var(--white);
+          border: 1px solid rgba(255, 255, 255, 0.3);
+          padding: 6px 8px;
+          border-radius: 4px;
+          cursor: pointer;
+          font-size: 14px;
+          transition: all 0.2s;
+        }
+        
+        .collapse-btn:hover {
+          background: rgba(255, 255, 255, 0.1);
+          border-color: var(--accent-orange);
         }
 
         .panel-section h3 {
@@ -1933,6 +2044,37 @@ export default function ConstructorInterface({ initialData, onBack }) {
             height: 40%;
             padding: 16px;
             gap: 16px;
+            transform: none;
+          }
+          
+          .control-panel.collapsed {
+            transform: translateY(100%);
+            height: 0;
+            padding: 0;
+          }
+          
+          .collapsed-panel {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            right: auto;
+            top: auto;
+          }
+          
+          .expand-btn {
+            border-radius: 8px 8px 0 0;
+            padding: 8px 20px;
+          }
+          
+          .panel-header {
+            flex-direction: column;
+            gap: 8px;
+          }
+          
+          .calculate-btn {
+            width: 100%;
+            justify-content: center;
           }
 
           .workspace {
