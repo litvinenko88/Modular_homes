@@ -504,20 +504,7 @@ export default function ConstructorInterface({ initialData, onBack }) {
     const worldY = (clientY - panOffset.y) / zoom;
     
     if (selectedTool === 'fix') {
-      // Проверяем клик по участку
-      if (isPointInLot(worldX, worldY)) {
-        if (lotFixed) {
-          setLotFixed(false);
-          setUnlockAnimation({ type: 'lot' });
-          setTimeout(() => setUnlockAnimation(null), 2000);
-        } else {
-          setLotFixed(true);
-        }
-        drawCanvas();
-        return;
-      }
-      
-      // Проверяем клик по элементам
+      // Проверяем клик по элементам (приоритет над участком)
       const clickedElement = getElementAt(worldX, worldY);
       const clickedWall = getWallAt(worldX, worldY);
       
@@ -548,6 +535,19 @@ export default function ConstructorInterface({ initialData, onBack }) {
           setTimeout(() => setUnlockAnimation(null), 2000);
         } else {
           setFixedElements(prev => new Set(prev).add(clickedWall.id));
+        }
+        drawCanvas();
+        return;
+      }
+      
+      // Проверяем клик по участку (только если не попали в элементы)
+      if (isPointInLot(worldX, worldY)) {
+        if (lotFixed) {
+          setLotFixed(false);
+          setUnlockAnimation({ type: 'lot' });
+          setTimeout(() => setUnlockAnimation(null), 2000);
+        } else {
+          setLotFixed(true);
         }
         drawCanvas();
         return;
@@ -723,13 +723,15 @@ export default function ConstructorInterface({ initialData, onBack }) {
     if (selectedTool === 'fix') {
       canvas.style.cursor = 'pointer';
       
-      // Проверяем наведение на участок
-      if (isPointInLot(worldX, worldY)) {
+      // Приоритет элементам над участком
+      const hoveredEl = getElementAt(worldX, worldY) || getWallAt(worldX, worldY);
+      
+      if (hoveredEl) {
+        setHoveredElement(hoveredEl);
+      } else if (isPointInLot(worldX, worldY)) {
         setHoveredElement({ type: 'lot' });
       } else {
-        // Проверяем наведение на элементы
-        const hoveredEl = getElementAt(worldX, worldY) || getWallAt(worldX, worldY);
-        setHoveredElement(hoveredEl);
+        setHoveredElement(null);
       }
     } else {
       setHoveredElement(null);
