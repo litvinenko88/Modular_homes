@@ -513,6 +513,7 @@ export default function ConstructorInterface({ initialData, onBack }) {
         } else {
           setLotFixed(true);
         }
+        drawCanvas();
         return;
       }
       
@@ -532,6 +533,7 @@ export default function ConstructorInterface({ initialData, onBack }) {
         } else {
           setFixedElements(prev => new Set(prev).add(clickedElement.id));
         }
+        drawCanvas();
         return;
       }
       
@@ -547,6 +549,7 @@ export default function ConstructorInterface({ initialData, onBack }) {
         } else {
           setFixedElements(prev => new Set(prev).add(clickedWall.id));
         }
+        drawCanvas();
         return;
       }
     } else if (selectedTool === 'select') {
