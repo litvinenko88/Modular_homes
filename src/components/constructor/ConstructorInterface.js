@@ -24,6 +24,7 @@ export default function ConstructorInterface({ initialData, onBack }) {
   const [currentWallEnd, setCurrentWallEnd] = useState(null);
   const [hoveredWall, setHoveredWall] = useState(null);
   const [panelCollapsed, setPanelCollapsed] = useState(false);
+  const [roomNames, setRoomNames] = useState({});
 
   const SCALE = 30 * zoom;
 
@@ -47,7 +48,7 @@ export default function ConstructorInterface({ initialData, onBack }) {
   useEffect(() => {
     const timer = setTimeout(drawCanvas, 10);
     return () => clearTimeout(timer);
-  }, [zoom, panOffset, initialData, selectedElement, elements, walls, isDrawingWall, wallDrawStart, currentWallEnd, hoveredElement, hoveredWall]);
+  }, [zoom, panOffset, initialData, selectedElement, elements, walls, isDrawingWall, wallDrawStart, currentWallEnd, hoveredElement, hoveredWall, roomNames]);
   
   useEffect(() => {
     if (initialData) {
@@ -101,7 +102,7 @@ export default function ConstructorInterface({ initialData, onBack }) {
       const centerY = ((wallDrawStart.y + currentWallEnd.y) / 2) * zoom;
       
       ctx.fillStyle = '#ff9800';
-      ctx.font = `${Math.max(10, 12 * zoom)}px Arial`;
+      ctx.font = '12px Arial';
       ctx.textAlign = 'center';
       ctx.fillText(`${lengthInMm.toFixed(0)}мм`, centerX, centerY - 10);
     }
@@ -279,7 +280,7 @@ export default function ConstructorInterface({ initialData, onBack }) {
     // Размеры участка
     if (zoom >= 0.3) {
       ctx.fillStyle = houseExceedsLot ? '#ff0000' : '#666';
-      ctx.font = `${Math.max(10, 14 * zoom)}px Arial`;
+      ctx.font = '14px Arial';
       ctx.textAlign = 'center';
       
       const lotArea = (initialData.lotSize.width * initialData.lotSize.height / 100).toFixed(2);
@@ -306,7 +307,7 @@ export default function ConstructorInterface({ initialData, onBack }) {
     
     if (houseExceedsLot && zoom >= 0.4) {
       ctx.fillStyle = '#ff0000';
-      ctx.font = `${Math.max(10, 12 * zoom)}px Arial`;
+      ctx.font = '12px Arial';
       ctx.textAlign = 'center';
       ctx.fillText(
         'Дом выходит за границы участка!',
@@ -391,7 +392,7 @@ export default function ConstructorInterface({ initialData, onBack }) {
     // Информация об элементе
     if (zoom >= 0.3) {
       ctx.fillStyle = '#31323d';
-      ctx.font = `${Math.max(8, 10 * zoom)}px Arial`;
+      ctx.font = '10px Arial';
       ctx.textAlign = 'center';
       
       const centerX = scaledX + scaledWidth / 2;
@@ -417,7 +418,7 @@ export default function ConstructorInterface({ initialData, onBack }) {
     // Размеры по краям
     if (zoom >= 0.5) {
       ctx.fillStyle = '#df682b';
-      ctx.font = `${Math.max(6, 8 * zoom)}px Arial`;
+      ctx.font = '8px Arial';
       
       const centerX = scaledX + scaledWidth / 2;
       const centerY = scaledY + scaledHeight / 2;
@@ -444,6 +445,172 @@ export default function ConstructorInterface({ initialData, onBack }) {
   const drawWalls = (ctx) => {
     walls.forEach(wall => {
       drawWall(ctx, wall);
+    });
+    drawRooms(ctx);
+  };
+  
+  const findRooms = () => {
+    if (walls.length === 0) return [];
+    
+    const houseElement = elements.find(el => el.type === 'house');
+    if (!houseElement) return [];
+    
+    const rooms = [];
+    
+    // Создаем сетку на основе стен и границ дома
+    const xLines = new Set([houseElement.x, houseElement.x + houseElement.width]);
+    const yLines = new Set([houseElement.y, houseElement.y + houseElement.height]);
+    
+    // Добавляем координаты стен
+    walls.forEach(wall => {
+      xLines.add(wall.x1);
+      xLines.add(wall.x2);
+      yLines.add(wall.y1);
+      yLines.add(wall.y2);
+    });
+    
+    const sortedX = Array.from(xLines).sort((a, b) => a - b);
+    const sortedY = Array.from(yLines).sort((a, b) => a - b);
+    
+    // Проверяем каждую ячейку сетки
+    for (let i = 0; i < sortedX.length - 1; i++) {
+      for (let j = 0; j < sortedY.length - 1; j++) {
+        const x1 = sortedX[i];
+        const x2 = sortedX[i + 1];
+        const y1 = sortedY[j];
+        const y2 = sortedY[j + 1];
+        
+        // Проверяем, что ячейка внутри дома
+        if (x1 >= houseElement.x && x2 <= houseElement.x + houseElement.width &&
+            y1 >= houseElement.y && y2 <= houseElement.y + houseElement.height) {
+          
+          // Проверяем, что ячейка не пересекается со стенами
+          const isBlocked = walls.some(wall => {
+            return lineIntersectsRect(wall.x1, wall.y1, wall.x2, wall.y2, x1, y1, x2, y2);
+          });
+          
+          if (!isBlocked && (x2 - x1) > 10 && (y2 - y1) > 10) {
+            rooms.push({
+              bounds: { minX: x1, maxX: x2, minY: y1, maxY: y2 },
+              walls: getWallsForRoom(x1, y1, x2, y2)
+            });
+          }
+        }
+      }
+    }
+    
+    return rooms;
+  };
+  
+  const lineIntersectsRect = (x1, y1, x2, y2, rectX1, rectY1, rectX2, rectY2) => {
+    // Проверяем, пересекает ли линия прямоугольник
+    const centerX = (rectX1 + rectX2) / 2;
+    const centerY = (rectY1 + rectY2) / 2;
+    
+    // Если стена проходит через центр комнаты, то комната заблокирована
+    return pointOnLine(centerX, centerY, x1, y1, x2, y2, 5);
+  };
+  
+  const pointOnLine = (px, py, x1, y1, x2, y2, tolerance) => {
+    const dist = distanceToLine(px, py, x1, y1, x2, y2);
+    return dist < tolerance;
+  };
+  
+  const getWallsForRoom = (x1, y1, x2, y2) => {
+    return walls.filter(wall => {
+      // Стена является границей комнаты, если она на краю
+      return (Math.abs(wall.x1 - x1) < 5 || Math.abs(wall.x1 - x2) < 5 ||
+              Math.abs(wall.y1 - y1) < 5 || Math.abs(wall.y1 - y2) < 5) &&
+             wall.x1 >= x1 - 5 && wall.x2 <= x2 + 5 &&
+             wall.y1 >= y1 - 5 && wall.y2 <= y2 + 5;
+    });
+  };
+  
+  const calculateRoomArea = (room) => {
+    if (!room.bounds) return 0;
+    
+    const width = (room.bounds.maxX - room.bounds.minX) / 30;
+    const height = (room.bounds.maxY - room.bounds.minY) / 30;
+    return width * height;
+  };
+  
+  const getRoomCenter = (room) => {
+    if (!room.bounds) return { x: 0, y: 0 };
+    
+    return {
+      x: (room.bounds.minX + room.bounds.maxX) / 2,
+      y: (room.bounds.minY + room.bounds.maxY) / 2
+    };
+  };
+  
+  const getRoomAt = (x, y) => {
+    const rooms = findRooms();
+    
+    for (let i = 0; i < rooms.length; i++) {
+      const room = rooms[i];
+      if (isPointInRoom(x, y, room)) {
+        return i;
+      }
+    }
+    return null;
+  };
+  
+  const isPointInRoom = (x, y, room) => {
+    if (!room.bounds) return false;
+    
+    return x >= room.bounds.minX && x <= room.bounds.maxX && 
+           y >= room.bounds.minY && y <= room.bounds.maxY;
+  };
+  
+  const handleRoomDoubleClick = (roomIndex) => {
+    const newName = prompt('Введите название комнаты:', roomNames[roomIndex] || `Комната ${roomIndex + 1}`);
+    if (newName !== null) {
+      setRoomNames(prev => ({ ...prev, [roomIndex]: newName }));
+    }
+  };
+  
+  const drawRooms = (ctx) => {
+    const rooms = findRooms();
+    
+    rooms.forEach((room, index) => {
+      const center = getRoomCenter(room);
+      const area = calculateRoomArea(room);
+      
+      if (area > 0.5) { // Показываем только комнаты больше 0.5 м²
+        
+        // Показываем площадь и название
+        if (zoom >= 0.4) {
+          ctx.fillStyle = '#2196f3';
+          ctx.font = '12px Arial';
+          ctx.textAlign = 'center';
+          
+          const roomName = roomNames[index] || `Комната ${index + 1}`;
+          ctx.fillText(
+            roomName,
+            center.x * zoom,
+            center.y * zoom - 8
+          );
+          
+          ctx.font = '10px Arial';
+          ctx.fillText(
+            `${area.toFixed(1)}м²`,
+            center.x * zoom,
+            center.y * zoom + 8
+          );
+          
+          // Показываем размеры комнаты
+          const width = (room.bounds.maxX - room.bounds.minX) / 30;
+          const height = (room.bounds.maxY - room.bounds.minY) / 30;
+          
+          ctx.fillStyle = '#666';
+          ctx.font = '9px Arial';
+          ctx.fillText(
+            `${(width * 1000).toFixed(0)}×${(height * 1000).toFixed(0)}мм`,
+            center.x * zoom,
+            center.y * zoom + 20
+          );
+        }
+      }
     });
   };
   
@@ -546,7 +713,7 @@ export default function ConstructorInterface({ initialData, onBack }) {
       const isHorizontal = Math.abs(x2 - x1) > Math.abs(y2 - y1);
       
       ctx.fillStyle = '#8B4513';
-      ctx.font = `${Math.max(8, 10 * zoom)}px Arial`;
+      ctx.font = '10px Arial';
       ctx.textAlign = 'center';
       
       if (isHorizontal) {
@@ -681,6 +848,7 @@ export default function ConstructorInterface({ initialData, onBack }) {
       // Проверяем клик по элементам (стены имеют приоритет)
       const clickedWall = getWallAt(worldX, worldY);
       const clickedElement = getElementAt(worldX, worldY);
+      const clickedRoom = getRoomAt(worldX, worldY);
       
       if (clickedWall) {
         setSelectedElement(clickedWall);
@@ -701,6 +869,9 @@ export default function ConstructorInterface({ initialData, onBack }) {
             startY: worldY - clickedElement.y 
           });
         }
+        return;
+      } else if (clickedRoom !== null) {
+        // Клик по комнате - пока ничего не делаем
         return;
       }
       
@@ -1394,6 +1565,22 @@ export default function ConstructorInterface({ initialData, onBack }) {
     }));
   };
 
+  const handleCanvasDoubleClick = (e) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    
+    const rect = canvas.getBoundingClientRect();
+    const clientX = e.clientX - rect.left;
+    const clientY = e.clientY - rect.top;
+    const worldX = (clientX - panOffset.x) / zoom;
+    const worldY = (clientY - panOffset.y) / zoom;
+    
+    const roomIndex = getRoomAt(worldX, worldY);
+    if (roomIndex !== null) {
+      handleRoomDoubleClick(roomIndex);
+    }
+  };
+  
   const handleCanvasMouseUp = () => {
     if (isDrawingWall && wallDrawStart && currentWallEnd) {
       // Создаем стену только если есть длина (в пикселях)
@@ -1552,6 +1739,7 @@ export default function ConstructorInterface({ initialData, onBack }) {
             onMouseMove={handleCanvasMouseMove}
             onMouseUp={handleCanvasMouseUp}
             onMouseLeave={handleCanvasMouseUp}
+            onDoubleClick={handleCanvasDoubleClick}
             onWheel={handleWheel}
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
