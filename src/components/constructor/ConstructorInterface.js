@@ -541,40 +541,45 @@ export default function ConstructorInterface({ initialData, onBack }) {
   };
   
   const findRooms = () => {
-    if (walls.length === 0) return [];
-    
     const houseElement = elements.find(el => el.type === 'house');
     if (!houseElement) return [];
     
-    const rooms = [];
+    // Создаем массив всех стен включая границы дома
+    const allWalls = [...walls];
     
-    // Создаем сетку только из стен, которые образуют замкнутые контуры
-    const connectedWalls = getConnectedWalls();
-    if (connectedWalls.length === 0) return [];
+    // Добавляем границы дома как стены
+    const houseBounds = [
+      { id: 'house-top', x1: houseElement.x, y1: houseElement.y, x2: houseElement.x + houseElement.width, y2: houseElement.y, type: 'boundary' },
+      { id: 'house-right', x1: houseElement.x + houseElement.width, y1: houseElement.y, x2: houseElement.x + houseElement.width, y2: houseElement.y + houseElement.height, type: 'boundary' },
+      { id: 'house-bottom', x1: houseElement.x + houseElement.width, y1: houseElement.y + houseElement.height, x2: houseElement.x, y2: houseElement.y + houseElement.height, type: 'boundary' },
+      { id: 'house-left', x1: houseElement.x, y1: houseElement.y + houseElement.height, x2: houseElement.x, y2: houseElement.y, type: 'boundary' }
+    ];
     
-    // Находим все пересечения стен
-    const intersections = findWallIntersections(connectedWalls);
+    allWalls.push(...houseBounds);
     
-    // Создаем сетку на основе пересечений и границ дома
-    const xLines = new Set([houseElement.x, houseElement.x + houseElement.width]);
-    const yLines = new Set([houseElement.y, houseElement.y + houseElement.height]);
+    // Создаем сетку координат
+    const xCoords = new Set([houseElement.x, houseElement.x + houseElement.width]);
+    const yCoords = new Set([houseElement.y, houseElement.y + houseElement.height]);
     
-    // Добавляем координаты только связанных стен
-    connectedWalls.forEach(wall => {
-      xLines.add(wall.x1);
-      xLines.add(wall.x2);
-      yLines.add(wall.y1);
-      yLines.add(wall.y2);
+    // Добавляем координаты стен
+    walls.forEach(wall => {
+      if (wall.x1 >= houseElement.x && wall.x1 <= houseElement.x + houseElement.width) xCoords.add(wall.x1);
+      if (wall.x2 >= houseElement.x && wall.x2 <= houseElement.x + houseElement.width) xCoords.add(wall.x2);
+      if (wall.y1 >= houseElement.y && wall.y1 <= houseElement.y + houseElement.height) yCoords.add(wall.y1);
+      if (wall.y2 >= houseElement.y && wall.y2 <= houseElement.y + houseElement.height) yCoords.add(wall.y2);
     });
     
-    // Добавляем точки пересечений
+    // Добавляем пересечения стен
+    const intersections = findAllIntersections(allWalls);
     intersections.forEach(point => {
-      xLines.add(point.x);
-      yLines.add(point.y);
+      if (point.x >= houseElement.x && point.x <= houseElement.x + houseElement.width) xCoords.add(point.x);
+      if (point.y >= houseElement.y && point.y <= houseElement.y + houseElement.height) yCoords.add(point.y);
     });
     
-    const sortedX = Array.from(xLines).sort((a, b) => a - b);
-    const sortedY = Array.from(yLines).sort((a, b) => a - b);
+    const sortedX = Array.from(xCoords).sort((a, b) => a - b);
+    const sortedY = Array.from(yCoords).sort((a, b) => a - b);
+    
+    const rooms = [];
     
     // Проверяем каждую ячейку сетки
     for (let i = 0; i < sortedX.length - 1; i++) {
@@ -584,16 +589,16 @@ export default function ConstructorInterface({ initialData, onBack }) {
         const y1 = sortedY[j];
         const y2 = sortedY[j + 1];
         
-        // Проверяем, что ячейка внутри дома
-        if (x1 >= houseElement.x && x2 <= houseElement.x + houseElement.width &&
-            y1 >= houseElement.y && y2 <= houseElement.y + houseElement.height) {
-          
-          // Проверяем, что ячейка полностью окружена стенами или границами дома
-          if (isRoomEnclosed(x1, y1, x2, y2, connectedWalls, houseElement) && 
-              (x2 - x1) > 30 && (y2 - y1) > 30) { // Минимальный размер комнаты 1м x 1м
+        // Минимальный размер комнаты 0.5м x 0.5м
+        if ((x2 - x1) >= 15 && (y2 - y1) >= 15) {
+          if (isRoomFullyEnclosed(x1, y1, x2, y2, allWalls)) {
+            const roomWalls = getRoomWalls(x1, y1, x2, y2, walls);
             rooms.push({
               bounds: { minX: x1, maxX: x2, minY: y1, maxY: y2 },
-              walls: getWallsForRoom(x1, y1, x2, y2)
+              walls: roomWalls,
+              area: ((x2 - x1) * (y2 - y1)) / (30 * 30), // площадь в м²
+              width: (x2 - x1) / 30, // ширина в метрах
+              height: (y2 - y1) / 30 // высота в метрах
             });
           }
         }
@@ -603,25 +608,8 @@ export default function ConstructorInterface({ initialData, onBack }) {
     return rooms;
   };
 
-  // Получаем только связанные стены (которые соединены с другими стенами)
-  const getConnectedWalls = () => {
-    return walls.filter(wall => {
-      return walls.some(otherWall => {
-        if (otherWall.id === wall.id) return false;
-        
-        const connectionThreshold = 5;
-        return (
-          (Math.abs(wall.x1 - otherWall.x1) < connectionThreshold && Math.abs(wall.y1 - otherWall.y1) < connectionThreshold) ||
-          (Math.abs(wall.x1 - otherWall.x2) < connectionThreshold && Math.abs(wall.y1 - otherWall.y2) < connectionThreshold) ||
-          (Math.abs(wall.x2 - otherWall.x1) < connectionThreshold && Math.abs(wall.y2 - otherWall.y1) < connectionThreshold) ||
-          (Math.abs(wall.x2 - otherWall.x2) < connectionThreshold && Math.abs(wall.y2 - otherWall.y2) < connectionThreshold)
-        );
-      });
-    });
-  };
-
-  // Находим пересечения стен
-  const findWallIntersections = (wallList) => {
+  // Находим все пересечения стен включая границы дома
+  const findAllIntersections = (wallList) => {
     const intersections = [];
     
     for (let i = 0; i < wallList.length; i++) {
@@ -638,6 +626,29 @@ export default function ConstructorInterface({ initialData, onBack }) {
     }
     
     return intersections;
+  };
+
+  // Проверяем, полностью ли окружена комната
+  const isRoomFullyEnclosed = (x1, y1, x2, y2, allWalls) => {
+    const tolerance = 2;
+    
+    // Стороны комнаты
+    const sides = [
+      { x1, y1, x2, y2: y1, name: 'top' },    // верх
+      { x1: x2, y1, x2, y2, name: 'right' },  // право
+      { x1, y1: y2, x2, y2, name: 'bottom' }, // низ
+      { x1, y1, x2: x1, y2, name: 'left' }   // лево
+    ];
+    
+    return sides.every(side => {
+      return allWalls.some(wall => {
+        return segmentsOverlap(
+          side.x1, side.y1, side.x2, side.y2,
+          wall.x1, wall.y1, wall.x2, wall.y2,
+          tolerance
+        );
+      });
+    });
   };
 
   // Находим пересечение двух линий
@@ -658,67 +669,51 @@ export default function ConstructorInterface({ initialData, onBack }) {
     return null;
   };
 
-  // Проверяем, окружена ли комната стенами
-  const isRoomEnclosed = (x1, y1, x2, y2, wallList, houseElement) => {
-    const roomCenter = { x: (x1 + x2) / 2, y: (y1 + y2) / 2 };
-    const tolerance = 5;
+  // Улучшенная проверка перекрытия сегментов
+  const segmentsOverlap = (x1, y1, x2, y2, x3, y3, x4, y4, tolerance) => {
+    // Проверяем горизонтальные линии
+    if (Math.abs(y1 - y2) < tolerance && Math.abs(y3 - y4) < tolerance && Math.abs(y1 - y3) < tolerance) {
+      const min1 = Math.min(x1, x2);
+      const max1 = Math.max(x1, x2);
+      const min2 = Math.min(x3, x4);
+      const max2 = Math.max(x3, x4);
+      return Math.max(min1, min2) <= Math.min(max1, max2) + tolerance;
+    }
     
-    // Проверяем каждую сторону комнаты
-    const sides = [
-      { x1: x1, y1: y1, x2: x2, y2: y1 }, // верх
-      { x1: x2, y1: y1, x2: x2, y2: y2 }, // право
-      { x1: x2, y1: y2, x2: x1, y2: y2 }, // низ
-      { x1: x1, y1: y2, x2: x1, y2: y1 }  // лево
-    ];
-    
-    return sides.every(side => {
-      // Проверяем, есть ли стена или граница дома на этой стороне
-      const hasWall = wallList.some(wall => {
-        return lineSegmentsOverlap(
-          side.x1, side.y1, side.x2, side.y2,
-          wall.x1, wall.y1, wall.x2, wall.y2,
-          tolerance
-        );
-      });
-      
-      if (hasWall) return true;
-      
-      // Проверяем, является ли эта сторона границей дома
-      const isHouseBoundary = (
-        (Math.abs(side.y1 - houseElement.y) < tolerance && side.y1 === side.y2) || // верхняя граница
-        (Math.abs(side.y1 - (houseElement.y + houseElement.height)) < tolerance && side.y1 === side.y2) || // нижняя граница
-        (Math.abs(side.x1 - houseElement.x) < tolerance && side.x1 === side.x2) || // левая граница
-        (Math.abs(side.x1 - (houseElement.x + houseElement.width)) < tolerance && side.x1 === side.x2) // правая граница
-      );
-      
-      return isHouseBoundary;
-    });
-  };
-
-  // Проверяем, перекрываются ли два отрезка
-  const lineSegmentsOverlap = (x1, y1, x2, y2, x3, y3, x4, y4, tolerance) => {
-    // Проверяем, лежат ли отрезки на одной линии
-    if (Math.abs(x1 - x2) < tolerance && Math.abs(x3 - x4) < tolerance) {
-      // Вертикальные линии
-      if (Math.abs(x1 - x3) < tolerance) {
-        const min1 = Math.min(y1, y2);
-        const max1 = Math.max(y1, y2);
-        const min2 = Math.min(y3, y4);
-        const max2 = Math.max(y3, y4);
-        return !(max1 < min2 || max2 < min1);
-      }
-    } else if (Math.abs(y1 - y2) < tolerance && Math.abs(y3 - y4) < tolerance) {
-      // Горизонтальные линии
-      if (Math.abs(y1 - y3) < tolerance) {
-        const min1 = Math.min(x1, x2);
-        const max1 = Math.max(x1, x2);
-        const min2 = Math.min(x3, x4);
-        const max2 = Math.max(x3, x4);
-        return !(max1 < min2 || max2 < min1);
-      }
+    // Проверяем вертикальные линии
+    if (Math.abs(x1 - x2) < tolerance && Math.abs(x3 - x4) < tolerance && Math.abs(x1 - x3) < tolerance) {
+      const min1 = Math.min(y1, y2);
+      const max1 = Math.max(y1, y2);
+      const min2 = Math.min(y3, y4);
+      const max2 = Math.max(y3, y4);
+      return Math.max(min1, min2) <= Math.min(max1, max2) + tolerance;
     }
     
     return false;
+  };
+
+  // Получаем стены комнаты (только пользовательские стены, не границы дома)
+  const getRoomWalls = (x1, y1, x2, y2, userWalls) => {
+    const tolerance = 2;
+    return userWalls.filter(wall => {
+      // Проверяем, является ли стена границей комнаты
+      const wallOnBoundary = (
+        // Стена на верхней границе
+        (Math.abs(wall.y1 - y1) < tolerance && Math.abs(wall.y2 - y1) < tolerance &&
+         wall.x1 >= x1 - tolerance && wall.x2 <= x2 + tolerance) ||
+        // Стена на нижней границе
+        (Math.abs(wall.y1 - y2) < tolerance && Math.abs(wall.y2 - y2) < tolerance &&
+         wall.x1 >= x1 - tolerance && wall.x2 <= x2 + tolerance) ||
+        // Стена на левой границе
+        (Math.abs(wall.x1 - x1) < tolerance && Math.abs(wall.x2 - x1) < tolerance &&
+         wall.y1 >= y1 - tolerance && wall.y2 <= y2 + tolerance) ||
+        // Стена на правой границе
+        (Math.abs(wall.x1 - x2) < tolerance && Math.abs(wall.x2 - x2) < tolerance &&
+         wall.y1 >= y1 - tolerance && wall.y2 <= y2 + tolerance)
+      );
+      
+      return wallOnBoundary;
+    });
   };
   
   const lineIntersectsRect = (x1, y1, x2, y2, rectX1, rectY1, rectX2, rectY2) => {
@@ -735,14 +730,70 @@ export default function ConstructorInterface({ initialData, onBack }) {
     return dist < tolerance;
   };
   
-  const getWallsForRoom = (x1, y1, x2, y2) => {
-    return walls.filter(wall => {
-      // Стена является границей комнаты, если она на краю
-      return (Math.abs(wall.x1 - x1) < 5 || Math.abs(wall.x1 - x2) < 5 ||
-              Math.abs(wall.y1 - y1) < 5 || Math.abs(wall.y1 - y2) < 5) &&
-             wall.x1 >= x1 - 5 && wall.x2 <= x2 + 5 &&
-             wall.y1 >= y1 - 5 && wall.y2 <= y2 + 5;
+  // Проверяем соединение стен с границами дома
+  const checkWallConnections = (newWall) => {
+    const houseElement = elements.find(el => el.type === 'house');
+    if (!houseElement) return newWall;
+    
+    const connectionThreshold = 15;
+    
+    // Проверяем соединение с существующими стенами
+    walls.forEach(existingWall => {
+      const connections = [
+        { new: 'start', existing: 'start', newCoord: [newWall.x1, newWall.y1], existingCoord: [existingWall.x1, existingWall.y1] },
+        { new: 'start', existing: 'end', newCoord: [newWall.x1, newWall.y1], existingCoord: [existingWall.x2, existingWall.y2] },
+        { new: 'end', existing: 'start', newCoord: [newWall.x2, newWall.y2], existingCoord: [existingWall.x1, existingWall.y1] },
+        { new: 'end', existing: 'end', newCoord: [newWall.x2, newWall.y2], existingCoord: [existingWall.x2, existingWall.y2] }
+      ];
+      
+      connections.forEach(conn => {
+        const distance = Math.sqrt(
+          Math.pow(conn.newCoord[0] - conn.existingCoord[0], 2) + 
+          Math.pow(conn.newCoord[1] - conn.existingCoord[1], 2)
+        );
+        
+        if (distance < connectionThreshold) {
+          if (conn.new === 'start') {
+            newWall.x1 = conn.existingCoord[0];
+            newWall.y1 = conn.existingCoord[1];
+          } else {
+            newWall.x2 = conn.existingCoord[0];
+            newWall.y2 = conn.existingCoord[1];
+          }
+        }
+      });
     });
+    
+    // Проверяем соединение с границами дома
+    const houseBounds = [
+      { x: houseElement.x, y: houseElement.y, width: houseElement.width, height: 0, type: 'top' },
+      { x: houseElement.x + houseElement.width, y: houseElement.y, width: 0, height: houseElement.height, type: 'right' },
+      { x: houseElement.x, y: houseElement.y + houseElement.height, width: houseElement.width, height: 0, type: 'bottom' },
+      { x: houseElement.x, y: houseElement.y, width: 0, height: houseElement.height, type: 'left' }
+    ];
+    
+    houseBounds.forEach(bound => {
+      // Проверяем привязку к границам дома
+      if (bound.type === 'top' || bound.type === 'bottom') {
+        // Горизонтальные границы
+        if (Math.abs(newWall.y1 - bound.y) < connectionThreshold) {
+          newWall.y1 = bound.y;
+        }
+        if (Math.abs(newWall.y2 - bound.y) < connectionThreshold) {
+          newWall.y2 = bound.y;
+        }
+      } else {
+        // Вертикальные границы
+        if (Math.abs(newWall.x1 - bound.x) < connectionThreshold) {
+          newWall.x1 = bound.x;
+        }
+        if (Math.abs(newWall.x2 - bound.x) < connectionThreshold) {
+          newWall.x2 = bound.x;
+        }
+      }
+    });
+    
+    return newWall;
   };
   
   const calculateRoomArea = (room) => {
@@ -828,6 +879,17 @@ export default function ConstructorInterface({ initialData, onBack }) {
             center.x * zoom,
             center.y * zoom + 20
           );
+          
+          // Показываем количество стен в комнате
+          if (room.walls && room.walls.length > 0) {
+            ctx.fillStyle = '#ff6b35';
+            ctx.font = '8px Arial';
+            ctx.fillText(
+              `Стен: ${room.walls.length}`,
+              center.x * zoom,
+              center.y * zoom + 32
+            );
+          }
         }
       }
     });
@@ -1667,40 +1729,7 @@ export default function ConstructorInterface({ initialData, onBack }) {
     return false;
   };
   
-  // Проверка и соединение стен
-  const checkWallConnections = (newWall) => {
-    const connectionThreshold = 15; // Порог для соединения в пикселях
-    
-    walls.forEach(existingWall => {
-      // Проверяем все возможные соединения концов стен
-      const connections = [
-        { new: 'start', existing: 'start', newCoord: [newWall.x1, newWall.y1], existingCoord: [existingWall.x1, existingWall.y1] },
-        { new: 'start', existing: 'end', newCoord: [newWall.x1, newWall.y1], existingCoord: [existingWall.x2, existingWall.y2] },
-        { new: 'end', existing: 'start', newCoord: [newWall.x2, newWall.y2], existingCoord: [existingWall.x1, existingWall.y1] },
-        { new: 'end', existing: 'end', newCoord: [newWall.x2, newWall.y2], existingCoord: [existingWall.x2, existingWall.y2] }
-      ];
-      
-      connections.forEach(conn => {
-        const distance = Math.sqrt(
-          Math.pow(conn.newCoord[0] - conn.existingCoord[0], 2) + 
-          Math.pow(conn.newCoord[1] - conn.existingCoord[1], 2)
-        );
-        
-        if (distance < connectionThreshold) {
-          // Соединяем стены
-          if (conn.new === 'start') {
-            newWall.x1 = conn.existingCoord[0];
-            newWall.y1 = conn.existingCoord[1];
-          } else {
-            newWall.x2 = conn.existingCoord[0];
-            newWall.y2 = conn.existingCoord[1];
-          }
-        }
-      });
-    });
-    
-    return newWall;
-  };
+
   
   // Удаление элемента
   const deleteElement = (elementId) => {
