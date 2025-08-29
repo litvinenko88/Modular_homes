@@ -464,12 +464,37 @@ export default function ConstructorInterface({ initialData, onBack }) {
       ctx.arc(centerX, centerY, handleSize, 0, Math.PI * 2);
       ctx.fill();
       ctx.stroke();
+      
+      // Кнопки управления (выше размеров)
+      const buttonY = Math.min(y1, y2) - 40;
+      const buttonSize = 24;
+      
+      // Кнопка удаления
+      ctx.fillStyle = '#ff4444';
+      ctx.fillRect(centerX - buttonSize - 5, buttonY, buttonSize, buttonSize);
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(centerX - buttonSize - 5, buttonY, buttonSize, buttonSize);
+      ctx.fillStyle = '#fff';
+      ctx.font = '16px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('🗑️', centerX - buttonSize/2 - 5, buttonY + 16);
+      
+      // Кнопка поворота
+      ctx.fillStyle = '#4CAF50';
+      ctx.fillRect(centerX + 5, buttonY, buttonSize, buttonSize);
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(centerX + 5, buttonY, buttonSize, buttonSize);
+      ctx.fillStyle = '#fff';
+      ctx.fillText('🔄', centerX + buttonSize/2 + 5, buttonY + 16);
     }
     
-    // Показываем длину стены
+    // Показываем длину стены (ниже кнопок)
     if (zoom >= 0.4) {
       const centerX = (x1 + x2) / 2;
       const centerY = (y1 + y2) / 2;
+      const textY = isSelected ? Math.min(y1, y2) - 10 : centerY + 4;
       
       ctx.fillStyle = '#8B4513';
       ctx.font = `${Math.max(8, 10 * zoom)}px Arial`;
@@ -478,10 +503,10 @@ export default function ConstructorInterface({ initialData, onBack }) {
       // Фон для текста
       const textWidth = ctx.measureText(`${wall.length.toFixed(1)}м`).width;
       ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-      ctx.fillRect(centerX - textWidth/2 - 2, centerY - 8, textWidth + 4, 16);
+      ctx.fillRect(centerX - textWidth/2 - 2, textY - 8, textWidth + 4, 16);
       
       ctx.fillStyle = '#8B4513';
-      ctx.fillText(`${wall.length.toFixed(1)}м`, centerX, centerY + 4);
+      ctx.fillText(`${wall.length.toFixed(1)}м`, centerX, textY);
     }
   };
   
@@ -585,27 +610,32 @@ export default function ConstructorInterface({ initialData, onBack }) {
         }
       }
       
-      // Проверяем клик по элементам
-      const clickedElement = getElementAt(worldX, worldY);
-      const clickedWall = getWallAt(worldX, worldY);
-      
-      if (clickedElement) {
-        setSelectedElement(clickedElement);
-        if (!fixedElements.has(clickedElement.id)) {
-          setDraggedElement({ 
-            element: clickedElement, 
-            startX: worldX - clickedElement.x, 
-            startY: worldY - clickedElement.y 
-          });
-        }
+      // Проверяем клик по кнопкам управления выбранного элемента
+      if (selectedElement && checkControlButtons(clientX, clientY, selectedElement)) {
         return;
-      } else if (clickedWall) {
+      }
+      
+      // Проверяем клик по элементам (стены имеют приоритет)
+      const clickedWall = getWallAt(worldX, worldY);
+      const clickedElement = getElementAt(worldX, worldY);
+      
+      if (clickedWall) {
         setSelectedElement(clickedWall);
         if (!fixedElements.has(clickedWall.id)) {
           setDraggedElement({ 
             element: clickedWall, 
             startX: worldX, 
             startY: worldY 
+          });
+        }
+        return;
+      } else if (clickedElement) {
+        setSelectedElement(clickedElement);
+        if (!fixedElements.has(clickedElement.id)) {
+          setDraggedElement({ 
+            element: clickedElement, 
+            startX: worldX - clickedElement.x, 
+            startY: worldY - clickedElement.y 
           });
         }
         return;
@@ -667,7 +697,7 @@ export default function ConstructorInterface({ initialData, onBack }) {
     for (let i = walls.length - 1; i >= 0; i--) {
       const wall = walls[i];
       const distance = distanceToLine(x, y, wall.x1, wall.y1, wall.x2, wall.y2);
-      if (distance < 0.3) {
+      if (distance < 1.5) { // Увеличиваем область клика
         return wall;
       }
     }
@@ -1008,6 +1038,44 @@ export default function ConstructorInterface({ initialData, onBack }) {
     }
   };
 
+  // Проверка клика по кнопкам управления
+  const checkControlButtons = (clientX, clientY, element) => {
+    if (!element || selectedTool !== 'select') return false;
+    
+    if (element.x1 !== undefined) { // Это стена
+      const x1 = element.x1 * zoom + panOffset.x;
+      const y1 = element.y1 * zoom + panOffset.y;
+      const x2 = element.x2 * zoom + panOffset.x;
+      const y2 = element.y2 * zoom + panOffset.y;
+      const centerX = (x1 + x2) / 2;
+      const buttonY = Math.min(y1, y2) - 40;
+      const buttonSize = 24;
+      
+      // Кнопка удаления
+      if (clientX >= centerX - buttonSize - 5 && clientX <= centerX - 5 &&
+          clientY >= buttonY && clientY <= buttonY + buttonSize) {
+        deleteElement(element.id);
+        return true;
+      }
+      
+      // Кнопка поворота
+      if (clientX >= centerX + 5 && clientX <= centerX + buttonSize + 5 &&
+          clientY >= buttonY && clientY <= buttonY + buttonSize) {
+        rotateElement(element.id);
+        return true;
+      }
+    }
+    
+    return false;
+  };
+  
+  // Удаление элемента
+  const deleteElement = (elementId) => {
+    setElements(prev => prev.filter(el => el.id !== elementId));
+    setWalls(prev => prev.filter(wall => wall.id !== elementId));
+    setSelectedElement(null);
+  };
+
   const handleCanvasMouseUp = () => {
     if (isDrawingWall && wallDrawStart && currentWallEnd) {
       // Создаем стену только если есть длина
@@ -1016,14 +1084,14 @@ export default function ConstructorInterface({ initialData, onBack }) {
         Math.pow(currentWallEnd.y - wallDrawStart.y, 2)
       );
       
-      if (length > 10) { // Минимальная длина стены
+      if (length > 0.5) { // Минимальная длина стены в метрах
         const newWall = {
           id: Date.now(),
           x1: wallDrawStart.x,
           y1: wallDrawStart.y,
           x2: currentWallEnd.x,
           y2: currentWallEnd.y,
-          length: length / 30, // Переводим в метры
+          length: length, // Уже в метрах
           thickness: 0.121, // 121 мм
           type: 'interior'
         };
