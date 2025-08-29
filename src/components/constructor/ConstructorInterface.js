@@ -2314,7 +2314,7 @@ export default function ConstructorInterface({ initialData, onBack }) {
   };
 
   return (
-    <div className="constructor-interface">
+    <div className="constructor-interface fade-in">
       {/* Хедер */}
       <div className="constructor-header">
         <div className="header-left">
@@ -2586,6 +2586,12 @@ export default function ConstructorInterface({ initialData, onBack }) {
           display: flex;
           flex-direction: column;
           background: var(--light-gray);
+          animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
         }
 
         .constructor-header {

@@ -80,8 +80,8 @@ export default function InitialSetupModal({ onComplete }) {
   };
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-container">
+    <div className="modal-overlay fade-in">
+      <div className="modal-container slide-in">
         <div className="modal-header">
           <h2>Настройка конструктора</h2>
           <p>Выберите размер дома и участка для начала проектирования</p>
@@ -247,6 +247,17 @@ export default function InitialSetupModal({ onComplete }) {
           justify-content: center;
           z-index: 1000;
           padding: 20px;
+          animation: fadeIn 0.3s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        
+        @keyframes slideIn {
+          from { transform: translateY(-20px); opacity: 0; }
+          to { transform: translateY(0); opacity: 1; }
         }
 
         .modal-container {
@@ -257,6 +268,7 @@ export default function InitialSetupModal({ onComplete }) {
           max-height: 90vh;
           overflow-y: auto;
           box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+          animation: slideIn 0.4s ease-out;
         }
 
         .modal-header {
