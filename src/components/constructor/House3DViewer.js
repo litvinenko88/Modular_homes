@@ -298,14 +298,12 @@ export default function House3DViewer({
     const houseElement = elements.find(el => el.type === 'house');
     if (!houseElement) return;
 
-    // Центрируем координаты относительно дома
     const houseX = houseElement.x;
     const houseY = houseElement.y;
     const houseWidth = houseElement.width;
     const houseHeight = houseElement.height;
 
     walls.forEach(wall => {
-      // Переводим координаты стены в локальные координаты дома
       const localX1 = (wall.x1 - houseX - houseWidth / 2) / 30 * scale;
       const localY1 = (wall.y1 - houseY - houseHeight / 2) / 30 * scale;
       const localX2 = (wall.x2 - houseX - houseWidth / 2) / 30 * scale;
@@ -315,23 +313,98 @@ export default function House3DViewer({
         Math.pow(localX2 - localX1, 2) + Math.pow(localY2 - localY1, 2)
       );
 
-      if (wallLength < 0.1) return; // Игнорируем очень короткие стены
+      if (wallLength < 0.1) return;
 
-      const wallGeometry = new THREE.BoxGeometry(wallLength, wallHeight, wallThickness);
-      const wallMesh = new THREE.Mesh(wallGeometry, material);
+      // Проверяем, есть ли двери на этой стене
+      const wallDoors = doors.filter(door => door.wallId === wall.id);
+      
+      if (wallDoors.length > 0) {
+        // Создаем стену с проемами
+        createInteriorWallWithDoors(houseGroup, wall, wallDoors, wallHeight, wallThickness, material, scale);
+      } else {
+        // Обычная стена
+        const wallGeometry = new THREE.BoxGeometry(wallLength, wallHeight, wallThickness);
+        const wallMesh = new THREE.Mesh(wallGeometry, material);
 
-      // Позиция стены
-      const centerX = (localX1 + localX2) / 2;
-      const centerZ = -(localY1 + localY2) / 2; // Инвертируем Y для Three.js
-      wallMesh.position.set(centerX, wallHeight / 2, centerZ);
+        const centerX = (localX1 + localX2) / 2;
+        const centerZ = -(localY1 + localY2) / 2;
+        wallMesh.position.set(centerX, wallHeight / 2, centerZ);
 
-      // Поворот стены
-      const angle = Math.atan2(localY2 - localY1, localX2 - localX1);
-      wallMesh.rotation.y = -angle; // Инвертируем угол
+        const angle = Math.atan2(localY2 - localY1, localX2 - localX1);
+        wallMesh.rotation.y = -angle;
 
-      wallMesh.castShadow = true;
-      houseGroup.add(wallMesh);
+        wallMesh.castShadow = true;
+        houseGroup.add(wallMesh);
+      }
     });
+  };
+
+  const createInteriorWallWithDoors = (houseGroup, wall, wallDoors, wallHeight, wallThickness, material, scale) => {
+    const houseElement = elements.find(el => el.type === 'house');
+    if (!houseElement) return;
+
+    const houseX = houseElement.x;
+    const houseY = houseElement.y;
+    const houseWidth = houseElement.width;
+    const houseHeight = houseElement.height;
+
+    const localX1 = (wall.x1 - houseX - houseWidth / 2) / 30 * scale;
+    const localY1 = (wall.y1 - houseY - houseHeight / 2) / 30 * scale;
+    const localX2 = (wall.x2 - houseX - houseWidth / 2) / 30 * scale;
+    const localY2 = (wall.y2 - houseY - houseHeight / 2) / 30 * scale;
+
+    const wallLength = Math.sqrt(
+      Math.pow(localX2 - localX1, 2) + Math.pow(localY2 - localY1, 2)
+    );
+
+    const angle = Math.atan2(localY2 - localY1, localX2 - localX1);
+    const centerX = (localX1 + localX2) / 2;
+    const centerZ = -(localY1 + localY2) / 2;
+
+    // Сортируем двери по позиции
+    wallDoors.sort((a, b) => a.position - b.position);
+
+    let currentPos = 0;
+
+    wallDoors.forEach(door => {
+      const doorWidth = door.realWidth * scale;
+      const doorStart = (door.position * wallLength) - (doorWidth / 2);
+      const doorEnd = (door.position * wallLength) + (doorWidth / 2);
+
+      // Сегмент стены до двери
+      if (doorStart > currentPos) {
+        const segmentWidth = doorStart - currentPos;
+        const segmentGeometry = new THREE.BoxGeometry(segmentWidth, wallHeight, wallThickness);
+        const segmentMesh = new THREE.Mesh(segmentGeometry, material);
+
+        const segmentCenter = currentPos + segmentWidth / 2 - wallLength / 2;
+        const segmentX = centerX + segmentCenter * Math.cos(-angle);
+        const segmentZ = centerZ + segmentCenter * Math.sin(-angle);
+
+        segmentMesh.position.set(segmentX, wallHeight / 2, segmentZ);
+        segmentMesh.rotation.y = -angle;
+        segmentMesh.castShadow = true;
+        houseGroup.add(segmentMesh);
+      }
+
+      currentPos = doorEnd;
+    });
+
+    // Последний сегмент
+    if (currentPos < wallLength) {
+      const segmentWidth = wallLength - currentPos;
+      const segmentGeometry = new THREE.BoxGeometry(segmentWidth, wallHeight, wallThickness);
+      const segmentMesh = new THREE.Mesh(segmentGeometry, material);
+
+      const segmentCenter = currentPos + segmentWidth / 2 - wallLength / 2;
+      const segmentX = centerX + segmentCenter * Math.cos(-angle);
+      const segmentZ = centerZ + segmentCenter * Math.sin(-angle);
+
+      segmentMesh.position.set(segmentX, wallHeight / 2, segmentZ);
+      segmentMesh.rotation.y = -angle;
+      segmentMesh.castShadow = true;
+      houseGroup.add(segmentMesh);
+    }
   };
 
   const createDoors = (houseGroup, wallHeight, material, scale) => {
@@ -339,11 +412,9 @@ export default function House3DViewer({
     if (!houseElement) return;
 
     doors.forEach(door => {
-      // Проверяем, находится ли дверь на внутренней стене
       const wall = walls.find(w => w.id === door.wallId);
-      if (!wall) return; // Двери на внешних стенах обрабатываются в createExteriorWalls
+      if (!wall) return;
 
-      // Переводим координаты в локальные координаты дома
       const houseX = houseElement.x;
       const houseY = houseElement.y;
       const houseWidth = houseElement.width;
@@ -357,21 +428,36 @@ export default function House3DViewer({
 
       const doorWidth = door.realWidth * scale;
       const doorHeight = 2.1 * scale;
+      const doorThickness = 0.05 * scale;
 
-      // Создаем дверное полотно
-      const doorGeometry = new THREE.BoxGeometry(doorWidth, doorHeight, 0.05 * scale);
+      // Создаем дверное полотно (открытое на 90 градусов)
+      const doorGeometry = new THREE.BoxGeometry(doorThickness, doorHeight, doorWidth);
       const doorMesh = new THREE.Mesh(doorGeometry, material);
 
-      doorMesh.position.set(localX, doorHeight / 2, localZ);
-
-      // Поворот двери
       const isHorizontal = Math.abs(wall.x2 - wall.x1) > Math.abs(wall.y2 - wall.y1);
-      if (!isHorizontal) {
+      
+      if (isHorizontal) {
+        doorMesh.position.set(localX + doorWidth / 3, doorHeight / 2, localZ);
         doorMesh.rotation.y = Math.PI / 2;
+      } else {
+        doorMesh.position.set(localX, doorHeight / 2, localZ + doorWidth / 3);
       }
 
       doorMesh.castShadow = true;
       houseGroup.add(doorMesh);
+
+      // Добавляем дверную ручку
+      const handleGeometry = new THREE.SphereGeometry(0.02 * scale, 8, 8);
+      const handleMaterial = new THREE.MeshPhongMaterial({ color: 0xFFD700 });
+      const handle = new THREE.Mesh(handleGeometry, handleMaterial);
+      
+      if (isHorizontal) {
+        handle.position.set(localX + doorWidth / 3, doorHeight * 0.5, localZ + doorWidth * 0.4);
+      } else {
+        handle.position.set(localX + doorWidth * 0.4, doorHeight * 0.5, localZ + doorWidth / 3);
+      }
+      
+      houseGroup.add(handle);
     });
   };
 
@@ -540,36 +626,7 @@ export default function House3DViewer({
     );
     houseGroup.add(drainPipe);
     
-    // Дымоход (если дом достаточно большой)
-    if (width > 6 * scale && depth > 6 * scale) {
-      const chimneyGeometry = new THREE.BoxGeometry(
-        0.6 * scale, 
-        1.5 * scale, 
-        0.6 * scale
-      );
-      const chimney = new THREE.Mesh(chimneyGeometry, chimneyMaterial);
-      chimney.position.set(
-        width / 4, 
-        wallHeight + 0.75 * scale, 
-        -depth / 4
-      );
-      chimney.castShadow = true;
-      houseGroup.add(chimney);
-      
-      // Колпак дымохода
-      const capGeometry = new THREE.BoxGeometry(
-        0.8 * scale, 
-        0.1 * scale, 
-        0.8 * scale
-      );
-      const cap = new THREE.Mesh(capGeometry, chimneyMaterial);
-      cap.position.set(
-        width / 4, 
-        wallHeight + 1.55 * scale, 
-        -depth / 4
-      );
-      houseGroup.add(cap);
-    }
+    // Дымоход убран вместе с крышей
     
     // Крыльцо над входом (если есть двери)
     if (doors.length > 0) {
@@ -742,14 +799,14 @@ export default function House3DViewer({
 
     // Обрабатываем двери на внешних стенах
     doors.forEach(door => {
-      if (door.wallId.startsWith('house-')) {
+      if (door.wallId && String(door.wallId).startsWith('house-')) {
         createExteriorDoor(houseGroup, door, wallHeight, doorMaterial, scale);
       }
     });
 
     // Обрабатываем окна на внешних стенах
     windows.forEach(window => {
-      if (window.wallId.startsWith('house-')) {
+      if (window.wallId && String(window.wallId).startsWith('house-')) {
         createExteriorWindow(houseGroup, window, wallHeight, glassMaterial, frameMaterial, scale);
       }
     });
@@ -792,27 +849,39 @@ export default function House3DViewer({
     const doorHeight = 2.1 * scale;
     const doorThickness = 0.05 * scale;
 
-    // Создаем дверное полотно
-    const doorGeometry = new THREE.BoxGeometry(doorWidth, doorHeight, doorThickness);
+    // Создаем дверное полотно (открытое)
+    const doorGeometry = new THREE.BoxGeometry(doorThickness, doorHeight, doorWidth);
     const doorMesh = new THREE.Mesh(doorGeometry, material);
     
-    doorMesh.position.set(doorX, doorHeight / 2, doorZ);
-    doorMesh.rotation.y = rotation;
-    doorMesh.castShadow = true;
+    // Позиционируем открытую дверь
+    const openOffset = doorWidth * 0.4;
+    switch (door.wallId) {
+      case 'house-front':
+        doorMesh.position.set(doorX, doorHeight / 2, doorZ - openOffset);
+        doorMesh.rotation.y = Math.PI / 2;
+        break;
+      case 'house-back':
+        doorMesh.position.set(doorX, doorHeight / 2, doorZ + openOffset);
+        doorMesh.rotation.y = -Math.PI / 2;
+        break;
+      case 'house-left':
+        doorMesh.position.set(doorX + openOffset, doorHeight / 2, doorZ);
+        break;
+      case 'house-right':
+        doorMesh.position.set(doorX - openOffset, doorHeight / 2, doorZ);
+        break;
+    }
     
+    doorMesh.castShadow = true;
     houseGroup.add(doorMesh);
 
     // Добавляем дверную ручку
-    const handleGeometry = new THREE.SphereGeometry(0.03 * scale, 8, 8);
+    const handleGeometry = new THREE.SphereGeometry(0.02 * scale, 8, 8);
     const handleMaterial = new THREE.MeshPhongMaterial({ color: 0xFFD700 });
     const handle = new THREE.Mesh(handleGeometry, handleMaterial);
     
-    const handleOffset = doorWidth * 0.35;
-    handle.position.set(
-      doorX + (rotation === 0 || rotation === Math.PI ? handleOffset : 0),
-      doorHeight * 0.5,
-      doorZ + (rotation === Math.PI / 2 || rotation === -Math.PI / 2 ? handleOffset : 0)
-    );
+    handle.position.copy(doorMesh.position);
+    handle.position.y = doorHeight * 0.5;
     
     houseGroup.add(handle);
   };
@@ -900,13 +969,13 @@ export default function House3DViewer({
     const trunkMaterial = new THREE.MeshPhongMaterial({ color: 0x8B4513 });
     const leavesMaterial = new THREE.MeshPhongMaterial({ color: 0x228B22 });
     
-    // Позиции деревьев
+    // Позиции деревьев (отодвинуты от дома)
     const treePositions = [
-      { x: -40, z: -30, scale: 1.2 },
-      { x: 35, z: -25, scale: 0.8 },
-      { x: -30, z: 40, scale: 1.0 },
-      { x: 45, z: 35, scale: 1.1 },
-      { x: -50, z: 10, scale: 0.9 }
+      { x: -60, z: -50, scale: 1.2 },
+      { x: 55, z: -45, scale: 0.8 },
+      { x: -50, z: 60, scale: 1.0 },
+      { x: 65, z: 55, scale: 1.1 },
+      { x: -70, z: 30, scale: 0.9 }
     ];
     
     treePositions.forEach(pos => {

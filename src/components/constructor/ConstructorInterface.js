@@ -2168,30 +2168,36 @@ export default function ConstructorInterface({ initialData, onBack }) {
 
   // Добавление двери или окна
   const addDoorOrWindow = (wall, clickX, clickY, type) => {
-    const isHorizontal = Math.abs(wall.x2 - wall.x1) > Math.abs(wall.y2 - wall.y1);
-    const wallLength = Math.sqrt(Math.pow(wall.x2 - wall.x1, 2) + Math.pow(wall.y2 - wall.y1, 2));
-    
-    // Находим позицию на стене
-    let position;
-    if (isHorizontal) {
-      position = (clickX - Math.min(wall.x1, wall.x2)) / wallLength;
-    } else {
-      position = (clickY - Math.min(wall.y1, wall.y2)) / wallLength;
-    }
-    
-    const newItem = {
-      id: Date.now(),
-      wallId: wall.id,
-      position: Math.max(0.1, Math.min(0.9, position)),
-      width: type === 'door' ? 24 : 45, // стандартные размеры: дверь 800мм, окно 1500мм
-      realWidth: type === 'door' ? 0.8 : 1.5, // в метрах
-      type: type
-    };
-    
-    if (type === 'door') {
-      setDoors(prev => [...prev, newItem]);
-    } else {
-      setWindows(prev => [...prev, newItem]);
+    try {
+      const isHorizontal = Math.abs(wall.x2 - wall.x1) > Math.abs(wall.y2 - wall.y1);
+      const wallLength = Math.sqrt(Math.pow(wall.x2 - wall.x1, 2) + Math.pow(wall.y2 - wall.y1, 2));
+      
+      // Находим позицию на стене
+      let position;
+      if (isHorizontal) {
+        position = (clickX - Math.min(wall.x1, wall.x2)) / wallLength;
+      } else {
+        position = (clickY - Math.min(wall.y1, wall.y2)) / wallLength;
+      }
+      
+      const newItem = {
+        id: Date.now(),
+        wallId: wall.id,
+        position: Math.max(0.1, Math.min(0.9, position)),
+        width: type === 'door' ? 24 : 45,
+        realWidth: type === 'door' ? 0.8 : 1.5,
+        type: type
+      };
+      
+      if (type === 'door') {
+        setDoors(prev => [...prev, newItem]);
+        saveToHistory({ elements, walls, doors: [...doors, newItem], windows });
+      } else {
+        setWindows(prev => [...prev, newItem]);
+        saveToHistory({ elements, walls, doors, windows: [...windows, newItem] });
+      }
+    } catch (error) {
+      console.error('Ошибка при добавлении двери/окна:', error);
     }
   };
 
