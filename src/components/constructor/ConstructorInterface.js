@@ -929,13 +929,61 @@ export default function ConstructorInterface({ initialData, onBack }) {
     const x2 = wall.x2 * zoom;
     const y2 = wall.y2 * zoom;
     
-    // Рисуем стену
+    // Получаем все проемы на этой стене
+    const wallOpenings = [
+      ...doors.filter(d => d.wallId === wall.id),
+      ...windows.filter(w => w.wallId === wall.id)
+    ];
+    
     ctx.strokeStyle = isSelected ? '#df682b' : (isHovered ? '#ff9800' : '#8B4513');
     ctx.lineWidth = Math.max(3, wall.thickness * 30 * zoom);
-    ctx.beginPath();
-    ctx.moveTo(x1, y1);
-    ctx.lineTo(x2, y2);
-    ctx.stroke();
+    
+    if (wallOpenings.length === 0) {
+      // Нет проемов - рисуем сплошную стену
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+    } else {
+      // Есть проемы - рисуем стену с разрывами
+      const wallLength = Math.sqrt(Math.pow(wall.x2 - wall.x1, 2) + Math.pow(wall.y2 - wall.y1, 2));
+      
+      // Сортируем проемы по позиции
+      const sortedOpenings = wallOpenings.sort((a, b) => a.position - b.position);
+      
+      let currentPos = 0;
+      
+      sortedOpenings.forEach(opening => {
+        const openingStart = Math.max(0, opening.position - opening.width / (2 * wallLength));
+        const openingEnd = Math.min(1, opening.position + opening.width / (2 * wallLength));
+        
+        // Рисуем часть стены до проема
+        if (currentPos < openingStart) {
+          const startX = wall.x1 + (wall.x2 - wall.x1) * currentPos;
+          const startY = wall.y1 + (wall.y2 - wall.y1) * currentPos;
+          const endX = wall.x1 + (wall.x2 - wall.x1) * openingStart;
+          const endY = wall.y1 + (wall.y2 - wall.y1) * openingStart;
+          
+          ctx.beginPath();
+          ctx.moveTo(startX * zoom, startY * zoom);
+          ctx.lineTo(endX * zoom, endY * zoom);
+          ctx.stroke();
+        }
+        
+        currentPos = openingEnd;
+      });
+      
+      // Рисуем оставшуюся часть стены
+      if (currentPos < 1) {
+        const startX = wall.x1 + (wall.x2 - wall.x1) * currentPos;
+        const startY = wall.y1 + (wall.y2 - wall.y1) * currentPos;
+        
+        ctx.beginPath();
+        ctx.moveTo(startX * zoom, startY * zoom);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+      }
+    }
     
     // Маркеры на концах стены
     if (isSelected && selectedTool === 'select') {
@@ -2173,19 +2221,66 @@ export default function ConstructorInterface({ initialData, onBack }) {
       const wallLength = Math.sqrt(Math.pow(wall.x2 - wall.x1, 2) + Math.pow(wall.y2 - wall.y1, 2));
       
       // Находим позицию на стене
-      let position;
+      let desiredPosition;
       if (isHorizontal) {
-        position = (clickX - Math.min(wall.x1, wall.x2)) / wallLength;
+        desiredPosition = (clickX - Math.min(wall.x1, wall.x2)) / wallLength;
       } else {
-        position = (clickY - Math.min(wall.y1, wall.y2)) / wallLength;
+        desiredPosition = (clickY - Math.min(wall.y1, wall.y2)) / wallLength;
+      }
+      
+      const itemWidth = type === 'door' ? 24 : 45;
+      const realWidth = type === 'door' ? 0.8 : 1.5;
+      
+      // Проверяем существующие элементы на этой стене
+      const existingItems = [
+        ...doors.filter(d => d.wallId === wall.id),
+        ...windows.filter(w => w.wallId === wall.id)
+      ];
+      
+      // Находим свободное место для нового элемента
+      let finalPosition = desiredPosition;
+      const minDistance = (itemWidth + 10) / wallLength; // Минимальное расстояние между элементами
+      
+      // Проверяем конфликты с существующими элементами
+      let hasConflict = true;
+      let attempts = 0;
+      
+      while (hasConflict && attempts < 10) {
+        hasConflict = false;
+        
+        for (const existing of existingItems) {
+          const distance = Math.abs(finalPosition - existing.position);
+          const requiredDistance = (itemWidth + existing.width + 10) / (2 * wallLength);
+          
+          if (distance < requiredDistance) {
+            hasConflict = true;
+            // Сдвигаем позицию
+            if (finalPosition < existing.position) {
+              finalPosition = Math.max(0.1, existing.position - requiredDistance);
+            } else {
+              finalPosition = Math.min(0.9, existing.position + requiredDistance);
+            }
+            break;
+          }
+        }
+        attempts++;
+      }
+      
+      // Проверяем, что элемент помещается в стену
+      const itemHalfWidth = itemWidth / (2 * wallLength);
+      if (finalPosition - itemHalfWidth < 0) {
+        finalPosition = itemHalfWidth;
+      }
+      if (finalPosition + itemHalfWidth > 1) {
+        finalPosition = 1 - itemHalfWidth;
       }
       
       const newItem = {
         id: Date.now(),
         wallId: wall.id,
-        position: Math.max(0.1, Math.min(0.9, position)),
-        width: type === 'door' ? 24 : 45,
-        realWidth: type === 'door' ? 0.8 : 1.5,
+        position: finalPosition,
+        width: itemWidth,
+        realWidth: realWidth,
         type: type
       };
       
@@ -2203,185 +2298,295 @@ export default function ConstructorInterface({ initialData, onBack }) {
 
   // Рисование дверей
   const drawDoors = (ctx) => {
+    // Группируем двери по стенам для правильного отображения
+    const doorsByWall = {};
     doors.forEach(door => {
-      const wall = walls.find(w => w.id === door.wallId) || getHouseBoundaryById(door.wallId);
+      if (!doorsByWall[door.wallId]) {
+        doorsByWall[door.wallId] = [];
+      }
+      doorsByWall[door.wallId].push(door);
+    });
+
+    // Рисуем двери для каждой стены
+    Object.entries(doorsByWall).forEach(([wallId, wallDoors]) => {
+      const wall = walls.find(w => w.id === parseInt(wallId)) || getHouseBoundaryById(wallId);
       if (!wall) return;
       
       const isHorizontal = Math.abs(wall.x2 - wall.x1) > Math.abs(wall.y2 - wall.y1);
-      const doorX = wall.x1 + (wall.x2 - wall.x1) * door.position;
-      const doorY = wall.y1 + (wall.y2 - wall.y1) * door.position;
+      const wallLength = Math.sqrt(Math.pow(wall.x2 - wall.x1, 2) + Math.pow(wall.y2 - wall.y1, 2));
       
-      // Рисуем проем в стене (белая линия)
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = Math.max(4, 6 * zoom);
+      // Сортируем двери по позиции на стене
+      const sortedDoors = wallDoors.sort((a, b) => a.position - b.position);
       
-      if (isHorizontal) {
-        ctx.beginPath();
-        ctx.moveTo((doorX - door.width/2) * zoom, doorY * zoom);
-        ctx.lineTo((doorX + door.width/2) * zoom, doorY * zoom);
-        ctx.stroke();
+      sortedDoors.forEach(door => {
+        const doorX = wall.x1 + (wall.x2 - wall.x1) * door.position;
+        const doorY = wall.y1 + (wall.y2 - wall.y1) * door.position;
         
-        // Рисуем дверь (дуга)
-        ctx.strokeStyle = selectedElement?.id === door.id ? '#df682b' : '#8B4513';
-        ctx.lineWidth = selectedElement?.id === door.id ? 3 : 2;
-        ctx.beginPath();
-        ctx.arc(doorX * zoom, doorY * zoom, door.width/2 * zoom, 0, Math.PI);
-        ctx.stroke();
+        // Рисуем проем в стене (белая линия для разрыва стены)
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = Math.max(6, 8 * zoom);
         
-        // Показываем размер двери
-        if (zoom >= 0.5) {
-          ctx.fillStyle = '#8B4513';
-          ctx.font = '8px Arial';
-          ctx.textAlign = 'center';
-          ctx.fillText(`${(door.realWidth * 1000).toFixed(0)}мм`, doorX * zoom, (doorY - door.width/2 - 5) * zoom);
-        }
-        
-        // Кнопка удаления для выбранной двери
-        if (selectedElement?.id === door.id) {
-          const deleteX = doorX * zoom - 12;
-          const deleteY = (doorY - door.width/2 - 25) * zoom;
+        if (isHorizontal) {
+          // Горизонтальная стена
+          ctx.beginPath();
+          ctx.moveTo((doorX - door.width/2) * zoom, doorY * zoom);
+          ctx.lineTo((doorX + door.width/2) * zoom, doorY * zoom);
+          ctx.stroke();
           
-          ctx.fillStyle = '#ff4444';
-          ctx.fillRect(deleteX, deleteY, 24, 20);
-          ctx.strokeStyle = '#fff';
-          ctx.lineWidth = 1;
-          ctx.strokeRect(deleteX, deleteY, 24, 20);
-          ctx.fillStyle = '#fff';
-          ctx.font = '14px Arial';
-          ctx.textAlign = 'center';
-          ctx.fillText('🗑️', deleteX + 12, deleteY + 14);
-        }
-      } else {
-        ctx.beginPath();
-        ctx.moveTo(doorX * zoom, (doorY - door.width/2) * zoom);
-        ctx.lineTo(doorX * zoom, (doorY + door.width/2) * zoom);
-        ctx.stroke();
-        
-        // Рисуем дверь (дуга)
-        ctx.strokeStyle = selectedElement?.id === door.id ? '#df682b' : '#8B4513';
-        ctx.lineWidth = selectedElement?.id === door.id ? 3 : 2;
-        ctx.beginPath();
-        ctx.arc(doorX * zoom, doorY * zoom, door.width/2 * zoom, -Math.PI/2, Math.PI/2);
-        ctx.stroke();
-        
-        // Показываем размер двери
-        if (zoom >= 0.5) {
-          ctx.fillStyle = '#8B4513';
-          ctx.font = '8px Arial';
-          ctx.textAlign = 'center';
-          ctx.save();
-          ctx.translate((doorX - door.width/2 - 10) * zoom, doorY * zoom);
-          ctx.rotate(-Math.PI / 2);
-          ctx.fillText(`${(door.realWidth * 1000).toFixed(0)}мм`, 0, 0);
-          ctx.restore();
-        }
-        
-        // Кнопка удаления для выбранной двери
-        if (selectedElement?.id === door.id) {
-          const deleteX = (doorX - door.width/2 - 30) * zoom;
-          const deleteY = doorY * zoom - 10;
+          // Рисуем дверное полотно (прямоугольник)
+          ctx.fillStyle = selectedElement?.id === door.id ? '#df682b' : '#8B4513';
+          ctx.fillRect(
+            (doorX - door.width/2 + 2) * zoom, 
+            (doorY - 3) * zoom, 
+            (door.width - 4) * zoom, 
+            6 * zoom
+          );
           
-          ctx.fillStyle = '#ff4444';
-          ctx.fillRect(deleteX, deleteY, 24, 20);
-          ctx.strokeStyle = '#fff';
-          ctx.lineWidth = 1;
-          ctx.strokeRect(deleteX, deleteY, 24, 20);
-          ctx.fillStyle = '#fff';
-          ctx.font = '14px Arial';
-          ctx.textAlign = 'center';
-          ctx.fillText('🗑️', deleteX + 12, deleteY + 14);
+          // Рисуем дугу открывания двери
+          ctx.strokeStyle = selectedElement?.id === door.id ? '#df682b' : '#666';
+          ctx.lineWidth = selectedElement?.id === door.id ? 2 : 1;
+          ctx.setLineDash([3, 3]);
+          ctx.beginPath();
+          ctx.arc(doorX * zoom, doorY * zoom, door.width/2 * zoom, 0, Math.PI);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          
+          // Ручка двери
+          ctx.fillStyle = '#333';
+          ctx.beginPath();
+          ctx.arc((doorX + door.width/3) * zoom, doorY * zoom, 2, 0, Math.PI * 2);
+          ctx.fill();
+          
+          // Показываем размер двери
+          if (zoom >= 0.5) {
+            ctx.fillStyle = '#8B4513';
+            ctx.font = '8px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(`${(door.realWidth * 1000).toFixed(0)}мм`, doorX * zoom, (doorY - door.width/2 - 8) * zoom);
+          }
+          
+          // Кнопка удаления для выбранной двери
+          if (selectedElement?.id === door.id) {
+            const deleteX = doorX * zoom - 12;
+            const deleteY = (doorY - door.width/2 - 25) * zoom;
+            
+            ctx.fillStyle = '#ff4444';
+            ctx.fillRect(deleteX, deleteY, 24, 20);
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(deleteX, deleteY, 24, 20);
+            ctx.fillStyle = '#fff';
+            ctx.font = '14px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('🗑️', deleteX + 12, deleteY + 14);
+          }
+        } else {
+          // Вертикальная стена
+          ctx.beginPath();
+          ctx.moveTo(doorX * zoom, (doorY - door.width/2) * zoom);
+          ctx.lineTo(doorX * zoom, (doorY + door.width/2) * zoom);
+          ctx.stroke();
+          
+          // Рисуем дверное полотно (прямоугольник)
+          ctx.fillStyle = selectedElement?.id === door.id ? '#df682b' : '#8B4513';
+          ctx.fillRect(
+            (doorX - 3) * zoom, 
+            (doorY - door.width/2 + 2) * zoom, 
+            6 * zoom, 
+            (door.width - 4) * zoom
+          );
+          
+          // Рисуем дугу открывания двери
+          ctx.strokeStyle = selectedElement?.id === door.id ? '#df682b' : '#666';
+          ctx.lineWidth = selectedElement?.id === door.id ? 2 : 1;
+          ctx.setLineDash([3, 3]);
+          ctx.beginPath();
+          ctx.arc(doorX * zoom, doorY * zoom, door.width/2 * zoom, -Math.PI/2, Math.PI/2);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          
+          // Ручка двери
+          ctx.fillStyle = '#333';
+          ctx.beginPath();
+          ctx.arc(doorX * zoom, (doorY + door.width/3) * zoom, 2, 0, Math.PI * 2);
+          ctx.fill();
+          
+          // Показываем размер двери
+          if (zoom >= 0.5) {
+            ctx.fillStyle = '#8B4513';
+            ctx.font = '8px Arial';
+            ctx.textAlign = 'center';
+            ctx.save();
+            ctx.translate((doorX - door.width/2 - 12) * zoom, doorY * zoom);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText(`${(door.realWidth * 1000).toFixed(0)}мм`, 0, 0);
+            ctx.restore();
+          }
+          
+          // Кнопка удаления для выбранной двери
+          if (selectedElement?.id === door.id) {
+            const deleteX = (doorX - door.width/2 - 30) * zoom;
+            const deleteY = doorY * zoom - 10;
+            
+            ctx.fillStyle = '#ff4444';
+            ctx.fillRect(deleteX, deleteY, 24, 20);
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(deleteX, deleteY, 24, 20);
+            ctx.fillStyle = '#fff';
+            ctx.font = '14px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('🗑️', deleteX + 12, deleteY + 14);
+          }
         }
-      }
+      });
     });
   };
 
   // Рисование окон
   const drawWindows = (ctx) => {
+    // Группируем окна по стенам для правильного отображения
+    const windowsByWall = {};
     windows.forEach(window => {
-      const wall = walls.find(w => w.id === window.wallId) || getHouseBoundaryById(window.wallId);
+      if (!windowsByWall[window.wallId]) {
+        windowsByWall[window.wallId] = [];
+      }
+      windowsByWall[window.wallId].push(window);
+    });
+
+    // Рисуем окна для каждой стены
+    Object.entries(windowsByWall).forEach(([wallId, wallWindows]) => {
+      const wall = walls.find(w => w.id === parseInt(wallId)) || getHouseBoundaryById(wallId);
       if (!wall) return;
       
       const isHorizontal = Math.abs(wall.x2 - wall.x1) > Math.abs(wall.y2 - wall.y1);
-      const windowX = wall.x1 + (wall.x2 - wall.x1) * window.position;
-      const windowY = wall.y1 + (wall.y2 - wall.y1) * window.position;
+      const wallLength = Math.sqrt(Math.pow(wall.x2 - wall.x1, 2) + Math.pow(wall.y2 - wall.y1, 2));
       
-      // Рисуем проем в стене (белая линия)
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = Math.max(4, 6 * zoom);
+      // Сортируем окна по позиции на стене
+      const sortedWindows = wallWindows.sort((a, b) => a.position - b.position);
       
-      if (isHorizontal) {
-        ctx.beginPath();
-        ctx.moveTo((windowX - window.width/2) * zoom, windowY * zoom);
-        ctx.lineTo((windowX + window.width/2) * zoom, windowY * zoom);
-        ctx.stroke();
+      sortedWindows.forEach(window => {
+        const windowX = wall.x1 + (wall.x2 - wall.x1) * window.position;
+        const windowY = wall.y1 + (wall.y2 - wall.y1) * window.position;
         
-        // Рисуем окно (прямоугольник)
-        ctx.strokeStyle = selectedElement?.id === window.id ? '#df682b' : '#4169E1';
-        ctx.lineWidth = selectedElement?.id === window.id ? 4 : 3;
-        ctx.strokeRect((windowX - window.width/2) * zoom, (windowY - 5) * zoom, window.width * zoom, 10 * zoom);
+        // Рисуем проем в стене (белая линия для разрыва стены)
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = Math.max(6, 8 * zoom);
         
-        // Показываем размер окна
-        if (zoom >= 0.5) {
-          ctx.fillStyle = '#4169E1';
-          ctx.font = '8px Arial';
-          ctx.textAlign = 'center';
-          ctx.fillText(`${(window.realWidth * 1000).toFixed(0)}мм`, windowX * zoom, (windowY - 15) * zoom);
-        }
-        
-        // Кнопка удаления для выбранного окна
-        if (selectedElement?.id === window.id) {
-          const deleteX = windowX * zoom - 12;
-          const deleteY = (windowY - window.width/2 - 35) * zoom;
+        if (isHorizontal) {
+          // Горизонтальная стена
+          ctx.beginPath();
+          ctx.moveTo((windowX - window.width/2) * zoom, windowY * zoom);
+          ctx.lineTo((windowX + window.width/2) * zoom, windowY * zoom);
+          ctx.stroke();
           
-          ctx.fillStyle = '#ff4444';
-          ctx.fillRect(deleteX, deleteY, 24, 20);
-          ctx.strokeStyle = '#fff';
-          ctx.lineWidth = 1;
-          ctx.strokeRect(deleteX, deleteY, 24, 20);
-          ctx.fillStyle = '#fff';
-          ctx.font = '14px Arial';
-          ctx.textAlign = 'center';
-          ctx.fillText('🗑️', deleteX + 12, deleteY + 14);
-        }
-      } else {
-        ctx.beginPath();
-        ctx.moveTo(windowX * zoom, (windowY - window.width/2) * zoom);
-        ctx.lineTo(windowX * zoom, (windowY + window.width/2) * zoom);
-        ctx.stroke();
-        
-        // Рисуем окно (прямоугольник)
-        ctx.strokeStyle = selectedElement?.id === window.id ? '#df682b' : '#4169E1';
-        ctx.lineWidth = selectedElement?.id === window.id ? 4 : 3;
-        ctx.strokeRect((windowX - 5) * zoom, (windowY - window.width/2) * zoom, 10 * zoom, window.width * zoom);
-        
-        // Показываем размер окна
-        if (zoom >= 0.5) {
-          ctx.fillStyle = '#4169E1';
-          ctx.font = '8px Arial';
-          ctx.textAlign = 'center';
-          ctx.save();
-          ctx.translate((windowX - 15) * zoom, windowY * zoom);
-          ctx.rotate(-Math.PI / 2);
-          ctx.fillText(`${(window.realWidth * 1000).toFixed(0)}мм`, 0, 0);
-          ctx.restore();
-        }
-        
-        // Кнопка удаления для выбранного окна
-        if (selectedElement?.id === window.id) {
-          const deleteX = (windowX - window.width/2 - 30) * zoom;
-          const deleteY = windowY * zoom - 10;
+          // Рисуем оконную раму
+          ctx.strokeStyle = selectedElement?.id === window.id ? '#df682b' : '#4169E1';
+          ctx.lineWidth = selectedElement?.id === window.id ? 3 : 2;
+          ctx.strokeRect(
+            (windowX - window.width/2) * zoom, 
+            (windowY - 6) * zoom, 
+            window.width * zoom, 
+            12 * zoom
+          );
           
-          ctx.fillStyle = '#ff4444';
-          ctx.fillRect(deleteX, deleteY, 24, 20);
-          ctx.strokeStyle = '#fff';
+          // Оконные перекладины
+          ctx.strokeStyle = selectedElement?.id === window.id ? '#df682b' : '#4169E1';
           ctx.lineWidth = 1;
-          ctx.strokeRect(deleteX, deleteY, 24, 20);
-          ctx.fillStyle = '#fff';
-          ctx.font = '14px Arial';
-          ctx.textAlign = 'center';
-          ctx.fillText('🗑️', deleteX + 12, deleteY + 14);
+          // Горизонтальная перекладина
+          ctx.beginPath();
+          ctx.moveTo((windowX - window.width/2) * zoom, windowY * zoom);
+          ctx.lineTo((windowX + window.width/2) * zoom, windowY * zoom);
+          ctx.stroke();
+          // Вертикальная перекладина
+          ctx.beginPath();
+          ctx.moveTo(windowX * zoom, (windowY - 6) * zoom);
+          ctx.lineTo(windowX * zoom, (windowY + 6) * zoom);
+          ctx.stroke();
+          
+          // Показываем размер окна
+          if (zoom >= 0.5) {
+            ctx.fillStyle = '#4169E1';
+            ctx.font = '8px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(`${(window.realWidth * 1000).toFixed(0)}мм`, windowX * zoom, (windowY - 18) * zoom);
+          }
+          
+          // Кнопка удаления для выбранного окна
+          if (selectedElement?.id === window.id) {
+            const deleteX = windowX * zoom - 12;
+            const deleteY = (windowY - window.width/2 - 35) * zoom;
+            
+            ctx.fillStyle = '#ff4444';
+            ctx.fillRect(deleteX, deleteY, 24, 20);
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(deleteX, deleteY, 24, 20);
+            ctx.fillStyle = '#fff';
+            ctx.font = '14px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('🗑️', deleteX + 12, deleteY + 14);
+          }
+        } else {
+          // Вертикальная стена
+          ctx.beginPath();
+          ctx.moveTo(windowX * zoom, (windowY - window.width/2) * zoom);
+          ctx.lineTo(windowX * zoom, (windowY + window.width/2) * zoom);
+          ctx.stroke();
+          
+          // Рисуем оконную раму
+          ctx.strokeStyle = selectedElement?.id === window.id ? '#df682b' : '#4169E1';
+          ctx.lineWidth = selectedElement?.id === window.id ? 3 : 2;
+          ctx.strokeRect(
+            (windowX - 6) * zoom, 
+            (windowY - window.width/2) * zoom, 
+            12 * zoom, 
+            window.width * zoom
+          );
+          
+          // Оконные перекладины
+          ctx.strokeStyle = selectedElement?.id === window.id ? '#df682b' : '#4169E1';
+          ctx.lineWidth = 1;
+          // Горизонтальная перекладина
+          ctx.beginPath();
+          ctx.moveTo((windowX - 6) * zoom, windowY * zoom);
+          ctx.lineTo((windowX + 6) * zoom, windowY * zoom);
+          ctx.stroke();
+          // Вертикальная перекладина
+          ctx.beginPath();
+          ctx.moveTo(windowX * zoom, (windowY - window.width/2) * zoom);
+          ctx.lineTo(windowX * zoom, (windowY + window.width/2) * zoom);
+          ctx.stroke();
+          
+          // Показываем размер окна
+          if (zoom >= 0.5) {
+            ctx.fillStyle = '#4169E1';
+            ctx.font = '8px Arial';
+            ctx.textAlign = 'center';
+            ctx.save();
+            ctx.translate((windowX - 18) * zoom, windowY * zoom);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText(`${(window.realWidth * 1000).toFixed(0)}мм`, 0, 0);
+            ctx.restore();
+          }
+          
+          // Кнопка удаления для выбранного окна
+          if (selectedElement?.id === window.id) {
+            const deleteX = (windowX - window.width/2 - 30) * zoom;
+            const deleteY = windowY * zoom - 10;
+            
+            ctx.fillStyle = '#ff4444';
+            ctx.fillRect(deleteX, deleteY, 24, 20);
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(deleteX, deleteY, 24, 20);
+            ctx.fillStyle = '#fff';
+            ctx.font = '14px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('🗑️', deleteX + 12, deleteY + 14);
+          }
         }
-      }
+      });
     });
   };
 

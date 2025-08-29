@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import InitialSetupModal from './InitialSetupModal';
 import ConstructorInterface from './ConstructorInterface';
 
-export default function ModularConstructor() {
+function ModularConstructor() {
   const [showSetup, setShowSetup] = useState(true);
   const [constructorData, setConstructorData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -121,3 +121,5 @@ export default function ModularConstructor() {
     />
   );
 }
+
+export default ModularConstructor;

@@ -238,10 +238,64 @@ export default function EnhancedFloorPlanning({ data, updateData, onNext, onPrev
       ctx.strokeStyle = isSelected ? '#ff5722' : (wallType?.color || '#333');
       ctx.lineWidth = (wallType?.thickness * SCALE || 3) + (isSelected ? 2 : 0);
       
-      ctx.beginPath();
-      ctx.moveTo(100 + wall.x1 * SCALE, 100 + wall.y1 * SCALE);
-      ctx.lineTo(100 + wall.x2 * SCALE, 100 + wall.y2 * SCALE);
-      ctx.stroke();
+      // Получаем все проемы на этой стене
+      const wallOpenings = (data.openings || []).filter(o => o.wallId === wall.id);
+      
+      if (wallOpenings.length === 0) {
+        // Нет проемов - рисуем сплошную стену
+        ctx.beginPath();
+        ctx.moveTo(100 + wall.x1 * SCALE, 100 + wall.y1 * SCALE);
+        ctx.lineTo(100 + wall.x2 * SCALE, 100 + wall.y2 * SCALE);
+        ctx.stroke();
+      } else {
+        // Есть проемы - рисуем стену с разрывами
+        const wallLength = Math.sqrt(
+          Math.pow(wall.x2 - wall.x1, 2) + Math.pow(wall.y2 - wall.y1, 2)
+        );
+        
+        // Сортируем проемы по позиции
+        const sortedOpenings = wallOpenings.sort((a, b) => a.position - b.position);
+        
+        let currentPos = 0;
+        
+        sortedOpenings.forEach(opening => {
+          const openingType = OPENING_TYPES.find(t => t.id === opening.type);
+          const openingWidth = openingType?.width || 0.9;
+          const openingStart = Math.max(0, opening.position - openingWidth/2);
+          const openingEnd = Math.min(wallLength, opening.position + openingWidth/2);
+          
+          // Рисуем часть стены до проема
+          if (currentPos < openingStart) {
+            const startRatio = currentPos / wallLength;
+            const endRatio = openingStart / wallLength;
+            
+            const startX = wall.x1 + (wall.x2 - wall.x1) * startRatio;
+            const startY = wall.y1 + (wall.y2 - wall.y1) * startRatio;
+            const endX = wall.x1 + (wall.x2 - wall.x1) * endRatio;
+            const endY = wall.y1 + (wall.y2 - wall.y1) * endRatio;
+            
+            ctx.beginPath();
+            ctx.moveTo(100 + startX * SCALE, 100 + startY * SCALE);
+            ctx.lineTo(100 + endX * SCALE, 100 + endY * SCALE);
+            ctx.stroke();
+          }
+          
+          currentPos = openingEnd;
+        });
+        
+        // Рисуем оставшуюся часть стены
+        if (currentPos < wallLength) {
+          const startRatio = currentPos / wallLength;
+          
+          const startX = wall.x1 + (wall.x2 - wall.x1) * startRatio;
+          const startY = wall.y1 + (wall.y2 - wall.y1) * startRatio;
+          
+          ctx.beginPath();
+          ctx.moveTo(100 + startX * SCALE, 100 + startY * SCALE);
+          ctx.lineTo(100 + wall.x2 * SCALE, 100 + wall.y2 * SCALE);
+          ctx.stroke();
+        }
+      }
       
       // Маркеры для поворота
       if (isSelected) {
@@ -349,54 +403,97 @@ export default function EnhancedFloorPlanning({ data, updateData, onNext, onPrev
   };
 
   const drawOpenings2D = (ctx) => {
+    // Группируем проемы по стенам для правильного отображения
+    const openingsByWall = {};
     (data.openings || []).forEach(opening => {
-      const wall = data.walls?.find(w => w.id === opening.wallId);
-      const openingType = OPENING_TYPES.find(t => t.id === opening.type);
-      if (wall && openingType) {
-        const wallLength = Math.sqrt(
-          Math.pow(wall.x2 - wall.x1, 2) + Math.pow(wall.y2 - wall.y1, 2)
-        );
+      if (!openingsByWall[opening.wallId]) {
+        openingsByWall[opening.wallId] = [];
+      }
+      openingsByWall[opening.wallId].push(opening);
+    });
+
+    // Рисуем каждую стену с её проемами
+    Object.entries(openingsByWall).forEach(([wallId, openings]) => {
+      const wall = data.walls?.find(w => w.id === parseInt(wallId));
+      if (!wall) return;
+
+      const wallLength = Math.sqrt(
+        Math.pow(wall.x2 - wall.x1, 2) + Math.pow(wall.y2 - wall.y1, 2)
+      );
+      const wallAngle = Math.atan2(wall.y2 - wall.y1, wall.x2 - wall.x1);
+      const wallThickness = (WALL_TYPES.find(t => t.id === wall.type)?.thickness || 0.2) * SCALE;
+
+      // Сортируем проемы по позиции на стене
+      const sortedOpenings = openings.sort((a, b) => a.position - b.position);
+
+      sortedOpenings.forEach(opening => {
+        const openingType = OPENING_TYPES.find(t => t.id === opening.type);
+        if (!openingType) return;
+
         const ratio = opening.position / wallLength;
-        
         const openingX = wall.x1 + (wall.x2 - wall.x1) * ratio;
         const openingY = wall.y1 + (wall.y2 - wall.y1) * ratio;
-        
         const isSelected = opening.id === selectedOpeningId;
-        
-        // Рисуем проем как прямоугольник на стене
-        const wallAngle = Math.atan2(wall.y2 - wall.y1, wall.x2 - wall.x1);
-        const perpAngle = wallAngle + Math.PI / 2;
-        
         const openingWidth = openingType.width * SCALE;
-        const wallThickness = (WALL_TYPES.find(t => t.id === wall.type)?.thickness || 0.2) * SCALE;
-        
+
         ctx.save();
         ctx.translate(100 + openingX * SCALE, 100 + openingY * SCALE);
         ctx.rotate(wallAngle);
-        
-        // Фон проема (белый для показа разрыва в стене)
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(-openingWidth/2, -wallThickness/2, openingWidth, wallThickness);
-        
-        // Рамка проема
-        ctx.strokeStyle = isSelected ? '#ff5722' : openingType.color;
-        ctx.lineWidth = isSelected ? 3 : 2;
-        ctx.strokeRect(-openingWidth/2, -wallThickness/2, openingWidth, wallThickness);
-        
-        // Символ типа проема
-        ctx.fillStyle = openingType.color;
+
         if (opening.type.includes('door')) {
-          // Дуга для двери
+          // Для дверей рисуем только проем нужной высоты
+          const doorHeight = 8; // Высота проема двери в пикселях
+          
+          // Фон проема (белый для показа разрыва в стене)
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(-openingWidth/2, -doorHeight/2, openingWidth, doorHeight);
+          
+          // Рамка проема
+          ctx.strokeStyle = isSelected ? '#ff5722' : openingType.color;
+          ctx.lineWidth = isSelected ? 3 : 2;
+          ctx.strokeRect(-openingWidth/2, -doorHeight/2, openingWidth, doorHeight);
+          
+          // Дверное полотно
+          ctx.fillStyle = openingType.color;
+          ctx.fillRect(-openingWidth/2 + 2, -doorHeight/2 + 1, openingWidth - 4, doorHeight - 2);
+          
+          // Дуга открывания двери
+          ctx.strokeStyle = isSelected ? '#ff5722' : '#666';
+          ctx.lineWidth = 1;
+          ctx.setLineDash([2, 2]);
           ctx.beginPath();
-          ctx.arc(-openingWidth/4, 0, openingWidth/3, 0, Math.PI/2);
+          ctx.arc(-openingWidth/2, 0, openingWidth * 0.8, 0, Math.PI/2);
           ctx.stroke();
-        } else {
-          // Крестик для окна
+          ctx.setLineDash([]);
+          
+          // Ручка двери
+          ctx.fillStyle = '#333';
           ctx.beginPath();
-          ctx.moveTo(-openingWidth/2, -wallThickness/2);
-          ctx.lineTo(openingWidth/2, wallThickness/2);
-          ctx.moveTo(openingWidth/2, -wallThickness/2);
-          ctx.lineTo(-openingWidth/2, wallThickness/2);
+          ctx.arc(openingWidth/3, 0, 2, 0, Math.PI * 2);
+          ctx.fill();
+        } else {
+          // Для окон рисуем проем на всю толщину стены
+          // Фон проема (белый для показа разрыва в стене)
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(-openingWidth/2, -wallThickness/2, openingWidth, wallThickness);
+          
+          // Рамка проема
+          ctx.strokeStyle = isSelected ? '#ff5722' : openingType.color;
+          ctx.lineWidth = isSelected ? 3 : 2;
+          ctx.strokeRect(-openingWidth/2, -wallThickness/2, openingWidth, wallThickness);
+          
+          // Оконная рама
+          ctx.strokeStyle = openingType.color;
+          ctx.lineWidth = 2;
+          // Горизонтальная перекладина
+          ctx.beginPath();
+          ctx.moveTo(-openingWidth/2, 0);
+          ctx.lineTo(openingWidth/2, 0);
+          ctx.stroke();
+          // Вертикальная перекладина
+          ctx.beginPath();
+          ctx.moveTo(0, -wallThickness/2);
+          ctx.lineTo(0, wallThickness/2);
           ctx.stroke();
         }
         
@@ -409,7 +506,7 @@ export default function EnhancedFloorPlanning({ data, updateData, onNext, onPrev
         ctx.fillText(
           openingType.name,
           100 + openingX * SCALE,
-          100 + openingY * SCALE - 20
+          100 + openingY * SCALE - 25
         );
         
         // Размер проема
@@ -418,7 +515,7 @@ export default function EnhancedFloorPlanning({ data, updateData, onNext, onPrev
           ctx.fillText(
             `${openingType.width}м`,
             100 + openingX * SCALE,
-            100 + openingY * SCALE + 25
+            100 + openingY * SCALE + 30
           );
         }
         
@@ -426,7 +523,7 @@ export default function EnhancedFloorPlanning({ data, updateData, onNext, onPrev
         if (isSelected) {
           drawOpeningHandles(ctx, opening);
         }
-      }
+      });
     });
   };
 
@@ -815,15 +912,59 @@ export default function EnhancedFloorPlanning({ data, updateData, onNext, onPrev
       const D = nearestWall.wall.y2 - nearestWall.wall.y1;
       const dot = A * C + B * D;
       const lenSq = C * C + D * D;
-      const param = Math.max(0, Math.min(1, dot / lenSq));
+      let param = Math.max(0, Math.min(1, dot / lenSq));
+      let desiredPosition = param * wallLength;
       
       const openingType = OPENING_TYPES.find(t => t.id === selectedOpeningType);
+      const openingWidth = openingType?.width || 0.9;
+      
+      // Проверяем существующие проемы на этой стене
+      const existingOpenings = (data.openings || []).filter(o => o.wallId === nearestWall.wall.id);
+      
+      // Находим свободное место для нового проема
+      let finalPosition = desiredPosition;
+      const minDistance = openingWidth + 0.2; // Минимальное расстояние между проемами
+      
+      // Проверяем конфликты с существующими проемами
+      let hasConflict = true;
+      let attempts = 0;
+      
+      while (hasConflict && attempts < 10) {
+        hasConflict = false;
+        
+        for (const existing of existingOpenings) {
+          const existingType = OPENING_TYPES.find(t => t.id === existing.type);
+          const existingWidth = existingType?.width || 0.9;
+          const distance = Math.abs(finalPosition - existing.position);
+          
+          if (distance < (openingWidth + existingWidth) / 2 + 0.1) {
+            hasConflict = true;
+            // Сдвигаем позицию
+            if (finalPosition < existing.position) {
+              finalPosition = Math.max(openingWidth/2, existing.position - (openingWidth + existingWidth)/2 - 0.1);
+            } else {
+              finalPosition = Math.min(wallLength - openingWidth/2, existing.position + (openingWidth + existingWidth)/2 + 0.1);
+            }
+            break;
+          }
+        }
+        attempts++;
+      }
+      
+      // Проверяем, что проем помещается в стену
+      if (finalPosition - openingWidth/2 < 0) {
+        finalPosition = openingWidth/2;
+      }
+      if (finalPosition + openingWidth/2 > wallLength) {
+        finalPosition = wallLength - openingWidth/2;
+      }
+      
       const newOpening = {
         id: Date.now(),
         wallId: nearestWall.wall.id,
         type: selectedOpeningType,
-        position: param * wallLength,
-        width: openingType?.width || 0.9,
+        position: finalPosition,
+        width: openingWidth,
         height: openingType?.height || 2.1
       };
       
