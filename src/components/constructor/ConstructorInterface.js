@@ -19,6 +19,9 @@ export default function ConstructorInterface({ initialData, onBack }) {
   const [lotFixed, setLotFixed] = useState(true);
   const [hoveredElement, setHoveredElement] = useState(null);
   const [unlockAnimation, setUnlockAnimation] = useState(null);
+  const [isDrawingWall, setIsDrawingWall] = useState(false);
+  const [wallDrawStart, setWallDrawStart] = useState(null);
+  const [currentWallEnd, setCurrentWallEnd] = useState(null);
 
   const SCALE = 30 * zoom;
 
@@ -42,7 +45,7 @@ export default function ConstructorInterface({ initialData, onBack }) {
   useEffect(() => {
     const timer = setTimeout(drawCanvas, 10);
     return () => clearTimeout(timer);
-  }, [zoom, panOffset, initialData, selectedElement, elements, walls]);
+  }, [zoom, panOffset, initialData, selectedElement, elements, walls, isDrawingWall, wallDrawStart, currentWallEnd]);
   
   useEffect(() => {
     if (initialData) {
@@ -73,6 +76,18 @@ export default function ConstructorInterface({ initialData, onBack }) {
     drawLot(ctx);
     drawElements(ctx);
     drawWalls(ctx);
+    
+    // Рисуем предварительный просмотр стены
+    if (isDrawingWall && wallDrawStart && currentWallEnd) {
+      ctx.strokeStyle = '#ff9800';
+      ctx.lineWidth = 3;
+      ctx.setLineDash([5, 5]);
+      ctx.beginPath();
+      ctx.moveTo(wallDrawStart.x * zoom, wallDrawStart.y * zoom);
+      ctx.lineTo(currentWallEnd.x * zoom, currentWallEnd.y * zoom);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
     
     ctx.restore();
   };
@@ -552,6 +567,14 @@ export default function ConstructorInterface({ initialData, onBack }) {
         drawCanvas();
         return;
       }
+    } else if (selectedTool === 'wall') {
+      // Проверяем, что клик внутри дома
+      if (isPointInHouse(worldX, worldY)) {
+        setIsDrawingWall(true);
+        setWallDrawStart({ x: worldX, y: worldY });
+        setCurrentWallEnd({ x: worldX, y: worldY });
+      }
+      return;
     } else if (selectedTool === 'select') {
       // Проверяем клик по маркерам изменения размера
       if (selectedElement && !fixedElements.has(selectedElement.id)) {
@@ -589,9 +612,6 @@ export default function ConstructorInterface({ initialData, onBack }) {
       }
       
       setSelectedElement(null);
-    } else if (selectedTool === 'wall') {
-      addWall(worldX, worldY);
-      return;
     }
     
     setIsDragging(true);
@@ -617,6 +637,14 @@ export default function ConstructorInterface({ initialData, onBack }) {
     }
     
     return x >= lotX && x <= lotX + lotW && y >= lotY && y <= lotY + lotH;
+  };
+  
+  const isPointInHouse = (x, y) => {
+    const houseElement = elements.find(el => el.type === 'house');
+    if (!houseElement) return false;
+    
+    return x >= houseElement.x && x <= houseElement.x + houseElement.width &&
+           y >= houseElement.y && y <= houseElement.y + houseElement.height;
   };
   
   const addWall = (x, y) => {
@@ -736,6 +764,26 @@ export default function ConstructorInterface({ initialData, onBack }) {
     } else {
       setHoveredElement(null);
       canvas.style.cursor = selectedTool === 'select' ? 'grab' : selectedTool === 'wall' ? 'crosshair' : 'default';
+    }
+    
+    // Обновляем конец стены при рисовании
+    if (isDrawingWall && wallDrawStart) {
+      const deltaX = Math.abs(worldX - wallDrawStart.x);
+      const deltaY = Math.abs(worldY - wallDrawStart.y);
+      
+      // Ограничиваем до 90 градусов (горизонталь или вертикаль)
+      let endX, endY;
+      if (deltaX > deltaY) {
+        // Горизонтальная линия
+        endX = worldX;
+        endY = wallDrawStart.y;
+      } else {
+        // Вертикальная линия
+        endX = wallDrawStart.x;
+        endY = worldY;
+      }
+      
+      setCurrentWallEnd({ x: endX, y: endY });
     }
     
     if (resizeHandle && !fixedElements.has(resizeHandle.elementId)) {
@@ -961,6 +1009,33 @@ export default function ConstructorInterface({ initialData, onBack }) {
   };
 
   const handleCanvasMouseUp = () => {
+    if (isDrawingWall && wallDrawStart && currentWallEnd) {
+      // Создаем стену только если есть длина
+      const length = Math.sqrt(
+        Math.pow(currentWallEnd.x - wallDrawStart.x, 2) + 
+        Math.pow(currentWallEnd.y - wallDrawStart.y, 2)
+      );
+      
+      if (length > 10) { // Минимальная длина стены
+        const newWall = {
+          id: Date.now(),
+          x1: wallDrawStart.x,
+          y1: wallDrawStart.y,
+          x2: currentWallEnd.x,
+          y2: currentWallEnd.y,
+          length: length / 30, // Переводим в метры
+          thickness: 0.121, // 121 мм
+          type: 'interior'
+        };
+        
+        setWalls(prev => [...prev, newWall]);
+        setSelectedElement(newWall);
+      }
+    }
+    
+    setIsDrawingWall(false);
+    setWallDrawStart(null);
+    setCurrentWallEnd(null);
     setIsDragging(false);
     setDraggedElement(null);
     setResizeHandle(null);

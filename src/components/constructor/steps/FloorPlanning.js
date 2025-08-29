@@ -22,7 +22,34 @@ export default function FloorPlanning({ data, updateData, onNext, onPrev }) {
   useEffect(() => {
     const timer = setTimeout(drawCanvas, 10);
     return () => clearTimeout(timer);
-  }, [data.walls, data.rooms, data.openings]);
+  }, [data.walls, data.rooms, data.openings, isDrawing, startPoint]);
+
+  // Обработчик движения мыши для предварительного просмотра стены
+  const handleCanvasMouseMove = (e) => {
+    if (!isDrawing || tool !== 'wall' || !startPoint) return;
+    
+    const canvas = canvasRef.current;
+    const rect = canvas.getBoundingClientRect();
+    let x = (e.clientX - rect.left - 50) / SCALE;
+    let y = (e.clientY - rect.top - 50) / SCALE;
+    
+    // Ограничиваем до прямых линий
+    const snappedPoint = snapToStraightLine(startPoint.x, startPoint.y, x, y);
+    
+    // Перерисовываем canvas с предварительным просмотром
+    drawCanvas();
+    
+    // Рисуем предварительную стену
+    const ctx = canvas.getContext('2d');
+    ctx.strokeStyle = '#ff9800';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([5, 5]);
+    ctx.beginPath();
+    ctx.moveTo(50 + startPoint.x * SCALE, 50 + startPoint.y * SCALE);
+    ctx.lineTo(50 + snappedPoint.x * SCALE, 50 + snappedPoint.y * SCALE);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  };
 
   const drawCanvas = () => {
     const canvas = canvasRef.current;
@@ -107,6 +134,29 @@ export default function FloorPlanning({ data, updateData, onNext, onPrev }) {
     });
   };
 
+  // Проверяет, находится ли точка внутри границ дома
+  const isPointInsideHouse = (x, y) => {
+    return data.modules.some(module => 
+      x >= module.x && x <= module.x + module.width &&
+      y >= module.y && y <= module.y + module.height
+    );
+  };
+
+  // Ограничивает координаты до прямых линий (90 градусов)
+  const snapToStraightLine = (startX, startY, endX, endY) => {
+    const deltaX = Math.abs(endX - startX);
+    const deltaY = Math.abs(endY - startY);
+    
+    // Определяем, какое направление более выражено
+    if (deltaX > deltaY) {
+      // Горизонтальная линия
+      return { x: endX, y: startY };
+    } else {
+      // Вертикальная линия
+      return { x: startX, y: endY };
+    }
+  };
+
   const handleCanvasMouseDown = (e) => {
     if (tool !== 'wall') return;
     
@@ -114,6 +164,9 @@ export default function FloorPlanning({ data, updateData, onNext, onPrev }) {
     const rect = canvas.getBoundingClientRect();
     const x = (e.clientX - rect.left - 50) / SCALE;
     const y = (e.clientY - rect.top - 50) / SCALE;
+    
+    // Проверяем, что начальная точка внутри дома
+    if (!isPointInsideHouse(x, y)) return;
     
     setIsDrawing(true);
     setStartPoint({ x, y });
@@ -124,22 +177,42 @@ export default function FloorPlanning({ data, updateData, onNext, onPrev }) {
     
     const canvas = canvasRef.current;
     const rect = canvas.getBoundingClientRect();
-    const x = (e.clientX - rect.left - 50) / SCALE;
-    const y = (e.clientY - rect.top - 50) / SCALE;
+    let x = (e.clientX - rect.left - 50) / SCALE;
+    let y = (e.clientY - rect.top - 50) / SCALE;
     
     if (startPoint) {
-      const newWall = {
-        id: Date.now(),
-        x1: startPoint.x,
-        y1: startPoint.y,
-        x2: x,
-        y2: y,
-        type: 'interior'
-      };
+      // Ограничиваем до прямых линий
+      const snappedPoint = snapToStraightLine(startPoint.x, startPoint.y, x, y);
+      x = snappedPoint.x;
+      y = snappedPoint.y;
       
-      updateData({
-        walls: [...data.walls, newWall]
-      });
+      // Проверяем, что конечная точка внутри дома
+      if (!isPointInsideHouse(x, y)) {
+        setIsDrawing(false);
+        setStartPoint(null);
+        return;
+      }
+      
+      // Проверяем, что стена имеет минимальную длину
+      const minLength = 0.5;
+      const length = Math.sqrt(
+        Math.pow(x - startPoint.x, 2) + Math.pow(y - startPoint.y, 2)
+      );
+      
+      if (length >= minLength) {
+        const newWall = {
+          id: Date.now(),
+          x1: startPoint.x,
+          y1: startPoint.y,
+          x2: x,
+          y2: y,
+          type: 'interior'
+        };
+        
+        updateData({
+          walls: [...data.walls, newWall]
+        });
+      }
     }
     
     setIsDrawing(false);
@@ -249,6 +322,7 @@ export default function FloorPlanning({ data, updateData, onNext, onPrev }) {
           height={600}
           onMouseDown={handleCanvasMouseDown}
           onMouseUp={handleCanvasMouseUp}
+          onMouseMove={handleCanvasMouseMove}
           onClick={handleCanvasClick}
         />
       </div>
