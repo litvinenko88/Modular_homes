@@ -1133,6 +1133,13 @@ export default function ConstructorInterface({ initialData, onBack }) {
         return;
       }
       
+      // Проверяем клик по кнопке удаления двери/окна
+      if (selectedElement && (selectedElement.type === 'door' || selectedElement.type === 'window')) {
+        if (checkDeleteButton(clientX, clientY, selectedElement)) {
+          return;
+        }
+      }
+      
       // Проверяем клик по элементам (приоритет: двери/окна > стены > элементы)
       const clickedDoor = getDoorAt(worldX, worldY);
       const clickedWindow = getWindowAt(worldX, worldY);
@@ -1746,6 +1753,37 @@ export default function ConstructorInterface({ initialData, onBack }) {
     }
   };
 
+  // Проверка клика по кнопке удаления двери/окна
+  const checkDeleteButton = (clientX, clientY, element) => {
+    const wall = walls.find(w => w.id === element.wallId) || getHouseBoundaryById(element.wallId);
+    if (!wall) return false;
+    
+    const isHorizontal = Math.abs(wall.x2 - wall.x1) > Math.abs(wall.y2 - wall.y1);
+    const elementX = wall.x1 + (wall.x2 - wall.x1) * element.position;
+    const elementY = wall.y1 + (wall.y2 - wall.y1) * element.position;
+    
+    let deleteX, deleteY;
+    if (isHorizontal) {
+      deleteX = elementX * zoom + panOffset.x - 12;
+      deleteY = (elementY - element.width/2 - (element.type === 'door' ? 25 : 35)) * zoom + panOffset.y;
+    } else {
+      deleteX = (elementX - element.width/2 - 30) * zoom + panOffset.x;
+      deleteY = elementY * zoom + panOffset.y - 10;
+    }
+    
+    if (clientX >= deleteX && clientX <= deleteX + 24 &&
+        clientY >= deleteY && clientY <= deleteY + 20) {
+      if (element.type === 'door') {
+        setDoors(prev => prev.filter(d => d.id !== element.id));
+      } else {
+        setWindows(prev => prev.filter(w => w.id !== element.id));
+      }
+      setSelectedElement(null);
+      return true;
+    }
+    return false;
+  };
+
   // Проверка клика по кнопкам управления
   const checkControlButtons = (clientX, clientY, element) => {
     if (!element || selectedTool !== 'select') return false;
@@ -1901,6 +1939,30 @@ export default function ConstructorInterface({ initialData, onBack }) {
       y2: newY2,
       length: actualLength
     }));
+  };
+  
+  const updateDoorWindowSize = (newWidth) => {
+    if (!selectedElement || !newWidth || newWidth <= 0) return;
+    
+    const newWidthInPixels = newWidth * 30;
+    
+    if (selectedElement.type === 'door') {
+      const newDoors = doors.map(door => 
+        door.id === selectedElement.id 
+          ? { ...door, width: newWidthInPixels, realWidth: newWidth }
+          : door
+      );
+      setDoors(newDoors);
+      setSelectedElement(prev => ({ ...prev, width: newWidthInPixels, realWidth: newWidth }));
+    } else if (selectedElement.type === 'window') {
+      const newWindows = windows.map(window => 
+        window.id === selectedElement.id 
+          ? { ...window, width: newWidthInPixels, realWidth: newWidth }
+          : window
+      );
+      setWindows(newWindows);
+      setSelectedElement(prev => ({ ...prev, width: newWidthInPixels, realWidth: newWidth }));
+    }
   };
 
   const handleCanvasDoubleClick = (e) => {
@@ -2097,7 +2159,7 @@ export default function ConstructorInterface({ initialData, onBack }) {
       id: Date.now(),
       wallId: wall.id,
       position: Math.max(0.1, Math.min(0.9, position)),
-      width: type === 'door' ? 25 : 45, // стандартные размеры: дверь 800мм, окно 1500мм
+      width: type === 'door' ? 24 : 45, // стандартные размеры: дверь 800мм, окно 1500мм
       realWidth: type === 'door' ? 0.8 : 1.5, // в метрах
       type: type
     };
@@ -2143,6 +2205,22 @@ export default function ConstructorInterface({ initialData, onBack }) {
           ctx.textAlign = 'center';
           ctx.fillText(`${(door.realWidth * 1000).toFixed(0)}мм`, doorX * zoom, (doorY - door.width/2 - 5) * zoom);
         }
+        
+        // Кнопка удаления для выбранной двери
+        if (selectedElement?.id === door.id) {
+          const deleteX = doorX * zoom - 12;
+          const deleteY = (doorY - door.width/2 - 25) * zoom;
+          
+          ctx.fillStyle = '#ff4444';
+          ctx.fillRect(deleteX, deleteY, 24, 20);
+          ctx.strokeStyle = '#fff';
+          ctx.lineWidth = 1;
+          ctx.strokeRect(deleteX, deleteY, 24, 20);
+          ctx.fillStyle = '#fff';
+          ctx.font = '14px Arial';
+          ctx.textAlign = 'center';
+          ctx.fillText('🗑️', deleteX + 12, deleteY + 14);
+        }
       } else {
         ctx.beginPath();
         ctx.moveTo(doorX * zoom, (doorY - door.width/2) * zoom);
@@ -2166,6 +2244,22 @@ export default function ConstructorInterface({ initialData, onBack }) {
           ctx.rotate(-Math.PI / 2);
           ctx.fillText(`${(door.realWidth * 1000).toFixed(0)}мм`, 0, 0);
           ctx.restore();
+        }
+        
+        // Кнопка удаления для выбранной двери
+        if (selectedElement?.id === door.id) {
+          const deleteX = (doorX - door.width/2 - 30) * zoom;
+          const deleteY = doorY * zoom - 10;
+          
+          ctx.fillStyle = '#ff4444';
+          ctx.fillRect(deleteX, deleteY, 24, 20);
+          ctx.strokeStyle = '#fff';
+          ctx.lineWidth = 1;
+          ctx.strokeRect(deleteX, deleteY, 24, 20);
+          ctx.fillStyle = '#fff';
+          ctx.font = '14px Arial';
+          ctx.textAlign = 'center';
+          ctx.fillText('🗑️', deleteX + 12, deleteY + 14);
         }
       }
     });
@@ -2203,6 +2297,22 @@ export default function ConstructorInterface({ initialData, onBack }) {
           ctx.textAlign = 'center';
           ctx.fillText(`${(window.realWidth * 1000).toFixed(0)}мм`, windowX * zoom, (windowY - 15) * zoom);
         }
+        
+        // Кнопка удаления для выбранного окна
+        if (selectedElement?.id === window.id) {
+          const deleteX = windowX * zoom - 12;
+          const deleteY = (windowY - window.width/2 - 35) * zoom;
+          
+          ctx.fillStyle = '#ff4444';
+          ctx.fillRect(deleteX, deleteY, 24, 20);
+          ctx.strokeStyle = '#fff';
+          ctx.lineWidth = 1;
+          ctx.strokeRect(deleteX, deleteY, 24, 20);
+          ctx.fillStyle = '#fff';
+          ctx.font = '14px Arial';
+          ctx.textAlign = 'center';
+          ctx.fillText('🗑️', deleteX + 12, deleteY + 14);
+        }
       } else {
         ctx.beginPath();
         ctx.moveTo(windowX * zoom, (windowY - window.width/2) * zoom);
@@ -2224,6 +2334,22 @@ export default function ConstructorInterface({ initialData, onBack }) {
           ctx.rotate(-Math.PI / 2);
           ctx.fillText(`${(window.realWidth * 1000).toFixed(0)}мм`, 0, 0);
           ctx.restore();
+        }
+        
+        // Кнопка удаления для выбранного окна
+        if (selectedElement?.id === window.id) {
+          const deleteX = (windowX - window.width/2 - 30) * zoom;
+          const deleteY = windowY * zoom - 10;
+          
+          ctx.fillStyle = '#ff4444';
+          ctx.fillRect(deleteX, deleteY, 24, 20);
+          ctx.strokeStyle = '#fff';
+          ctx.lineWidth = 1;
+          ctx.strokeRect(deleteX, deleteY, 24, 20);
+          ctx.fillStyle = '#fff';
+          ctx.font = '14px Arial';
+          ctx.textAlign = 'center';
+          ctx.fillText('🗑️', deleteX + 12, deleteY + 14);
         }
       }
     });
@@ -2489,6 +2615,24 @@ export default function ConstructorInterface({ initialData, onBack }) {
                         const value = parseFloat(e.target.value);
                         if (value && value > 0) {
                           updateWallLength(value / 1000);
+                        }
+                      }}
+                    />
+                  </div>
+                )}
+                {(selectedElement.type === 'door' || selectedElement.type === 'window') && (
+                  <div className="size-input">
+                    <label>Ширина (мм):</label>
+                    <input 
+                      type="number" 
+                      min="300"
+                      max="3000"
+                      step="50"
+                      value={Math.round((selectedElement.realWidth || 0) * 1000)}
+                      onChange={(e) => {
+                        const value = parseFloat(e.target.value);
+                        if (value && value > 0) {
+                          updateDoorWindowSize(value / 1000);
                         }
                       }}
                     />
