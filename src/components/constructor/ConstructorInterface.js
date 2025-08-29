@@ -1233,7 +1233,7 @@ export default function ConstructorInterface({ initialData, onBack }) {
 
   // Функции для изменения размеров элементов
   const updateElementSize = (dimension, value) => {
-    if (!selectedElement) return;
+    if (!selectedElement || !value || value <= 0) return;
     
     if (selectedElement.type === 'house') {
       const newWidth = dimension === 'width' ? value : selectedElement.realWidth;
@@ -1250,13 +1250,25 @@ export default function ConstructorInterface({ initialData, onBack }) {
             }
           : el
       ));
+      
+      // Обновляем selectedElement
+      setSelectedElement(prev => ({
+        ...prev,
+        width: (dimension === 'width' ? value : prev.realWidth) * 30,
+        height: (dimension === 'height' ? value : prev.realHeight) * 30,
+        realWidth: dimension === 'width' ? value : prev.realWidth,
+        realHeight: dimension === 'height' ? value : prev.realHeight
+      }));
     }
   };
   
   const updateWallLength = (newLength) => {
-    if (!selectedElement || selectedElement.x1 === undefined) return;
+    if (!selectedElement || selectedElement.x1 === undefined || !newLength || newLength <= 0) return;
     
     const wall = selectedElement;
+    const houseElement = elements.find(el => el.type === 'house');
+    if (!houseElement) return;
+    
     const centerX = (wall.x1 + wall.x2) / 2;
     const centerY = (wall.y1 + wall.y2) / 2;
     const isHorizontal = Math.abs(wall.x2 - wall.x1) > Math.abs(wall.y2 - wall.y1);
@@ -1275,11 +1287,32 @@ export default function ConstructorInterface({ initialData, onBack }) {
       newY2 = centerY + lengthInPixels / 2;
     }
     
+    // Ограничиваем стену границами дома
+    newX1 = Math.max(houseElement.x, Math.min(houseElement.x + houseElement.width, newX1));
+    newY1 = Math.max(houseElement.y, Math.min(houseElement.y + houseElement.height, newY1));
+    newX2 = Math.max(houseElement.x, Math.min(houseElement.x + houseElement.width, newX2));
+    newY2 = Math.max(houseElement.y, Math.min(houseElement.y + houseElement.height, newY2));
+    
+    // Пересчитываем реальную длину после ограничения
+    const actualLength = Math.sqrt(
+      Math.pow(newX2 - newX1, 2) + Math.pow(newY2 - newY1, 2)
+    ) / 30;
+    
     setWalls(prev => prev.map(w => 
       w.id === selectedElement.id 
-        ? { ...w, x1: newX1, y1: newY1, x2: newX2, y2: newY2, length: newLength }
+        ? { ...w, x1: newX1, y1: newY1, x2: newX2, y2: newY2, length: actualLength }
         : w
     ));
+    
+    // Обновляем selectedElement
+    setSelectedElement(prev => ({
+      ...prev,
+      x1: newX1,
+      y1: newY1,
+      x2: newX2,
+      y2: newY2,
+      length: actualLength
+    }));
   };
 
   const handleCanvasMouseUp = () => {
@@ -1521,8 +1554,16 @@ export default function ConstructorInterface({ initialData, onBack }) {
                     <label>Ширина (мм):</label>
                     <input 
                       type="number" 
+                      min="100"
+                      max="50000"
+                      step="10"
                       value={Math.round((selectedElement.realWidth || 0) * 1000)}
-                      onChange={(e) => updateElementSize('width', parseInt(e.target.value) / 1000)}
+                      onChange={(e) => {
+                        const value = parseFloat(e.target.value);
+                        if (value && value > 0) {
+                          updateElementSize('width', value / 1000);
+                        }
+                      }}
                     />
                   </div>
                 )}
@@ -1531,8 +1572,16 @@ export default function ConstructorInterface({ initialData, onBack }) {
                     <label>Высота (мм):</label>
                     <input 
                       type="number" 
+                      min="100"
+                      max="50000"
+                      step="10"
                       value={Math.round((selectedElement.realHeight || 0) * 1000)}
-                      onChange={(e) => updateElementSize('height', parseInt(e.target.value) / 1000)}
+                      onChange={(e) => {
+                        const value = parseFloat(e.target.value);
+                        if (value && value > 0) {
+                          updateElementSize('height', value / 1000);
+                        }
+                      }}
                     />
                   </div>
                 )}
@@ -1541,8 +1590,16 @@ export default function ConstructorInterface({ initialData, onBack }) {
                     <label>Длина (мм):</label>
                     <input 
                       type="number" 
+                      min="100"
+                      max="20000"
+                      step="10"
                       value={Math.round((selectedElement.length || 0) * 1000)}
-                      onChange={(e) => updateWallLength(parseInt(e.target.value) / 1000)}
+                      onChange={(e) => {
+                        const value = parseFloat(e.target.value);
+                        if (value && value > 0) {
+                          updateWallLength(value / 1000);
+                        }
+                      }}
                     />
                   </div>
                 )}
@@ -1839,6 +1896,12 @@ export default function ConstructorInterface({ initialData, onBack }) {
           background: rgba(255, 255, 255, 0.1);
           color: var(--white);
           font-size: 14px;
+        }
+        
+        .size-input input:focus {
+          outline: none;
+          border-color: var(--accent-orange);
+          background: rgba(255, 255, 255, 0.15);
         }
 
         @media (max-width: 768px) {
