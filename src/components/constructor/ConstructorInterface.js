@@ -471,7 +471,7 @@ export default function ConstructorInterface({ initialData, onBack }) {
       ctx.strokeStyle = '#fff';
       ctx.lineWidth = 1;
       
-      const handleSize = Math.max(6, 8 * zoom);
+      const handleSize = Math.max(3, 4 * zoom);
       
       // Маркеры на концах
       ctx.beginPath();
@@ -539,29 +539,34 @@ export default function ConstructorInterface({ initialData, onBack }) {
       }
     }
     
-    // Показываем длину стены (ниже кнопок)
+    // Показываем длину стены
     if (zoom >= 0.4) {
       const centerX = (x1 + x2) / 2;
       const centerY = (y1 + y2) / 2;
-      const textY = isSelected ? Math.min(y1, y2) - 10 : centerY + 4;
+      const isHorizontal = Math.abs(x2 - x1) > Math.abs(y2 - y1);
       
       ctx.fillStyle = '#8B4513';
       ctx.font = `${Math.max(8, 10 * zoom)}px Arial`;
       ctx.textAlign = 'center';
       
-      // Фон для текста
-      const textWidth = ctx.measureText(`${wall.length.toFixed(1)}м`).width;
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-      ctx.fillRect(centerX - textWidth/2 - 2, textY - 8, textWidth + 4, 16);
-      
-      ctx.fillStyle = '#8B4513';
-      ctx.font = `${Math.max(6, 8 * zoom)}px Arial`;
-      ctx.fillText(`${(wall.length * 1000).toFixed(0)}мм`, centerX, textY - 15);
+      if (isHorizontal) {
+        // Горизонтальная стена - текст горизонтально сверху
+        const textY = isSelected ? Math.min(y1, y2) - 50 : Math.min(y1, y2) - 8;
+        ctx.fillText(`${(wall.length * 1000).toFixed(0)}мм`, centerX, textY);
+      } else {
+        // Вертикальная стена - текст вертикально слева
+        const textX = Math.min(x1, x2) - 8;
+        ctx.save();
+        ctx.translate(textX, centerY);
+        ctx.rotate(-Math.PI / 2);
+        ctx.fillText(`${(wall.length * 1000).toFixed(0)}мм`, 0, 0);
+        ctx.restore();
+      }
     }
   };
   
   const drawResizeHandles = (ctx, element) => {
-    const handleSize = Math.max(6, 8 * zoom);
+    const handleSize = Math.max(4, 6 * zoom);
     const handles = [
       { id: 'nw', x: element.x - handleSize/2, y: element.y - handleSize/2 },
       { id: 'ne', x: element.x + element.width - handleSize/2, y: element.y - handleSize/2 },
@@ -657,6 +662,13 @@ export default function ConstructorInterface({ initialData, onBack }) {
         const handle = getResizeHandle(clientX, clientY, selectedElement);
         if (handle) {
           setResizeHandle({ elementId: selectedElement.id, handle });
+          return;
+        }
+        
+        // Проверяем клик по маркерам стены
+        const wallHandle = getWallResizeHandle(clientX, clientY, selectedElement);
+        if (wallHandle) {
+          setResizeHandle({ elementId: selectedElement.id, handle: wallHandle, isWall: true });
           return;
         }
       }
@@ -794,7 +806,7 @@ export default function ConstructorInterface({ initialData, onBack }) {
   };
   
   const getResizeHandle = (clientX, clientY, element) => {
-    const handleSize = Math.max(6, 8 * zoom);
+    const handleSize = Math.max(4, 6 * zoom);
     const tolerance = handleSize;
     
     // Преобразуем координаты элемента в экранные
@@ -822,6 +834,62 @@ export default function ConstructorInterface({ initialData, onBack }) {
       }
     }
     return null;
+  };
+  
+  // Получение маркеров для изменения размера стены
+  const getWallResizeHandle = (clientX, clientY, wall) => {
+    if (!wall || wall.x1 === undefined) return null;
+    
+    const handleSize = Math.max(3, 4 * zoom);
+    const tolerance = handleSize + 2;
+    
+    const x1 = wall.x1 * zoom + panOffset.x;
+    const y1 = wall.y1 * zoom + panOffset.y;
+    const x2 = wall.x2 * zoom + panOffset.x;
+    const y2 = wall.y2 * zoom + panOffset.y;
+    
+    // Проверяем клик по концам стены
+    if (Math.abs(clientX - x1) <= tolerance && Math.abs(clientY - y1) <= tolerance) {
+      return 'start';
+    }
+    if (Math.abs(clientX - x2) <= tolerance && Math.abs(clientY - y2) <= tolerance) {
+      return 'end';
+    }
+    
+    return null;
+  };
+  
+  // Изменение размера стены
+  const resizeWall = (worldX, worldY) => {
+    const wall = walls.find(w => w.id === resizeHandle.elementId);
+    if (!wall) return;
+    
+    const houseElement = elements.find(el => el.type === 'house');
+    if (!houseElement) return;
+    
+    // Ограничиваем координаты границами дома
+    const constrainedX = Math.max(houseElement.x, Math.min(houseElement.x + houseElement.width, worldX));
+    const constrainedY = Math.max(houseElement.y, Math.min(houseElement.y + houseElement.height, worldY));
+    
+    let newWall = { ...wall };
+    
+    if (resizeHandle.handle === 'start') {
+      newWall.x1 = constrainedX;
+      newWall.y1 = constrainedY;
+    } else if (resizeHandle.handle === 'end') {
+      newWall.x2 = constrainedX;
+      newWall.y2 = constrainedY;
+    }
+    
+    // Пересчитываем длину
+    const length = Math.sqrt(
+      Math.pow(newWall.x2 - newWall.x1, 2) + Math.pow(newWall.y2 - newWall.y1, 2)
+    ) / 30;
+    
+    newWall.length = length;
+    
+    setWalls(prev => prev.map(w => w.id === wall.id ? newWall : w));
+    setSelectedElement(newWall);
   };
 
   const handleCanvasMouseMove = (e) => {
@@ -957,6 +1025,11 @@ export default function ConstructorInterface({ initialData, onBack }) {
   };
   
   const resizeElement = (worldX, worldY) => {
+    if (resizeHandle.isWall) {
+      resizeWall(worldX, worldY);
+      return;
+    }
+    
     const element = elements.find(el => el.id === resizeHandle.elementId);
     if (!element) return;
     
@@ -1049,6 +1122,8 @@ export default function ConstructorInterface({ initialData, onBack }) {
       
       if (selectedElement) {
         const handle = getResizeHandle(clientX, clientY, selectedElement);
+        const wallHandle = getWallResizeHandle(clientX, clientY, selectedElement);
+        
         if (handle) {
           const cursors = {
             'nw': 'nw-resize',
@@ -1061,6 +1136,8 @@ export default function ConstructorInterface({ initialData, onBack }) {
             'e': 'e-resize'
           };
           cursor = cursors[handle] || 'pointer';
+        } else if (wallHandle) {
+          cursor = 'move';
         }
       }
       
@@ -1454,7 +1531,7 @@ export default function ConstructorInterface({ initialData, onBack }) {
       <div className="constructor-header">
         <div className="header-left">
           <button className="back-btn" onClick={onBack}>
-            ← Назад к настройке
+            ⚙️ Настройки
           </button>
           <h1>Конструктор модульных домов</h1>
         </div>
@@ -1490,7 +1567,7 @@ export default function ConstructorInterface({ initialData, onBack }) {
               title="Отправить проект на расчет"
               onClick={() => alert('Проект отправлен на расчет!')}
             >
-              📊 На расчет
+              📊 Рассчитать проект
             </button>
             <button 
               className="collapse-btn"
