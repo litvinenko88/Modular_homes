@@ -25,8 +25,10 @@ export default function ConstructorInterface({ initialData, onBack }) {
   const [hoveredWall, setHoveredWall] = useState(null);
   const [panelCollapsed, setPanelCollapsed] = useState(false);
   const [roomNames, setRoomNames] = useState({});
+  const [history, setHistory] = useState([]);
+  const [historyIndex, setHistoryIndex] = useState(-1);
 
-  const SCALE = 30 * zoom;
+  const SCALE = 30;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -49,11 +51,30 @@ export default function ConstructorInterface({ initialData, onBack }) {
     const timer = setTimeout(drawCanvas, 10);
     return () => clearTimeout(timer);
   }, [zoom, panOffset, initialData, selectedElement, elements, walls, isDrawingWall, wallDrawStart, currentWallEnd, hoveredElement, hoveredWall, roomNames]);
+
+  // Обработка клавиш
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.ctrlKey && e.key === 'z') {
+        e.preventDefault();
+        undo();
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        confirmAction();
+      } else if (e.key === 'Delete' && selectedElement) {
+        e.preventDefault();
+        deleteElement(selectedElement.id);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedElement, historyIndex]);
   
   useEffect(() => {
     if (initialData) {
-      const lotCenterX = 100 / zoom + (initialData.lotSize.width * 30) / 2;
-      const lotCenterY = 100 / zoom + (initialData.lotSize.height * 30) / 2;
+      const lotCenterX = 100 + (initialData.lotSize.width * 30) / 2;
+      const lotCenterY = 100 + (initialData.lotSize.height * 30) / 2;
       const houseWidth = initialData.house.width * 30;
       const houseHeight = initialData.house.height * 30;
       
@@ -70,8 +91,9 @@ export default function ConstructorInterface({ initialData, onBack }) {
       
       setElements([houseElement]);
       setFixedElements(new Set(['house']));
+      saveToHistory({ elements: [houseElement], walls: [] });
     }
-  }, [initialData, zoom]);
+  }, [initialData]);
 
   const drawCanvas = () => {
     const canvas = canvasRef.current;
@@ -132,7 +154,7 @@ export default function ConstructorInterface({ initialData, onBack }) {
     // Минимальный размер сетки
     if (gridSize < 5) return;
     
-    // Вычисляем область для рисования с очень большим запасом
+    // Вычисляем область для рисования с большим запасом
     const margin = Math.max(canvas.width, canvas.height) * 2;
     const worldLeft = -panOffset.x - margin;
     const worldTop = -panOffset.y - margin;
@@ -152,7 +174,6 @@ export default function ConstructorInterface({ initialData, onBack }) {
     // Рисуем вертикальные линии
     for (let x = startX; x <= endX; x += gridSize) {
       const screenX = x + panOffset.x;
-      // Рисуем линию даже если она выходит за границы экрана
       ctx.beginPath();
       ctx.moveTo(screenX, -margin);
       ctx.lineTo(screenX, canvas.height + margin);
@@ -162,7 +183,6 @@ export default function ConstructorInterface({ initialData, onBack }) {
     // Рисуем горизонтальные линии
     for (let y = startY; y <= endY; y += gridSize) {
       const screenY = y + panOffset.y;
-      // Рисуем линию даже если она выходит за границы экрана
       ctx.beginPath();
       ctx.moveTo(-margin, screenY);
       ctx.lineTo(canvas.width + margin, screenY);
@@ -211,8 +231,8 @@ export default function ConstructorInterface({ initialData, onBack }) {
     
     if (lotFixed) {
       // Если участок зафиксирован, он остается на месте
-      lotX = 100;
-      lotY = 100;
+      lotX = 100 * zoom;
+      lotY = 100 * zoom;
     } else {
       // Участок следует за домом
       lotX = houseElement.x * zoom - 50 * zoom;
@@ -456,6 +476,69 @@ export default function ConstructorInterface({ initialData, onBack }) {
     });
     drawRooms(ctx);
   };
+
+  // Система истории для Undo/Redo
+  const saveToHistory = (state) => {
+    const newHistory = history.slice(0, historyIndex + 1);
+    newHistory.push({
+      elements: JSON.parse(JSON.stringify(state.elements || elements)),
+      walls: JSON.parse(JSON.stringify(state.walls || walls))
+    });
+    
+    // Ограничиваем историю 50 шагами
+    if (newHistory.length > 50) {
+      newHistory.shift();
+    } else {
+      setHistoryIndex(prev => prev + 1);
+    }
+    
+    setHistory(newHistory);
+  };
+
+  const undo = () => {
+    if (historyIndex > 0) {
+      const prevState = history[historyIndex - 1];
+      setElements(prevState.elements);
+      setWalls(prevState.walls);
+      setHistoryIndex(prev => prev - 1);
+      setSelectedElement(null);
+    }
+  };
+
+  const confirmAction = () => {
+    if (isDrawingWall && wallDrawStart && currentWallEnd) {
+      // Завершаем рисование стены
+      const pixelLength = Math.sqrt(
+        Math.pow(currentWallEnd.x - wallDrawStart.x, 2) + 
+        Math.pow(currentWallEnd.y - wallDrawStart.y, 2)
+      );
+      
+      if (pixelLength > 15) {
+        const lengthInMeters = pixelLength / 30;
+        const newWall = {
+          id: Date.now(),
+          x1: wallDrawStart.x,
+          y1: wallDrawStart.y,
+          x2: currentWallEnd.x,
+          y2: currentWallEnd.y,
+          length: lengthInMeters,
+          thickness: 0.121,
+          type: 'interior'
+        };
+        
+        const connectedWall = checkWallConnections(newWall);
+        const newWalls = [...walls, connectedWall];
+        setWalls(newWalls);
+        setSelectedElement(connectedWall);
+        saveToHistory({ elements, walls: newWalls });
+        saveToHistory({ elements, walls: newWalls });
+      }
+      
+      setIsDrawingWall(false);
+      setWallDrawStart(null);
+      setCurrentWallEnd(null);
+    }
+  };
   
   const findRooms = () => {
     if (walls.length === 0) return [];
@@ -465,16 +548,29 @@ export default function ConstructorInterface({ initialData, onBack }) {
     
     const rooms = [];
     
-    // Создаем сетку на основе стен и границ дома
+    // Создаем сетку только из стен, которые образуют замкнутые контуры
+    const connectedWalls = getConnectedWalls();
+    if (connectedWalls.length === 0) return [];
+    
+    // Находим все пересечения стен
+    const intersections = findWallIntersections(connectedWalls);
+    
+    // Создаем сетку на основе пересечений и границ дома
     const xLines = new Set([houseElement.x, houseElement.x + houseElement.width]);
     const yLines = new Set([houseElement.y, houseElement.y + houseElement.height]);
     
-    // Добавляем координаты стен
-    walls.forEach(wall => {
+    // Добавляем координаты только связанных стен
+    connectedWalls.forEach(wall => {
       xLines.add(wall.x1);
       xLines.add(wall.x2);
       yLines.add(wall.y1);
       yLines.add(wall.y2);
+    });
+    
+    // Добавляем точки пересечений
+    intersections.forEach(point => {
+      xLines.add(point.x);
+      yLines.add(point.y);
     });
     
     const sortedX = Array.from(xLines).sort((a, b) => a - b);
@@ -492,12 +588,9 @@ export default function ConstructorInterface({ initialData, onBack }) {
         if (x1 >= houseElement.x && x2 <= houseElement.x + houseElement.width &&
             y1 >= houseElement.y && y2 <= houseElement.y + houseElement.height) {
           
-          // Проверяем, что ячейка не пересекается со стенами
-          const isBlocked = walls.some(wall => {
-            return lineIntersectsRect(wall.x1, wall.y1, wall.x2, wall.y2, x1, y1, x2, y2);
-          });
-          
-          if (!isBlocked && (x2 - x1) > 10 && (y2 - y1) > 10) {
+          // Проверяем, что ячейка полностью окружена стенами или границами дома
+          if (isRoomEnclosed(x1, y1, x2, y2, connectedWalls, houseElement) && 
+              (x2 - x1) > 30 && (y2 - y1) > 30) { // Минимальный размер комнаты 1м x 1м
             rooms.push({
               bounds: { minX: x1, maxX: x2, minY: y1, maxY: y2 },
               walls: getWallsForRoom(x1, y1, x2, y2)
@@ -508,6 +601,124 @@ export default function ConstructorInterface({ initialData, onBack }) {
     }
     
     return rooms;
+  };
+
+  // Получаем только связанные стены (которые соединены с другими стенами)
+  const getConnectedWalls = () => {
+    return walls.filter(wall => {
+      return walls.some(otherWall => {
+        if (otherWall.id === wall.id) return false;
+        
+        const connectionThreshold = 5;
+        return (
+          (Math.abs(wall.x1 - otherWall.x1) < connectionThreshold && Math.abs(wall.y1 - otherWall.y1) < connectionThreshold) ||
+          (Math.abs(wall.x1 - otherWall.x2) < connectionThreshold && Math.abs(wall.y1 - otherWall.y2) < connectionThreshold) ||
+          (Math.abs(wall.x2 - otherWall.x1) < connectionThreshold && Math.abs(wall.y2 - otherWall.y1) < connectionThreshold) ||
+          (Math.abs(wall.x2 - otherWall.x2) < connectionThreshold && Math.abs(wall.y2 - otherWall.y2) < connectionThreshold)
+        );
+      });
+    });
+  };
+
+  // Находим пересечения стен
+  const findWallIntersections = (wallList) => {
+    const intersections = [];
+    
+    for (let i = 0; i < wallList.length; i++) {
+      for (let j = i + 1; j < wallList.length; j++) {
+        const intersection = getLineIntersection(
+          wallList[i].x1, wallList[i].y1, wallList[i].x2, wallList[i].y2,
+          wallList[j].x1, wallList[j].y1, wallList[j].x2, wallList[j].y2
+        );
+        
+        if (intersection) {
+          intersections.push(intersection);
+        }
+      }
+    }
+    
+    return intersections;
+  };
+
+  // Находим пересечение двух линий
+  const getLineIntersection = (x1, y1, x2, y2, x3, y3, x4, y4) => {
+    const denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+    if (Math.abs(denom) < 0.001) return null; // Параллельные линии
+    
+    const t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / denom;
+    const u = -((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / denom;
+    
+    if (t >= 0 && t <= 1 && u >= 0 && u <= 1) {
+      return {
+        x: x1 + t * (x2 - x1),
+        y: y1 + t * (y2 - y1)
+      };
+    }
+    
+    return null;
+  };
+
+  // Проверяем, окружена ли комната стенами
+  const isRoomEnclosed = (x1, y1, x2, y2, wallList, houseElement) => {
+    const roomCenter = { x: (x1 + x2) / 2, y: (y1 + y2) / 2 };
+    const tolerance = 5;
+    
+    // Проверяем каждую сторону комнаты
+    const sides = [
+      { x1: x1, y1: y1, x2: x2, y2: y1 }, // верх
+      { x1: x2, y1: y1, x2: x2, y2: y2 }, // право
+      { x1: x2, y1: y2, x2: x1, y2: y2 }, // низ
+      { x1: x1, y1: y2, x2: x1, y2: y1 }  // лево
+    ];
+    
+    return sides.every(side => {
+      // Проверяем, есть ли стена или граница дома на этой стороне
+      const hasWall = wallList.some(wall => {
+        return lineSegmentsOverlap(
+          side.x1, side.y1, side.x2, side.y2,
+          wall.x1, wall.y1, wall.x2, wall.y2,
+          tolerance
+        );
+      });
+      
+      if (hasWall) return true;
+      
+      // Проверяем, является ли эта сторона границей дома
+      const isHouseBoundary = (
+        (Math.abs(side.y1 - houseElement.y) < tolerance && side.y1 === side.y2) || // верхняя граница
+        (Math.abs(side.y1 - (houseElement.y + houseElement.height)) < tolerance && side.y1 === side.y2) || // нижняя граница
+        (Math.abs(side.x1 - houseElement.x) < tolerance && side.x1 === side.x2) || // левая граница
+        (Math.abs(side.x1 - (houseElement.x + houseElement.width)) < tolerance && side.x1 === side.x2) // правая граница
+      );
+      
+      return isHouseBoundary;
+    });
+  };
+
+  // Проверяем, перекрываются ли два отрезка
+  const lineSegmentsOverlap = (x1, y1, x2, y2, x3, y3, x4, y4, tolerance) => {
+    // Проверяем, лежат ли отрезки на одной линии
+    if (Math.abs(x1 - x2) < tolerance && Math.abs(x3 - x4) < tolerance) {
+      // Вертикальные линии
+      if (Math.abs(x1 - x3) < tolerance) {
+        const min1 = Math.min(y1, y2);
+        const max1 = Math.max(y1, y2);
+        const min2 = Math.min(y3, y4);
+        const max2 = Math.max(y3, y4);
+        return !(max1 < min2 || max2 < min1);
+      }
+    } else if (Math.abs(y1 - y2) < tolerance && Math.abs(y3 - y4) < tolerance) {
+      // Горизонтальные линии
+      if (Math.abs(y1 - y3) < tolerance) {
+        const min1 = Math.min(x1, x2);
+        const max1 = Math.max(x1, x2);
+        const min2 = Math.min(x3, x4);
+        const max2 = Math.max(x3, x4);
+        return !(max1 < min2 || max2 < min1);
+      }
+    }
+    
+    return false;
   };
   
   const lineIntersectsRect = (x1, y1, x2, y2, rectX1, rectY1, rectX2, rectY2) => {
@@ -626,7 +837,7 @@ export default function ConstructorInterface({ initialData, onBack }) {
     const isSelected = selectedElement?.id === wall.id;
     const isHovered = selectedTool === 'select' && hoveredWall?.id === wall.id;
     
-    // Масштабируем координаты
+    // Масштабируем координаты (стены остаются на месте при масштабировании)
     const x1 = wall.x1 * zoom;
     const y1 = wall.y1 * zoom;
     const x2 = wall.x2 * zoom;
@@ -901,8 +1112,8 @@ export default function ConstructorInterface({ initialData, onBack }) {
     const lotH = initialData.lotSize.height * 30;
     
     if (lotFixed) {
-      lotX = 100 / zoom;
-      lotY = 100 / zoom;
+      lotX = 100;
+      lotY = 100;
     } else {
       lotX = houseElement.x - 50;
       lotY = houseElement.y - 50;
@@ -1334,7 +1545,7 @@ export default function ConstructorInterface({ initialData, onBack }) {
     
     if (element.type === 'house') {
       // Поворачиваем дом (меняем местами ширину и высоту)
-      setElements(prev => prev.map(el => 
+      const newElements = elements.map(el => 
         el.id === elementId 
           ? { 
               ...el, 
@@ -1344,7 +1555,10 @@ export default function ConstructorInterface({ initialData, onBack }) {
               realHeight: el.realWidth
             }
           : el
-      ));
+      );
+      
+      setElements(newElements);
+      saveToHistory({ elements: newElements, walls });
     } else if (element.x1 !== undefined) {
       // Поворачиваем стену на 90 градусов, сохраняя длину
       const centerX = (element.x1 + element.x2) / 2;
@@ -1369,11 +1583,14 @@ export default function ConstructorInterface({ initialData, onBack }) {
         newY2 = centerY;
       }
       
-      setWalls(prev => prev.map(wall => 
+      const newWalls = walls.map(wall => 
         wall.id === elementId 
           ? { ...wall, x1: newX1, y1: newY1, x2: newX2, y2: newY2 }
           : wall
-      ));
+      );
+      
+      setWalls(newWalls);
+      saveToHistory({ elements, walls: newWalls });
     }
   };
   
@@ -1386,7 +1603,7 @@ export default function ConstructorInterface({ initialData, onBack }) {
     const offset = 10;
     const isHorizontal = Math.abs(wall.x2 - wall.x1) > Math.abs(wall.y2 - wall.y1);
     
-    setWalls(prev => prev.map(w => {
+    const newWalls = walls.map(w => {
       if (w.id === wallId) {
         if (isHorizontal) {
           return { ...w, x1: w.x1 + offset, x2: w.x2 - offset };
@@ -1395,7 +1612,10 @@ export default function ConstructorInterface({ initialData, onBack }) {
         }
       }
       return w;
-    }));
+    });
+    
+    setWalls(newWalls);
+    saveToHistory({ elements, walls: newWalls });
   };
 
   // Проверка клика по кнопкам управления
@@ -1484,9 +1704,14 @@ export default function ConstructorInterface({ initialData, onBack }) {
   
   // Удаление элемента
   const deleteElement = (elementId) => {
-    setElements(prev => prev.filter(el => el.id !== elementId));
-    setWalls(prev => prev.filter(wall => wall.id !== elementId));
+    const newElements = elements.filter(el => el.id !== elementId);
+    const newWalls = walls.filter(wall => wall.id !== elementId);
+    
+    setElements(newElements);
+    setWalls(newWalls);
     setSelectedElement(null);
+    
+    saveToHistory({ elements: newElements, walls: newWalls });
   };
 
   // Функции для изменения размеров элементов
@@ -1497,7 +1722,7 @@ export default function ConstructorInterface({ initialData, onBack }) {
       const newWidth = dimension === 'width' ? value : selectedElement.realWidth;
       const newHeight = dimension === 'height' ? value : selectedElement.realHeight;
       
-      setElements(prev => prev.map(el => 
+      const newElements = elements.map(el => 
         el.id === selectedElement.id 
           ? { 
               ...el, 
@@ -1507,7 +1732,10 @@ export default function ConstructorInterface({ initialData, onBack }) {
               realHeight: newHeight
             }
           : el
-      ));
+      );
+      
+      setElements(newElements);
+      saveToHistory({ elements: newElements, walls });
       
       // Обновляем selectedElement
       setSelectedElement(prev => ({
@@ -1556,11 +1784,14 @@ export default function ConstructorInterface({ initialData, onBack }) {
       Math.pow(newX2 - newX1, 2) + Math.pow(newY2 - newY1, 2)
     ) / 30;
     
-    setWalls(prev => prev.map(w => 
+    const newWalls = walls.map(w => 
       w.id === selectedElement.id 
         ? { ...w, x1: newX1, y1: newY1, x2: newX2, y2: newY2, length: actualLength }
         : w
-    ));
+    );
+    
+    setWalls(newWalls);
+    saveToHistory({ elements, walls: newWalls });
     
     // Обновляем selectedElement
     setSelectedElement(prev => ({
@@ -1612,8 +1843,10 @@ export default function ConstructorInterface({ initialData, onBack }) {
         
         // Проверяем пересечения с существующими стенами и соединяем их
         const connectedWall = checkWallConnections(newWall);
-        setWalls(prev => [...prev, connectedWall]);
+        const newWalls = [...walls, connectedWall];
+        setWalls(newWalls);
         setSelectedElement(connectedWall);
+        saveToHistory({ elements, walls: newWalls });
       }
     }
     
@@ -1834,6 +2067,20 @@ export default function ConstructorInterface({ initialData, onBack }) {
               <button onClick={() => { setZoom(1); setPanOffset({ x: 0, y: 0 }); }}>
                 🎯 Сброс
               </button>
+            </div>
+            <div className="hotkeys-info">
+              <div className="hotkey-item">
+                <span>Ctrl+Z</span>
+                <span>Отменить</span>
+              </div>
+              <div className="hotkey-item">
+                <span>Enter</span>
+                <span>Подтвердить</span>
+              </div>
+              <div className="hotkey-item">
+                <span>Delete</span>
+                <span>Удалить</span>
+              </div>
             </div>
           </div>
 
@@ -2224,6 +2471,27 @@ export default function ConstructorInterface({ initialData, onBack }) {
         .zoom-controls span {
           text-align: center;
           font-size: 12px;
+        }
+        
+        .hotkeys-info {
+          margin-top: 12px;
+          padding-top: 12px;
+          border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .hotkey-item {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 4px 0;
+          font-size: 11px;
+        }
+        
+        .hotkey-item span:first-child {
+          background: rgba(255, 255, 255, 0.1);
+          padding: 2px 6px;
+          border-radius: 3px;
+          font-family: monospace;
         }
 
         .project-details {

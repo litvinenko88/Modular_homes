@@ -86,13 +86,17 @@ export default function EnhancedFloorPlanning({ data, updateData, onNext, onPrev
   };
   
   const drawGrid2D = (ctx) => {
-    const gridSize = Math.max(10, SCALE / 4);
     const canvas = canvasRef.current;
     if (!canvas) return;
+    
+    const gridSize = 20; // Фиксированный размер сетки
+    
+    ctx.save();
     
     // Мелкая сетка
     ctx.strokeStyle = '#f0f0f0';
     ctx.lineWidth = 0.5;
+    ctx.globalAlpha = 0.8;
     
     for (let x = 0; x <= canvas.width; x += gridSize) {
       ctx.beginPath();
@@ -108,9 +112,10 @@ export default function EnhancedFloorPlanning({ data, updateData, onNext, onPrev
       ctx.stroke();
     }
     
-    // Крупная сетка
-    ctx.strokeStyle = '#e0e0e0';
+    // Крупная сетка (каждые 5 линий)
+    ctx.strokeStyle = '#d0d0d0';
     ctx.lineWidth = 1;
+    ctx.globalAlpha = 1;
     
     for (let x = 0; x <= canvas.width; x += gridSize * 5) {
       ctx.beginPath();
@@ -125,6 +130,8 @@ export default function EnhancedFloorPlanning({ data, updateData, onNext, onPrev
       ctx.lineTo(canvas.width, y);
       ctx.stroke();
     }
+    
+    ctx.restore();
   };
 
   const draw3D = (ctx) => {
@@ -467,6 +474,11 @@ export default function EnhancedFloorPlanning({ data, updateData, onNext, onPrev
       setLastMouse({ x: mouseX, y: mouseY });
     }
   };
+
+  const handleCanvasMouseUp = () => {
+    setIsDragging(false);
+    endDragElement();
+  };
   
   // Поддержка тач-жестов
   const [touchDistance, setTouchDistance] = useState(null);
@@ -491,6 +503,12 @@ export default function EnhancedFloorPlanning({ data, updateData, onNext, onPrev
           const clickedWall = selectWall(x, y);
           if (clickedWall) {
             startDragWall(clickedWall.id, clientX, clientY);
+          } else {
+            const clickedRoom = selectRoom(x, y);
+            if (!clickedRoom) {
+              setSelectedWallId(null);
+              setSelectedRoomId(null);
+            }
           }
         }
       }
@@ -540,17 +558,25 @@ export default function EnhancedFloorPlanning({ data, updateData, onNext, onPrev
     }
   };
 
+  const snapToGrid = (value, gridSize = 0.1) => {
+    return Math.round(value / gridSize) * gridSize;
+  };
+
   const addWall = (x, y) => {
+    // Привязка к сетке
+    const snappedX = snapToGrid(x);
+    const snappedY = snapToGrid(y);
+    
     const angleRad = (wallAngle * Math.PI) / 180;
-    const endX = x + wallLength * Math.cos(angleRad);
-    const endY = y + wallLength * Math.sin(angleRad);
+    const endX = snappedX + wallLength * Math.cos(angleRad);
+    const endY = snappedY + wallLength * Math.sin(angleRad);
     
     const newWall = {
       id: Date.now(),
-      x1: x,
-      y1: y,
-      x2: endX,
-      y2: endY,
+      x1: snappedX,
+      y1: snappedY,
+      x2: snapToGrid(endX),
+      y2: snapToGrid(endY),
       type: selectedWallType,
       length: wallLength,
       angle: wallAngle
@@ -585,10 +611,14 @@ export default function EnhancedFloorPlanning({ data, updateData, onNext, onPrev
   };
 
   const addRoom = (x, y) => {
+    // Привязка к сетке
+    const snappedX = snapToGrid(x);
+    const snappedY = snapToGrid(y);
+    
     const newRoom = {
       id: Date.now(),
-      x: x,
-      y: y,
+      x: snappedX,
+      y: snappedY,
       width: 3,
       height: 3,
       name: ROOM_TYPES[0]
@@ -602,10 +632,11 @@ export default function EnhancedFloorPlanning({ data, updateData, onNext, onPrev
   const selectWall = (x, y) => {
     const clickedWall = (data.walls || []).find(wall => {
       const distance = distanceToLine(x, y, wall.x1, wall.y1, wall.x2, wall.y2);
-      return distance < 0.3;
+      return distance < 0.5; // Увеличиваем область клика
     });
     
     setSelectedWallId(clickedWall ? clickedWall.id : null);
+    setSelectedRoomId(null); // Сбрасываем выбор комнаты
     return clickedWall;
   };
 
@@ -681,6 +712,18 @@ export default function EnhancedFloorPlanning({ data, updateData, onNext, onPrev
     });
     
     updateData({ walls: updatedWalls });
+  };
+
+  const deleteWall = (wallId) => {
+    const updatedWalls = (data.walls || []).filter(wall => wall.id !== wallId);
+    const updatedOpenings = (data.openings || []).filter(opening => opening.wallId !== wallId);
+    
+    updateData({ 
+      walls: updatedWalls,
+      openings: updatedOpenings
+    });
+    
+    setSelectedWallId(null);
   };
 
   const distanceToLine = (px, py, x1, y1, x2, y2) => {
@@ -773,6 +816,22 @@ export default function EnhancedFloorPlanning({ data, updateData, onNext, onPrev
           </div>
         )}
 
+        {selectedTool === 'opening' && (
+          <div className="opening-settings">
+            <h4>Настройки проема</h4>
+            <select 
+              value={selectedOpeningType}
+              onChange={(e) => setSelectedOpeningType(e.target.value)}
+            >
+              {OPENING_TYPES.map(type => (
+                <option key={type.id} value={type.id}>
+                  {type.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
         {selectedWallId && (
           <div className="wall-edit">
             <h4>Редактирование стены</h4>
@@ -789,6 +848,12 @@ export default function EnhancedFloorPlanning({ data, updateData, onNext, onPrev
                 min="0.5" max="10" step="0.1"
               />
             </div>
+            <button 
+              className="delete-btn"
+              onClick={() => deleteWall(selectedWallId)}
+            >
+              Удалить стену
+            </button>
           </div>
         )}
 
@@ -837,8 +902,8 @@ export default function EnhancedFloorPlanning({ data, updateData, onNext, onPrev
           ref={canvasRef}
           onMouseDown={handleCanvasMouseDown}
           onMouseMove={handleCanvasMouseMove}
-          onMouseUp={() => setIsDragging(false)}
-          onMouseLeave={() => setIsDragging(false)}
+          onMouseUp={handleCanvasMouseUp}
+          onMouseLeave={handleCanvasMouseUp}
           onWheel={(e) => {
             if (view3D) {
               e.preventDefault();
@@ -850,6 +915,7 @@ export default function EnhancedFloorPlanning({ data, updateData, onNext, onPrev
           onTouchMove={handleTouchMove}
           onTouchEnd={() => {
             setIsDragging(false);
+            setTouchDistance(null);
             endDragElement();
           }}
         />
@@ -892,7 +958,7 @@ export default function EnhancedFloorPlanning({ data, updateData, onNext, onPrev
           background: #2196f3;
           color: white;
         }
-        .tools, .wall-settings, .wall-edit, .view3d-controls, .display-options {
+        .tools, .wall-settings, .wall-edit, .view3d-controls, .display-options, .opening-settings {
           background: #f5f5f5;
           padding: 15px;
           border-radius: 8px;
@@ -936,6 +1002,20 @@ export default function EnhancedFloorPlanning({ data, updateData, onNext, onPrev
           background: white;
           cursor: pointer;
         }
+        .delete-btn {
+          width: 100%;
+          padding: 10px;
+          border: none;
+          border-radius: 4px;
+          background: #f44336;
+          color: white;
+          cursor: pointer;
+          margin-top: 10px;
+          font-weight: bold;
+        }
+        .delete-btn:hover {
+          background: #d32f2f;
+        }
         .canvas-area {
           flex: 1;
           overflow: hidden;
@@ -954,7 +1034,8 @@ export default function EnhancedFloorPlanning({ data, updateData, onNext, onPrev
           z-index: 1;
         }
         canvas {
-          cursor: ${view3D ? (isDragging ? 'grabbing' : 'grab') : 'crosshair'};
+          cursor: ${view3D ? (isDragging ? 'grabbing' : 'grab') : 
+                    selectedTool === 'select' ? 'pointer' : 'crosshair'};
           display: block;
           width: 100%;
           height: 100%;
