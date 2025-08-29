@@ -1141,12 +1141,32 @@ export default function ConstructorInterface({ initialData, onBack }) {
         return;
       }
       
-      // Проверяем клик по элементам (стены имеют приоритет)
+      // Проверяем клик по элементам (приоритет: двери/окна > стены > элементы)
+      const clickedDoor = getDoorAt(worldX, worldY);
+      const clickedWindow = getWindowAt(worldX, worldY);
       const clickedWall = getWallAt(worldX, worldY);
       const clickedElement = getElementAt(worldX, worldY);
       const clickedRoom = getRoomAt(worldX, worldY);
       
-      if (clickedWall) {
+      if (clickedDoor) {
+        setSelectedElement(clickedDoor);
+        setDraggedElement({ 
+          element: clickedDoor, 
+          startX: worldX, 
+          startY: worldY,
+          type: 'door'
+        });
+        return;
+      } else if (clickedWindow) {
+        setSelectedElement(clickedWindow);
+        setDraggedElement({ 
+          element: clickedWindow, 
+          startX: worldX, 
+          startY: worldY,
+          type: 'window'
+        });
+        return;
+      } else if (clickedWall) {
         setSelectedElement(clickedWall);
         if (!fixedElements.has(clickedWall.id)) {
           setDraggedElement({ 
@@ -1439,44 +1459,52 @@ export default function ConstructorInterface({ initialData, onBack }) {
       return;
     }
     
-    if (draggedElement && selectedTool === 'select' && !fixedElements.has(draggedElement.element.id)) {
-      if (draggedElement.element.type === 'house') {
-        let newX = worldX - draggedElement.startX;
-        let newY = worldY - draggedElement.startY;
-        
-        // Ограничиваем перемещение дома в пределах участка (если участок зафиксирован)
-        if (lotFixed) {
-          const lotX = 100 / zoom;
-          const lotY = 100 / zoom;
-          const lotW = initialData.lotSize.width * 30;
-          const lotH = initialData.lotSize.height * 30;
+    if (draggedElement && selectedTool === 'select') {
+      if (draggedElement.type === 'door') {
+        moveDoorOrWindow(draggedElement.element, worldX, worldY, 'door');
+        return;
+      } else if (draggedElement.type === 'window') {
+        moveDoorOrWindow(draggedElement.element, worldX, worldY, 'window');
+        return;
+      } else if (!fixedElements.has(draggedElement.element.id)) {
+        if (draggedElement.element.type === 'house') {
+          let newX = worldX - draggedElement.startX;
+          let newY = worldY - draggedElement.startY;
           
-          newX = Math.max(lotX, Math.min(lotX + lotW - draggedElement.element.width, newX));
-          newY = Math.max(lotY, Math.min(lotY + lotH - draggedElement.element.height, newY));
+          // Ограничиваем перемещение дома в пределах участка (если участок зафиксирован)
+          if (lotFixed) {
+            const lotX = 100 / zoom;
+            const lotY = 100 / zoom;
+            const lotW = initialData.lotSize.width * 30;
+            const lotH = initialData.lotSize.height * 30;
+            
+            newX = Math.max(lotX, Math.min(lotX + lotW - draggedElement.element.width, newX));
+            newY = Math.max(lotY, Math.min(lotY + lotH - draggedElement.element.height, newY));
+          }
+          
+          setElements(prev => prev.map(el => 
+            el.id === draggedElement.element.id 
+              ? { ...el, x: newX, y: newY }
+              : el
+          ));
+        } else if (draggedElement.element.x1 !== undefined) {
+          const deltaX = worldX - draggedElement.startX;
+          const deltaY = worldY - draggedElement.startY;
+          
+          setWalls(prev => prev.map(wall => 
+            wall.id === draggedElement.element.id 
+              ? { 
+                  ...wall, 
+                  x1: wall.x1 + deltaX, 
+                  y1: wall.y1 + deltaY,
+                  x2: wall.x2 + deltaX, 
+                  y2: wall.y2 + deltaY
+                }
+              : wall
+          ));
+          
+          setDraggedElement({ ...draggedElement, startX: worldX, startY: worldY });
         }
-        
-        setElements(prev => prev.map(el => 
-          el.id === draggedElement.element.id 
-            ? { ...el, x: newX, y: newY }
-            : el
-        ));
-      } else if (draggedElement.element.x1 !== undefined) {
-        const deltaX = worldX - draggedElement.startX;
-        const deltaY = worldY - draggedElement.startY;
-        
-        setWalls(prev => prev.map(wall => 
-          wall.id === draggedElement.element.id 
-            ? { 
-                ...wall, 
-                x1: wall.x1 + deltaX, 
-                y1: wall.y1 + deltaY,
-                x2: wall.x2 + deltaX, 
-                y2: wall.y2 + deltaY
-              }
-            : wall
-        ));
-        
-        setDraggedElement({ ...draggedElement, startX: worldX, startY: worldY });
       }
       return;
     }
@@ -1781,12 +1809,16 @@ export default function ConstructorInterface({ initialData, onBack }) {
   const deleteElement = (elementId) => {
     const newElements = elements.filter(el => el.id !== elementId);
     const newWalls = walls.filter(wall => wall.id !== elementId);
+    const newDoors = doors.filter(door => door.id !== elementId);
+    const newWindows = windows.filter(window => window.id !== elementId);
     
     setElements(newElements);
     setWalls(newWalls);
+    setDoors(newDoors);
+    setWindows(newWindows);
     setSelectedElement(null);
     
-    saveToHistory({ elements: newElements, walls: newWalls });
+    saveToHistory({ elements: newElements, walls: newWalls, doors: newDoors, windows: newWindows });
   };
 
   // Функции для изменения размеров элементов
@@ -2073,7 +2105,8 @@ export default function ConstructorInterface({ initialData, onBack }) {
       id: Date.now(),
       wallId: wall.id,
       position: Math.max(0.1, Math.min(0.9, position)),
-      width: type === 'door' ? 30 : 40, // пиксели
+      width: type === 'door' ? 25 : 45, // стандартные размеры: дверь 800мм, окно 1500мм
+      realWidth: type === 'door' ? 0.8 : 1.5, // в метрах
       type: type
     };
     
@@ -2105,11 +2138,19 @@ export default function ConstructorInterface({ initialData, onBack }) {
         ctx.stroke();
         
         // Рисуем дверь (дуга)
-        ctx.strokeStyle = '#8B4513';
-        ctx.lineWidth = 2;
+        ctx.strokeStyle = selectedElement?.id === door.id ? '#df682b' : '#8B4513';
+        ctx.lineWidth = selectedElement?.id === door.id ? 3 : 2;
         ctx.beginPath();
         ctx.arc(doorX * zoom, doorY * zoom, door.width/2 * zoom, 0, Math.PI);
         ctx.stroke();
+        
+        // Показываем размер двери
+        if (zoom >= 0.5) {
+          ctx.fillStyle = '#8B4513';
+          ctx.font = '8px Arial';
+          ctx.textAlign = 'center';
+          ctx.fillText(`${(door.realWidth * 1000).toFixed(0)}мм`, doorX * zoom, (doorY - door.width/2 - 5) * zoom);
+        }
       } else {
         ctx.beginPath();
         ctx.moveTo(doorX * zoom, (doorY - door.width/2) * zoom);
@@ -2117,11 +2158,23 @@ export default function ConstructorInterface({ initialData, onBack }) {
         ctx.stroke();
         
         // Рисуем дверь (дуга)
-        ctx.strokeStyle = '#8B4513';
-        ctx.lineWidth = 2;
+        ctx.strokeStyle = selectedElement?.id === door.id ? '#df682b' : '#8B4513';
+        ctx.lineWidth = selectedElement?.id === door.id ? 3 : 2;
         ctx.beginPath();
         ctx.arc(doorX * zoom, doorY * zoom, door.width/2 * zoom, -Math.PI/2, Math.PI/2);
         ctx.stroke();
+        
+        // Показываем размер двери
+        if (zoom >= 0.5) {
+          ctx.fillStyle = '#8B4513';
+          ctx.font = '8px Arial';
+          ctx.textAlign = 'center';
+          ctx.save();
+          ctx.translate((doorX - door.width/2 - 10) * zoom, doorY * zoom);
+          ctx.rotate(-Math.PI / 2);
+          ctx.fillText(`${(door.realWidth * 1000).toFixed(0)}мм`, 0, 0);
+          ctx.restore();
+        }
       }
     });
   };
@@ -2147,9 +2200,17 @@ export default function ConstructorInterface({ initialData, onBack }) {
         ctx.stroke();
         
         // Рисуем окно (прямоугольник)
-        ctx.strokeStyle = '#4169E1';
-        ctx.lineWidth = 3;
+        ctx.strokeStyle = selectedElement?.id === window.id ? '#df682b' : '#4169E1';
+        ctx.lineWidth = selectedElement?.id === window.id ? 4 : 3;
         ctx.strokeRect((windowX - window.width/2) * zoom, (windowY - 5) * zoom, window.width * zoom, 10 * zoom);
+        
+        // Показываем размер окна
+        if (zoom >= 0.5) {
+          ctx.fillStyle = '#4169E1';
+          ctx.font = '8px Arial';
+          ctx.textAlign = 'center';
+          ctx.fillText(`${(window.realWidth * 1000).toFixed(0)}мм`, windowX * zoom, (windowY - 15) * zoom);
+        }
       } else {
         ctx.beginPath();
         ctx.moveTo(windowX * zoom, (windowY - window.width/2) * zoom);
@@ -2157,9 +2218,21 @@ export default function ConstructorInterface({ initialData, onBack }) {
         ctx.stroke();
         
         // Рисуем окно (прямоугольник)
-        ctx.strokeStyle = '#4169E1';
-        ctx.lineWidth = 3;
+        ctx.strokeStyle = selectedElement?.id === window.id ? '#df682b' : '#4169E1';
+        ctx.lineWidth = selectedElement?.id === window.id ? 4 : 3;
         ctx.strokeRect((windowX - 5) * zoom, (windowY - window.width/2) * zoom, 10 * zoom, window.width * zoom);
+        
+        // Показываем размер окна
+        if (zoom >= 0.5) {
+          ctx.fillStyle = '#4169E1';
+          ctx.font = '8px Arial';
+          ctx.textAlign = 'center';
+          ctx.save();
+          ctx.translate((windowX - 15) * zoom, windowY * zoom);
+          ctx.rotate(-Math.PI / 2);
+          ctx.fillText(`${(window.realWidth * 1000).toFixed(0)}мм`, 0, 0);
+          ctx.restore();
+        }
       }
     });
   };
@@ -2177,6 +2250,67 @@ export default function ConstructorInterface({ initialData, onBack }) {
     };
     
     return boundaries[id] ? { id, ...boundaries[id], type: 'boundary' } : null;
+  };
+
+  // Получение двери по координатам
+  const getDoorAt = (x, y) => {
+    for (let door of doors) {
+      const wall = walls.find(w => w.id === door.wallId) || getHouseBoundaryById(door.wallId);
+      if (!wall) continue;
+      
+      const doorX = wall.x1 + (wall.x2 - wall.x1) * door.position;
+      const doorY = wall.y1 + (wall.y2 - wall.y1) * door.position;
+      
+      if (Math.abs(x - doorX) < door.width/2 && Math.abs(y - doorY) < door.width/2) {
+        return door;
+      }
+    }
+    return null;
+  };
+
+  // Получение окна по координатам
+  const getWindowAt = (x, y) => {
+    for (let window of windows) {
+      const wall = walls.find(w => w.id === window.wallId) || getHouseBoundaryById(window.wallId);
+      if (!wall) continue;
+      
+      const windowX = wall.x1 + (wall.x2 - wall.x1) * window.position;
+      const windowY = wall.y1 + (wall.y2 - wall.y1) * window.position;
+      
+      if (Math.abs(x - windowX) < window.width/2 && Math.abs(y - windowY) < window.width/2) {
+        return window;
+      }
+    }
+    return null;
+  };
+
+  // Перемещение двери или окна по стене
+  const moveDoorOrWindow = (item, worldX, worldY, type) => {
+    const wall = walls.find(w => w.id === item.wallId) || getHouseBoundaryById(item.wallId);
+    if (!wall) return;
+    
+    const isHorizontal = Math.abs(wall.x2 - wall.x1) > Math.abs(wall.y2 - wall.y1);
+    const wallLength = Math.sqrt(Math.pow(wall.x2 - wall.x1, 2) + Math.pow(wall.y2 - wall.y1, 2));
+    
+    // Находим новую позицию на стене
+    let newPosition;
+    if (isHorizontal) {
+      newPosition = (worldX - Math.min(wall.x1, wall.x2)) / wallLength;
+    } else {
+      newPosition = (worldY - Math.min(wall.y1, wall.y2)) / wallLength;
+    }
+    
+    newPosition = Math.max(0.1, Math.min(0.9, newPosition));
+    
+    if (type === 'door') {
+      setDoors(prev => prev.map(door => 
+        door.id === item.id ? { ...door, position: newPosition } : door
+      ));
+    } else {
+      setWindows(prev => prev.map(window => 
+        window.id === item.id ? { ...window, position: newPosition } : window
+      ));
+    }
   };
 
   return (

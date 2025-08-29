@@ -10,7 +10,11 @@ const WALL_TYPES = [
 
 const OPENING_TYPES = [
   { id: 'door', name: 'Дверь', width: 0.9, height: 2.1, color: '#8B4513' },
-  { id: 'window', name: 'Окно', width: 1.2, height: 1.4, color: '#87CEEB' }
+  { id: 'door_wide', name: 'Широкая дверь', width: 1.2, height: 2.1, color: '#8B4513' },
+  { id: 'window', name: 'Окно', width: 1.2, height: 1.4, color: '#87CEEB' },
+  { id: 'window_large', name: 'Большое окно', width: 1.8, height: 1.4, color: '#87CEEB' },
+  { id: 'window_small', name: 'Малое окно', width: 0.8, height: 1.2, color: '#87CEEB' },
+  { id: 'balcony_door', name: 'Балконная дверь', width: 0.8, height: 2.2, color: '#4682B4' }
 ];
 
 const ROOM_TYPES = [
@@ -31,6 +35,7 @@ export default function EnhancedFloorPlanning({ data, updateData, onNext, onPrev
   const [lastMouse, setLastMouse] = useState({ x: 0, y: 0 });
   const [selectedWallId, setSelectedWallId] = useState(null);
   const [selectedRoomId, setSelectedRoomId] = useState(null);
+  const [selectedOpeningId, setSelectedOpeningId] = useState(null);
   const [showDimensions, setShowDimensions] = useState(true);
   const [editingWall, setEditingWall] = useState(null);
   const [draggedElement, setDraggedElement] = useState(null);
@@ -61,7 +66,7 @@ export default function EnhancedFloorPlanning({ data, updateData, onNext, onPrev
   useEffect(() => {
     const timer = setTimeout(drawCanvas, 10);
     return () => clearTimeout(timer);
-  }, [data.walls, data.openings, data.rooms, view3D, rotation, zoom3D, selectedWallId, showDimensions, canvasSize]);
+  }, [data.walls, data.openings, data.rooms, view3D, rotation, zoom3D, selectedWallId, selectedOpeningId, showDimensions, canvasSize]);
 
   const drawCanvas = () => {
     const canvas = canvasRef.current;
@@ -303,18 +308,77 @@ export default function EnhancedFloorPlanning({ data, updateData, onNext, onPrev
         const openingX = wall.x1 + (wall.x2 - wall.x1) * ratio;
         const openingY = wall.y1 + (wall.y2 - wall.y1) * ratio;
         
-        ctx.fillStyle = openingType.color;
-        ctx.beginPath();
-        ctx.arc(100 + openingX * SCALE, 100 + openingY * SCALE, 10, 0, Math.PI * 2);
-        ctx.fill();
+        const isSelected = opening.id === selectedOpeningId;
         
-        ctx.fillStyle = '#333';
-        ctx.font = '10px Arial';
+        // Рисуем проем как прямоугольник на стене
+        const wallAngle = Math.atan2(wall.y2 - wall.y1, wall.x2 - wall.x1);
+        const perpAngle = wallAngle + Math.PI / 2;
+        
+        const openingWidth = openingType.width * SCALE;
+        const wallThickness = (WALL_TYPES.find(t => t.id === wall.type)?.thickness || 0.2) * SCALE;
+        
+        ctx.save();
+        ctx.translate(100 + openingX * SCALE, 100 + openingY * SCALE);
+        ctx.rotate(wallAngle);
+        
+        // Фон проема (белый для показа разрыва в стене)
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(-openingWidth/2, -wallThickness/2, openingWidth, wallThickness);
+        
+        // Рамка проема
+        ctx.strokeStyle = isSelected ? '#ff5722' : openingType.color;
+        ctx.lineWidth = isSelected ? 3 : 2;
+        ctx.strokeRect(-openingWidth/2, -wallThickness/2, openingWidth, wallThickness);
+        
+        // Символ типа проема
+        ctx.fillStyle = openingType.color;
+        if (opening.type.includes('door')) {
+          // Дуга для двери
+          ctx.beginPath();
+          ctx.arc(-openingWidth/4, 0, openingWidth/3, 0, Math.PI/2);
+          ctx.stroke();
+        } else {
+          // Крестик для окна
+          ctx.beginPath();
+          ctx.moveTo(-openingWidth/2, -wallThickness/2);
+          ctx.lineTo(openingWidth/2, wallThickness/2);
+          ctx.moveTo(openingWidth/2, -wallThickness/2);
+          ctx.lineTo(-openingWidth/2, wallThickness/2);
+          ctx.stroke();
+        }
+        
+        ctx.restore();
+        
+        // Подпись
+        ctx.fillStyle = isSelected ? '#ff5722' : '#333';
+        ctx.font = isSelected ? 'bold 10px Arial' : '10px Arial';
+        ctx.textAlign = 'center';
         ctx.fillText(
           openingType.name,
-          100 + openingX * SCALE + 15,
-          100 + openingY * SCALE
+          100 + openingX * SCALE,
+          100 + openingY * SCALE - 20
         );
+        
+        // Размер проема
+        if (showDimensions) {
+          ctx.font = '9px Arial';
+          ctx.fillText(
+            `${openingType.width}м`,
+            100 + openingX * SCALE,
+            100 + openingY * SCALE + 25
+          );
+        }
+        
+        // Маркеры для перетаскивания если выбран
+        if (isSelected) {
+          ctx.fillStyle = '#ff5722';
+          ctx.strokeStyle = '#fff';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(100 + openingX * SCALE, 100 + openingY * SCALE, 12, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+        }
       }
     });
   };
@@ -469,17 +533,24 @@ export default function EnhancedFloorPlanning({ data, updateData, onNext, onPrev
     } else if (selectedTool === 'room') {
       addRoom(x, y);
     } else if (selectedTool === 'select') {
-      // Сначала проверяем клик по стене
-      const clickedWall = selectWall(x, y);
-      if (clickedWall) {
-        startDragWall(clickedWall.id, clientX, clientY);
+      // Сначала проверяем клик по проему
+      const clickedOpening = selectOpening(x, y);
+      if (clickedOpening) {
+        startDragOpening(clickedOpening.id, clientX, clientY);
       } else {
-        // Если не попали в стену, проверяем комнаты
-        const clickedRoom = selectRoom(x, y);
-        if (!clickedRoom) {
-          // Если ничего не выбрано, сбрасываем выделение
-          setSelectedWallId(null);
-          setSelectedRoomId(null);
+        // Затем проверяем клик по стене
+        const clickedWall = selectWall(x, y);
+        if (clickedWall) {
+          startDragWall(clickedWall.id, clientX, clientY);
+        } else {
+          // Если не попали в стену, проверяем комнаты
+          const clickedRoom = selectRoom(x, y);
+          if (!clickedRoom) {
+            // Если ничего не выбрано, сбрасываем выделение
+            setSelectedWallId(null);
+            setSelectedRoomId(null);
+            setSelectedOpeningId(null);
+          }
         }
       }
     }
@@ -495,6 +566,8 @@ export default function EnhancedFloorPlanning({ data, updateData, onNext, onPrev
     
     if (draggedElement && draggedElement.type === 'wall') {
       dragWall(mouseX, mouseY);
+    } else if (draggedElement && draggedElement.type === 'opening') {
+      dragOpening(mouseX, mouseY);
     } else if (isDragging && view3D) {
       const deltaX = mouseX - lastMouse.x;
       const deltaY = mouseY - lastMouse.y;
@@ -533,14 +606,20 @@ export default function EnhancedFloorPlanning({ data, updateData, onNext, onPrev
         const y = (clientY - 100) / SCALE;
         
         if (selectedTool === 'select') {
-          const clickedWall = selectWall(x, y);
-          if (clickedWall) {
-            startDragWall(clickedWall.id, clientX, clientY);
+          const clickedOpening = selectOpening(x, y);
+          if (clickedOpening) {
+            startDragOpening(clickedOpening.id, clientX, clientY);
           } else {
-            const clickedRoom = selectRoom(x, y);
-            if (!clickedRoom) {
-              setSelectedWallId(null);
-              setSelectedRoomId(null);
+            const clickedWall = selectWall(x, y);
+            if (clickedWall) {
+              startDragWall(clickedWall.id, clientX, clientY);
+            } else {
+              const clickedRoom = selectRoom(x, y);
+              if (!clickedRoom) {
+                setSelectedWallId(null);
+                setSelectedRoomId(null);
+                setSelectedOpeningId(null);
+              }
             }
           }
         }
@@ -577,6 +656,8 @@ export default function EnhancedFloorPlanning({ data, updateData, onNext, onPrev
       } else if (draggedElement) {
         if (draggedElement.type === 'wall') {
           dragWall(clientX, clientY);
+        } else if (draggedElement.type === 'opening') {
+          dragOpening(clientX, clientY);
         }
       }
     } else if (e.touches.length === 2 && touchDistance && view3D) {
@@ -629,12 +710,29 @@ export default function EnhancedFloorPlanning({ data, updateData, onNext, onPrev
     }, {});
     
     if (nearestWall.wall && nearestWall.distance < 0.5) {
+      // Вычисляем позицию на стене
+      const wallLength = Math.sqrt(
+        Math.pow(nearestWall.wall.x2 - nearestWall.wall.x1, 2) + 
+        Math.pow(nearestWall.wall.y2 - nearestWall.wall.y1, 2)
+      );
+      
+      // Находим ближайшую точку на стене
+      const A = x - nearestWall.wall.x1;
+      const B = y - nearestWall.wall.y1;
+      const C = nearestWall.wall.x2 - nearestWall.wall.x1;
+      const D = nearestWall.wall.y2 - nearestWall.wall.y1;
+      const dot = A * C + B * D;
+      const lenSq = C * C + D * D;
+      const param = Math.max(0, Math.min(1, dot / lenSq));
+      
+      const openingType = OPENING_TYPES.find(t => t.id === selectedOpeningType);
       const newOpening = {
         id: Date.now(),
         wallId: nearestWall.wall.id,
         type: selectedOpeningType,
-        position: 1,
-        width: OPENING_TYPES.find(t => t.id === selectedOpeningType)?.width || 0.9
+        position: param * wallLength,
+        width: openingType?.width || 0.9,
+        height: openingType?.height || 2.1
       };
       
       updateData({
@@ -670,6 +768,7 @@ export default function EnhancedFloorPlanning({ data, updateData, onNext, onPrev
     
     setSelectedWallId(clickedWall ? clickedWall.id : null);
     setSelectedRoomId(null);
+    setSelectedOpeningId(null);
     return clickedWall;
   };
 
@@ -681,7 +780,34 @@ export default function EnhancedFloorPlanning({ data, updateData, onNext, onPrev
     
     setSelectedRoomId(clickedRoom ? clickedRoom.id : null);
     setSelectedWallId(null);
+    setSelectedOpeningId(null);
     return clickedRoom;
+  };
+
+  const selectOpening = (x, y) => {
+    const clickedOpening = (data.openings || []).find(opening => {
+      const wall = data.walls?.find(w => w.id === opening.wallId);
+      if (!wall) return false;
+      
+      const wallLength = Math.sqrt(
+        Math.pow(wall.x2 - wall.x1, 2) + Math.pow(wall.y2 - wall.y1, 2)
+      );
+      const ratio = opening.position / wallLength;
+      
+      const openingX = wall.x1 + (wall.x2 - wall.x1) * ratio;
+      const openingY = wall.y1 + (wall.y2 - wall.y1) * ratio;
+      
+      const distance = Math.sqrt(
+        Math.pow(x - openingX, 2) + Math.pow(y - openingY, 2)
+      );
+      
+      return distance < 0.3; // Радиус клика по проему
+    });
+    
+    setSelectedOpeningId(clickedOpening ? clickedOpening.id : null);
+    setSelectedWallId(null);
+    setSelectedRoomId(null);
+    return clickedOpening;
   };
 
   const calculateTotalHouseArea = () => {
@@ -781,6 +907,75 @@ export default function EnhancedFloorPlanning({ data, updateData, onNext, onPrev
   
   const endDragElement = () => {
     setDraggedElement(null);
+  };
+
+  const startDragOpening = (openingId, startX, startY) => {
+    setDraggedElement({ type: 'opening', id: openingId, startX, startY });
+  };
+
+  const dragOpening = (currentX, currentY) => {
+    if (!draggedElement || draggedElement.type !== 'opening') return;
+    
+    const opening = (data.openings || []).find(o => o.id === draggedElement.id);
+    const wall = (data.walls || []).find(w => w.id === opening?.wallId);
+    if (!opening || !wall) return;
+    
+    // Преобразуем координаты мыши в координаты мира
+    const worldX = (currentX - 100) / SCALE;
+    const worldY = (currentY - 100) / SCALE;
+    
+    // Находим ближайшую точку на стене
+    const A = worldX - wall.x1;
+    const B = worldY - wall.y1;
+    const C = wall.x2 - wall.x1;
+    const D = wall.y2 - wall.y1;
+    const dot = A * C + B * D;
+    const lenSq = C * C + D * D;
+    
+    if (lenSq === 0) return;
+    
+    const param = Math.max(0, Math.min(1, dot / lenSq));
+    const wallLength = Math.sqrt(lenSq);
+    const newPosition = param * wallLength;
+    
+    // Проверяем, чтобы проем не выходил за границы стены
+    const openingType = OPENING_TYPES.find(t => t.id === opening.type);
+    const halfWidth = (openingType?.width || 0.9) / 2;
+    const minPosition = halfWidth;
+    const maxPosition = wallLength - halfWidth;
+    
+    const clampedPosition = Math.max(minPosition, Math.min(maxPosition, newPosition));
+    
+    const updatedOpenings = (data.openings || []).map(o => {
+      if (o.id === draggedElement.id) {
+        return { ...o, position: clampedPosition };
+      }
+      return o;
+    });
+    
+    updateData({ openings: updatedOpenings });
+  };
+
+  const deleteOpening = (openingId) => {
+    const updatedOpenings = (data.openings || []).filter(opening => opening.id !== openingId);
+    updateData({ openings: updatedOpenings });
+    setSelectedOpeningId(null);
+  };
+
+  const updateOpeningType = (openingId, newType) => {
+    const openingType = OPENING_TYPES.find(t => t.id === newType);
+    const updatedOpenings = (data.openings || []).map(opening => {
+      if (opening.id === openingId) {
+        return { 
+          ...opening, 
+          type: newType,
+          width: openingType?.width || opening.width,
+          height: openingType?.height || opening.height
+        };
+      }
+      return opening;
+    });
+    updateData({ openings: updatedOpenings });
   };
 
   const updateWallLength = (newLength) => {
@@ -995,6 +1190,44 @@ export default function EnhancedFloorPlanning({ data, updateData, onNext, onPrev
           </div>
         )}
 
+        {selectedOpeningId && (
+          <div className="opening-edit">
+            <h4>Редактирование проема</h4>
+            <div className="input-group">
+              <label>Тип:</label>
+              <select 
+                value={(data.openings || []).find(o => o.id === selectedOpeningId)?.type || ''}
+                onChange={(e) => updateOpeningType(selectedOpeningId, e.target.value)}
+              >
+                {OPENING_TYPES.map(type => (
+                  <option key={type.id} value={type.id}>{type.name}</option>
+                ))}
+              </select>
+            </div>
+            <div className="opening-info">
+              {(() => {
+                const opening = (data.openings || []).find(o => o.id === selectedOpeningId);
+                const openingType = OPENING_TYPES.find(t => t.id === opening?.type);
+                return openingType ? (
+                  <div>
+                    <p>Размер: {openingType.width}м × {openingType.height}м</p>
+                    <p>Позиция на стене: {opening?.position?.toFixed(2)}м</p>
+                  </div>
+                ) : null;
+              })()}
+            </div>
+            <div className="help-text">
+              <small>Перетащите проем вдоль стены для изменения позиции</small>
+            </div>
+            <button 
+              className="delete-btn"
+              onClick={() => deleteOpening(selectedOpeningId)}
+            >
+              Удалить проем
+            </button>
+          </div>
+        )}
+
         {view3D && (
           <div className="view3d-controls">
             <h4>3D Управление</h4>
@@ -1122,7 +1355,7 @@ export default function EnhancedFloorPlanning({ data, updateData, onNext, onPrev
           background: #2196f3;
           color: white;
         }
-        .tools, .wall-settings, .wall-edit, .view3d-controls, .display-options, .opening-settings, .room-edit, .area-summary {
+        .tools, .wall-settings, .wall-edit, .view3d-controls, .display-options, .opening-settings, .room-edit, .opening-edit, .area-summary {
           background: #f5f5f5;
           padding: 15px;
           border-radius: 8px;
@@ -1195,12 +1428,20 @@ export default function EnhancedFloorPlanning({ data, updateData, onNext, onPrev
           margin-top: 10px;
           font-weight: bold;
         }
-        .area-info {
+        .area-info, .opening-info {
           background: #f0f8ff;
           padding: 8px;
           border-radius: 4px;
           margin: 10px 0;
           text-align: center;
+        }
+        .opening-edit .help-text {
+          background: #fff3cd;
+          padding: 8px;
+          border-radius: 4px;
+          margin: 10px 0;
+          font-size: 12px;
+          color: #856404;
         }
         .canvas-area {
           flex: 1;
