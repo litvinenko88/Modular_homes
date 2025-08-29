@@ -1,6 +1,30 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import dynamic from 'next/dynamic';
+
+// Динамический импорт 3D компонента для избежания SSR проблем
+const House3DViewer = dynamic(() => import('./House3DViewer'), {
+  ssr: false,
+  loading: () => (
+    <div style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      width: '100vw',
+      height: '100vh',
+      background: '#000',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      color: 'white',
+      fontSize: '18px',
+      zIndex: 1000
+    }}>
+      Загрузка 3D модели...
+    </div>
+  )
+});
 
 export default function ConstructorInterface({ initialData, onBack }) {
   const canvasRef = useRef(null);
@@ -2432,7 +2456,19 @@ export default function ConstructorInterface({ initialData, onBack }) {
   };
 
   return (
-    <div className="constructor-interface fade-in">
+    <>
+      {view3D && (
+        <House3DViewer
+          elements={elements}
+          walls={walls}
+          doors={doors}
+          windows={windows}
+          initialData={initialData}
+          onClose={() => setView3D(false)}
+        />
+      )}
+      
+      <div className="constructor-interface fade-in">
       {/* Хедер */}
       <div className="constructor-header">
         <div className="header-left">
@@ -3139,6 +3175,7 @@ export default function ConstructorInterface({ initialData, onBack }) {
           }
         }
       `}</style>
-    </div>
+      </div>
+    </>
   );
 }
