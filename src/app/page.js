@@ -126,7 +126,7 @@ export default function Home() {
                 borderRadius: '50%',
                 animation: 'pulse 2s ease-in-out infinite'
               }} />
-              Инновационные решения 2024
+              Инновационные решения 2025
             </div>
             
             <h1 style={{
@@ -159,7 +159,7 @@ export default function Home() {
               lineHeight: '1.6',
               color: '#b8bcc8'
             }}>
-              Это не просто коробка с окнами — это полноценный дом с современными технологиями и инновационным подходом
+              Это не просто коробка с окнами — это полноценный дом
             </p>
             
             {/* Преимущества */}
@@ -350,6 +350,20 @@ export default function Home() {
           
           .hero-stats {
             grid-template-columns: repeat(2, 1fr) !important;
+          }
+          
+          .hero-buttons {
+            justify-content: center !important;
+            width: 100% !important;
+          }
+          
+          .hero-buttons button {
+            flex: 1 !important;
+            min-width: 200px !important;
+          }
+          
+          .hero-form {
+            width: 100% !important;
           }
         }
         
