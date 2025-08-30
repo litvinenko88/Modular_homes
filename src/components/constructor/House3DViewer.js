@@ -746,8 +746,14 @@ export default function House3DViewer({
           const bottomGeometry = new THREE.BoxGeometry(opening.width, windowBottom, wallThickness);
           const bottomMesh = new THREE.Mesh(bottomGeometry, material);
           
-          const bottomX = x + (rotation === 0 ? (opening.position * 10 - wallLength / 2) : 0);
-          const bottomZ = z + (rotation !== 0 ? (opening.position * 10 - wallLength / 2) : 0);
+          let bottomX, bottomZ;
+          if (rotation === 0) {
+            bottomX = x + (opening.position * 10 - wallLength / 2);
+            bottomZ = z;
+          } else {
+            bottomX = x;
+            bottomZ = z + (opening.position * 10 - wallLength / 2);
+          }
           
           bottomMesh.position.set(bottomX, windowBottom / 2, bottomZ);
           bottomMesh.rotation.y = rotation;
@@ -761,8 +767,14 @@ export default function House3DViewer({
           const topGeometry = new THREE.BoxGeometry(opening.width, topHeight, wallThickness);
           const topMesh = new THREE.Mesh(topGeometry, material);
           
-          const topX = x + (rotation === 0 ? (opening.position * 10 - wallLength / 2) : 0);
-          const topZ = z + (rotation !== 0 ? (opening.position * 10 - wallLength / 2) : 0);
+          let topX, topZ;
+          if (rotation === 0) {
+            topX = x + (opening.position * 10 - wallLength / 2);
+            topZ = z;
+          } else {
+            topX = x;
+            topZ = z + (opening.position * 10 - wallLength / 2);
+          }
           
           topMesh.position.set(topX, windowTop + topHeight / 2, topZ);
           topMesh.rotation.y = rotation;
@@ -783,8 +795,17 @@ export default function House3DViewer({
         });
         const windowGlassMesh = new THREE.Mesh(windowGlassGeometry, windowGlassMaterial);
         
-        const windowX = x + (rotation === 0 ? (opening.position * 10 - wallLength / 2) : 0);
-        const windowZ = z + (rotation !== 0 ? (opening.position * 10 - wallLength / 2) : 0);
+        // Исправляем позиционирование для вертикальных стен
+        let windowX, windowZ;
+        if (rotation === 0) {
+          // Горизонтальные стены (front/back)
+          windowX = x + (opening.position * 10 - wallLength / 2);
+          windowZ = z;
+        } else {
+          // Вертикальные стены (left/right)
+          windowX = x;
+          windowZ = z + (opening.position * 10 - wallLength / 2);
+        }
         
         windowFrameMesh.position.set(windowX, windowBottom + opening.height / 2, windowZ);
         windowFrameMesh.rotation.y = rotation;
@@ -802,8 +823,14 @@ export default function House3DViewer({
           const topGeometry = new THREE.BoxGeometry(opening.width, topHeight, wallThickness);
           const topMesh = new THREE.Mesh(topGeometry, material);
           
-          const topX = x + (rotation === 0 ? (opening.position * 10 - wallLength / 2) : 0);
-          const topZ = z + (rotation !== 0 ? (opening.position * 10 - wallLength / 2) : 0);
+          let topX, topZ;
+          if (rotation === 0) {
+            topX = x + (opening.position * 10 - wallLength / 2);
+            topZ = z;
+          } else {
+            topX = x;
+            topZ = z + (opening.position * 10 - wallLength / 2);
+          }
           
           topMesh.position.set(topX, doorHeight + topHeight / 2, topZ);
           topMesh.rotation.y = rotation;
@@ -820,8 +847,17 @@ export default function House3DViewer({
         const doorMaterial = new THREE.MeshPhongMaterial({ color: 0x654321 });
         const doorMesh = new THREE.Mesh(doorGeometry, doorMaterial);
         
-        const doorX = x + (rotation === 0 ? (opening.position * 10 - wallLength / 2) : 0);
-        const doorZ = z + (rotation !== 0 ? (opening.position * 10 - wallLength / 2) : 0);
+        // Исправляем позиционирование для вертикальных стен
+        let doorX, doorZ;
+        if (rotation === 0) {
+          // Горизонтальные стены (front/back)
+          doorX = x + (opening.position * 10 - wallLength / 2);
+          doorZ = z;
+        } else {
+          // Вертикальные стены (left/right)
+          doorX = x;
+          doorZ = z + (opening.position * 10 - wallLength / 2);
+        }
         
         doorFrameMesh.position.set(doorX, doorHeight / 2, doorZ);
         doorFrameMesh.rotation.y = rotation;
