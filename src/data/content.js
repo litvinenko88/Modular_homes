@@ -27,7 +27,7 @@ export const siteContent = {
       email: 'info@easyhouse.ru'
     }
   },
-  sk: {
+  'stavropolskiy-kray': {
     hero: {
       title: 'Модульные дома в Ставропольском крае',
       subtitle: 'Строительство и доставка модульных домов по Ставропольскому краю',
@@ -55,7 +55,7 @@ export const siteContent = {
       email: 'stavropol@easyhouse.ru'
     }
   },
-  kk: {
+  'krasnodarskiy-kray': {
     hero: {
       title: 'Модульные дома в Краснодарском крае',
       subtitle: 'Качественные дома для юга России с учетом климатических особенностей',
@@ -83,7 +83,7 @@ export const siteContent = {
       email: 'krasnodar@easyhouse.ru'
     }
   },
-  kchr: {
+  'karachaevo-cherkesskaya-respublika': {
     hero: {
       title: 'Модульные дома в КЧР',
       subtitle: 'Надежные дома для горных и равнинных районов Карачаево-Черкесии',
@@ -111,7 +111,7 @@ export const siteContent = {
       email: 'kchr@easyhouse.ru'
     }
   },
-  kbr: {
+  'kabardino-balkarskaya-respublika': {
     hero: {
       title: 'Модульные дома в КБР',
       subtitle: 'Современные решения для Кабардино-Балкарии с доставкой по всей республике',

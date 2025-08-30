@@ -3,5 +3,5 @@
 import RegionalPage from '../../components/RegionalPage';
 
 export default function KrasnodarPage() {
-  return <RegionalPage regionId="kk" />;
+  return <RegionalPage regionId="krasnodarskiy-kray" />;
 }

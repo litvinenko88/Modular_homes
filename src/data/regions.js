@@ -6,30 +6,38 @@ export const regions = [
     slug: 'russia'
   },
   { 
-    id: 'sk', 
+    id: 'stavropolskiy-kray', 
     full: 'Ставропольский край', 
     short: 'СК',
-    slug: 'stavropol'
+    slug: 'stavropolskiy-kray'
   },
   { 
-    id: 'kk', 
+    id: 'krasnodarskiy-kray', 
     full: 'Краснодарский край', 
     short: 'КК',
-    slug: 'krasnodar'
+    slug: 'krasnodarskiy-kray'
   },
   { 
-    id: 'kchr', 
+    id: 'karachaevo-cherkesskaya-respublika', 
     full: 'Республика КЧР', 
     short: 'КЧР',
-    slug: 'karachaevo-cherkessia'
+    slug: 'karachaevo-cherkesskaya-respublika'
   },
   { 
-    id: 'kbr', 
+    id: 'kabardino-balkarskaya-respublika', 
     full: 'Республика КБР', 
     short: 'КБР',
-    slug: 'kabardino-balkaria'
+    slug: 'kabardino-balkarskaya-respublika'
   }
 ];
 
 export const getRegionById = (id) => regions.find(region => region.id === id);
 export const getRegionBySlug = (slug) => regions.find(region => region.slug === slug);
+
+// Маппинг старых ID на новые для обратной совместимости
+export const regionMapping = {
+  'sk': 'stavropolskiy-kray',
+  'kk': 'krasnodarskiy-kray', 
+  'kchr': 'karachaevo-cherkesskaya-respublika',
+  'kbr': 'kabardino-balkarskaya-respublika'
+};

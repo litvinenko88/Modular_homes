@@ -3,5 +3,5 @@
 import RegionalPage from '../../components/RegionalPage';
 
 export default function KBRPage() {
-  return <RegionalPage regionId="kbr" />;
+  return <RegionalPage regionId="kabardino-balkarskaya-respublika" />;
 }
