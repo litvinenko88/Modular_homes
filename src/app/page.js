@@ -36,17 +36,15 @@ export default function Home() {
         }} />
         
         {/* Контент */}
-        <div style={{
+        <div className="container" style={{
           position: 'relative',
           zIndex: 2,
-          maxWidth: '1200px',
-          margin: '0 auto',
-          padding: '0 2rem',
           color: 'var(--white)',
           display: 'flex',
           alignItems: 'center',
           gap: '3rem',
-          width: '100%'
+          width: '100%',
+          height: '100%'
         }}>
           {/* Левая часть - текст */}
           <div className="hero-content" style={{

@@ -16,6 +16,15 @@
   /* Шрифты */
   --font-primary: 'Raleway', Arial, sans-serif;
   --font-fallback: Arial, sans-serif;
+  
+  /* Отступы и интервалы */
+  --container-padding: 80px;
+  --container-padding-tablet: 40px;
+  --container-padding-mobile: 20px;
+  --section-gap: 80px;
+  --section-gap-tablet: 60px;
+  --section-gap-mobile: 40px;
+  --max-width: 1200px;
 }
 
 * {
@@ -276,10 +285,53 @@ canvas {
   opacity: 1;
 }
 
+/* Адаптивные отступы */
+@media (max-width: 1024px) {
+  .container {
+    padding: 0 var(--container-padding-tablet);
+  }
+  
+  .section {
+    padding: var(--section-gap-tablet) 0;
+  }
+  
+  .section-sm {
+    padding: calc(var(--section-gap-tablet) * 0.75) 0;
+  }
+  
+  .section-lg {
+    padding: calc(var(--section-gap-tablet) * 1.5) 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 0 var(--container-padding-mobile);
+  }
+  
+  .section {
+    padding: var(--section-gap-mobile) 0;
+  }
+  
+  .section-sm {
+    padding: calc(var(--section-gap-mobile) * 0.75) 0;
+  }
+  
+  .section-lg {
+    padding: calc(var(--section-gap-mobile) * 1.5) 0;
+  }
+}
+
 /* Адаптивные стили для header */
 @media (max-width: 1200px) {
   header {
-    padding: 0 1.5rem !important;
+    padding: 0 var(--container-padding-tablet) !important;
+  }
+}
+
+@media (max-width: 768px) {
+  header {
+    padding: 0 var(--container-padding-mobile) !important;
   }
 }
 
@@ -541,6 +593,25 @@ canvas {
   animation-fill-mode: both;
 }
 
+/* Контейнеры и секции */
+.container {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 var(--container-padding);
+}
+
+.section {
+  padding: var(--section-gap) 0;
+}
+
+.section-sm {
+  padding: calc(var(--section-gap) * 0.75) 0;
+}
+
+.section-lg {
+  padding: calc(var(--section-gap) * 1.5) 0;
+}
+
 /* Плавные переходы для всех интерактивных элементов */
 * {
   -webkit-tap-highlight-color: transparent;
@@ -590,9 +661,27 @@ body.menu-open {
 }
 
 /* Адаптивные стили для hero секции */
+.hero-section {
+  padding: var(--section-gap) 0;
+}
+
+@media (max-width: 1200px) {
+  .hero-section h1 {
+    font-size: 3.2rem !important;
+  }
+}
+
 @media (max-width: 1024px) {
+  .hero-section {
+    padding: var(--section-gap-tablet) 0;
+  }
+  
   .hero-section h1 {
     font-size: 3rem !important;
+  }
+  
+  .hero-section .container {
+    gap: 2rem !important;
   }
 }
 
@@ -600,13 +689,14 @@ body.menu-open {
   .hero-section {
     height: auto !important;
     min-height: 100vh !important;
-    padding: 2rem 1rem !important;
+    padding: var(--section-gap-mobile) 0;
   }
   
-  .hero-section > div {
+  .hero-section .container {
     flex-direction: column !important;
     gap: 2rem !important;
     align-items: stretch !important;
+    justify-content: center !important;
   }
   
   .hero-content {
@@ -657,5 +747,15 @@ body.menu-open {
   .hero-buttons button {
     padding: 0.8rem 1.5rem !important;
     font-size: 0.9rem !important;
+  }
+}
+
+@media (max-width: 360px) {
+  .hero-section h1 {
+    font-size: 1.8rem !important;
+  }
+  
+  .hero-advantages {
+    gap: 0.6rem !important;
   }
 }

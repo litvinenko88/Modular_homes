@@ -31,19 +31,18 @@ export default function Header({ selectedRegion, onRegionChange }) {
     <header style={{
       background: 'var(--white)',
       borderBottom: '1px solid var(--border-gray)',
-      padding: '0 2rem',
+      padding: '0 var(--container-padding)',
       position: 'sticky',
       top: 0,
       zIndex: 100,
       boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
     }}>
-      <div style={{
-        maxWidth: '1200px',
-        margin: '0 auto',
+      <div className="container" style={{
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        height: '70px'
+        height: '70px',
+        padding: 0
       }}>
         {/* Логотип */}
         <div className="logo" style={{
