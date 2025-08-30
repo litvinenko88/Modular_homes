@@ -3,10 +3,6 @@
 import { useState, useEffect } from 'react';
 import Header from '../components/layout/Header';
 import ContactForm from '../components/ui/ContactForm';
-import ModernAdvantagesSection from '../components/sections/ModernAdvantagesSection';
-import TestimonialsSection from '../components/sections/TestimonialsSection';
-import ProcessSection from '../components/sections/ProcessSection';
-import ModernFooter from '../components/layout/ModernFooter';
 import { useRegion } from '../hooks/useRegion';
 
 export default function Home() {
@@ -291,18 +287,6 @@ export default function Home() {
         
 
       </section>
-      
-      {/* Секция преимуществ */}
-      <ModernAdvantagesSection />
-      
-      {/* Секция отзывов */}
-      <TestimonialsSection />
-      
-      {/* Секция процесса работы */}
-      <ProcessSection />
-      
-      {/* Футер */}
-      <ModernFooter />
       
       <style jsx>{`
         @keyframes float {
