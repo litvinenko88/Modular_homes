@@ -14,7 +14,9 @@ export default function Header() {
   const [selectedRegion, setSelectedRegion] = useState('СК');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 0 });
   const dropdownRef = useRef(null);
+  const buttonRef = useRef(null);
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -36,6 +38,16 @@ export default function Header() {
       document.body.classList.remove('menu-open');
     };
   }, [isMobileMenuOpen]);
+
+  useEffect(() => {
+    if (isDropdownOpen && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setDropdownPosition({
+        top: rect.bottom + 4,
+        right: window.innerWidth - rect.right
+      });
+    }
+  }, [isDropdownOpen]);
 
   return (
     <header style={{
@@ -191,52 +203,51 @@ export default function Header() {
           </button>
 
           {/* Фильтр регионов */}
-          <div ref={dropdownRef} style={{ position: 'relative' }}>
+          <div ref={dropdownRef} style={{ position: 'relative', zIndex: 1 }}>
             <button
+              ref={buttonRef}
               className="region-filter"
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               style={{
                 background: 'transparent',
                 border: '1px solid var(--border-gray)',
-                padding: '0.25rem 0.4rem',
-                borderRadius: '4px',
-                fontSize: '0.65rem',
-                color: 'var(--text-light)',
+                padding: '0.4rem 0.6rem',
+                borderRadius: '6px',
+                fontSize: '0.75rem',
+                color: 'var(--text-dark)',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.2rem',
+                gap: '0.4rem',
                 transition: 'all 0.2s ease',
-                width: '50px',
-                justifyContent: 'space-between'
+                minWidth: '80px',
+                width: '80px',
+                justifyContent: 'space-between',
+                flexShrink: 0
               }}
               onMouseEnter={(e) => e.target.style.borderColor = 'var(--accent-orange)'}
               onMouseLeave={(e) => e.target.style.borderColor = 'var(--border-gray)'}
             >
-              <span>{selectedRegion}</span>
+              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{selectedRegion}</span>
               <span style={{
                 transform: isDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)',
                 transition: 'transform 0.2s ease',
-                fontSize: '0.6rem'
+                fontSize: '0.7rem',
+                flexShrink: 0
               }}>▼</span>
             </button>
 
             {/* Выпадающий список */}
             {isDropdownOpen && (
-              <div style={{
-                position: 'absolute',
-                top: '100%',
-                right: 0,
-                background: 'var(--white)',
-                border: '1px solid var(--border-gray)',
-                borderRadius: '6px',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                minWidth: '80px',
-                zIndex: 1000,
-                marginTop: '0.25rem',
-                animation: 'slideIn 0.2s ease'
+              <div className="region-dropdown" style={{
+                position: 'fixed',
+                top: `${dropdownPosition.top}px`,
+                right: `${dropdownPosition.right}px`,
+                minWidth: '200px',
+                maxWidth: '250px',
+                zIndex: 10000
               }}>
-                {regions.map((region) => (
+                {regions.map((region, index) => (
                   <button
                     key={region.short}
                     onClick={() => {
@@ -245,14 +256,16 @@ export default function Header() {
                     }}
                     style={{
                       width: '100%',
-                      padding: '0.4rem 0.6rem',
+                      padding: '0.75rem 1rem',
                       border: 'none',
                       background: selectedRegion === region.short ? 'var(--light-purple)' : 'transparent',
                       color: 'var(--text-dark)',
-                      fontSize: '0.7rem',
+                      fontSize: '0.85rem',
                       textAlign: 'left',
                       cursor: 'pointer',
-                      transition: 'background 0.2s ease'
+                      transition: 'background 0.2s ease',
+                      borderBottom: index < regions.length - 1 ? '1px solid var(--border-gray)' : 'none',
+                      display: 'block'
                     }}
                     onMouseEnter={(e) => {
                       if (selectedRegion !== region.short) {
@@ -391,7 +404,7 @@ export default function Header() {
                 border: '1px solid var(--border-gray)',
                 borderRadius: '8px',
                 boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                zIndex: 1000,
+                zIndex: 10000,
                 marginTop: '0.5rem'
               }}>
                 {regions.map((region) => (
@@ -485,6 +498,11 @@ export default function Header() {
           .request-button {
             padding: 0.5rem 0.8rem !important;
             font-size: 0.8rem !important;
+          }
+          .region-filter {
+            min-width: 70px !important;
+            width: 70px !important;
+            font-size: 0.7rem !important;
           }
         }
 

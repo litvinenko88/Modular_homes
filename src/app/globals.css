@@ -379,6 +379,37 @@ canvas {
   flex-shrink: 0 !important;
 }
 
+/* Фиксация размеров фильтра регионов */
+.region-filter {
+  flex-shrink: 0 !important;
+  min-width: 80px !important;
+  width: 80px !important;
+  position: relative !important;
+  z-index: 2 !important;
+}
+
+/* Стили для выпадающего списка */
+.region-dropdown {
+  position: fixed !important;
+  z-index: 10000 !important;
+  background: var(--white);
+  border: 1px solid var(--border-gray);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  overflow: hidden;
+  pointer-events: auto;
+}
+
+/* Предотвращение смещения элементов header */
+.header-right {
+  position: relative;
+  z-index: 1;
+}
+
+.header-right > * {
+  flex-shrink: 0 !important;
+}
+
 /* Улучшенная анимация гамбургера */
 .hamburger span {
   border-radius: 1px;
