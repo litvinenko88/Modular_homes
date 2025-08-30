@@ -42,6 +42,7 @@ export default function Home() {
           color: 'var(--white)',
           display: 'flex',
           alignItems: 'center',
+          justifyContent: 'space-between',
           gap: '3rem',
           width: '100%',
           height: '100%'
