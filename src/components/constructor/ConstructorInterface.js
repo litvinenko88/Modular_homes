@@ -3064,18 +3064,7 @@ export default function ConstructorInterface({ initialData, onBack }) {
                   <strong>{selectedElement.type === 'house' ? 'Дом' : 'Элемент'}</strong>
                 </div>
               )}
-              {initialData.house.price && (() => {
-                const houseElement = elements.find(el => el.type === 'house');
-                const currentArea = houseElement ? (houseElement.realWidth * houseElement.realHeight) : initialData.house.area;
-                const pricePerSqm = initialData.house.price / initialData.house.area;
-                const currentPrice = currentArea * pricePerSqm;
-                return (
-                  <div className="detail-item">
-                    <span>Прим. стоимость:</span>
-                    <strong>{(currentPrice / 1000).toFixed(0)}к ₽</strong>
-                  </div>
-                );
-              })()}
+
             </div>
           </div>
         </div>

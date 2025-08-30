@@ -434,7 +434,7 @@ export default function EnhancedFloorPlanning({ data, updateData, onNext, onPrev
         const openingX = wall.x1 + (wall.x2 - wall.x1) * ratio;
         const openingY = wall.y1 + (wall.y2 - wall.y1) * ratio;
         const isSelected = opening.id === selectedOpeningId;
-        const openingWidth = openingType.width * SCALE;
+        const openingWidth = (opening.width || openingType.width) * SCALE;
 
         ctx.save();
         ctx.translate(100 + openingX * SCALE, 100 + openingY * SCALE);
@@ -964,7 +964,7 @@ export default function EnhancedFloorPlanning({ data, updateData, onNext, onPrev
         wallId: nearestWall.wall.id,
         type: selectedOpeningType,
         position: finalPosition,
-        width: openingWidth,
+        width: openingType?.width || 0.9,
         height: openingType?.height || 2.1
       };
       
@@ -1172,8 +1172,7 @@ export default function EnhancedFloorPlanning({ data, updateData, onNext, onPrev
     const newPosition = param * wallLength;
     
     // Проверяем, чтобы проем не выходил за границы стены
-    const openingType = OPENING_TYPES.find(t => t.id === opening.type);
-    const halfWidth = (openingType?.width || 0.9) / 2;
+    const halfWidth = (opening.width || 0.9) / 2;
     const minPosition = halfWidth;
     const maxPosition = wallLength - halfWidth;
     
@@ -1212,7 +1211,8 @@ export default function EnhancedFloorPlanning({ data, updateData, onNext, onPrev
         return { 
           ...opening, 
           type: newType,
-          width: openingType?.width || opening.width,
+          // Сохраняем пользовательскую ширину, если она была изменена
+          width: opening.width || openingType?.width || 0.9,
           height: openingType?.height || opening.height
         };
       }
@@ -1454,13 +1454,33 @@ export default function EnhancedFloorPlanning({ data, updateData, onNext, onPrev
                 ))}
               </select>
             </div>
+            <div className="input-group">
+              <label>Ширина (м):</label>
+              <input 
+                type="number" 
+                value={(() => {
+                  const opening = (data.openings || []).find(o => o.id === selectedOpeningId);
+                  const openingType = OPENING_TYPES.find(t => t.id === opening?.type);
+                  return openingType?.width || 0.9;
+                })()}
+                onChange={(e) => {
+                  const newWidth = Number(e.target.value);
+                  const updatedOpenings = (data.openings || []).map(opening => {
+                    if (opening.id === selectedOpeningId) {
+                      return { ...opening, width: newWidth };
+                    }
+                    return opening;
+                  });
+                  updateData({ openings: updatedOpenings });
+                }}
+                min="0.5" max="3" step="0.1"
+              />
+            </div>
             <div className="opening-info">
               {(() => {
                 const opening = (data.openings || []).find(o => o.id === selectedOpeningId);
-                const openingType = OPENING_TYPES.find(t => t.id === opening?.type);
-                return openingType ? (
+                return opening ? (
                   <div>
-                    <p>Размер: {openingType.width}м × {openingType.height}м</p>
                     <p>Позиция на стене: {opening?.position?.toFixed(2)}м</p>
                   </div>
                 ) : null;
