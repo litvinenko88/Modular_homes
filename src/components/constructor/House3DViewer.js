@@ -654,48 +654,7 @@ export default function House3DViewer({
     
     // Дымоход убран вместе с крышей
     
-    // Крыльцо над входом (если есть двери)
-    if (doors.length > 0) {
-      const porchMaterial = new THREE.MeshPhongMaterial({ color: 0xD2B48C });
-      const porchGeometry = new THREE.BoxGeometry(
-        2 * scale, 
-        0.1 * scale, 
-        1 * scale
-      );
-      const porch = new THREE.Mesh(porchGeometry, porchMaterial);
-      porch.position.set(0, 0.05 * scale, depth / 2 + 0.5 * scale);
-      porch.castShadow = true;
-      porch.receiveShadow = true;
-      houseGroup.add(porch);
-      
-      // Колонны крыльца
-      const columnGeometry = new THREE.CylinderGeometry(
-        0.1 * scale, 
-        0.1 * scale, 
-        2.5 * scale, 
-        8
-      );
-      const columnMaterial = new THREE.MeshPhongMaterial({ color: 0xFFFFFF });
-      
-      const leftColumn = new THREE.Mesh(columnGeometry, columnMaterial);
-      leftColumn.position.set(-0.8 * scale, 1.25 * scale, depth / 2 + 0.8 * scale);
-      houseGroup.add(leftColumn);
-      
-      const rightColumn = new THREE.Mesh(columnGeometry, columnMaterial);
-      rightColumn.position.set(0.8 * scale, 1.25 * scale, depth / 2 + 0.8 * scale);
-      houseGroup.add(rightColumn);
-      
-      // Навес крыльца
-      const canopyGeometry = new THREE.BoxGeometry(
-        2.5 * scale, 
-        0.1 * scale, 
-        1.5 * scale
-      );
-      const canopy = new THREE.Mesh(canopyGeometry, porchMaterial);
-      canopy.position.set(0, 2.5 * scale, depth / 2 + 0.6 * scale);
-      canopy.castShadow = true;
-      houseGroup.add(canopy);
-    }
+
   };
   
   const createWallWithOpenings = (houseGroup, wallId, wallLength, wallHeight, wallThickness, material, x, y, z, rotation) => {
