@@ -2353,43 +2353,29 @@ export default function ConstructorInterface({ initialData, onBack }) {
         ...windows.filter(w => w.wallId === wall.id)
       ];
       
-      // Находим свободное место для нового элемента
-      let finalPosition = desiredPosition;
-      const minDistance = (itemWidth + 10) / wallLength; // Минимальное расстояние между элементами
+      // Проверяем, есть ли место для нового элемента
+      const itemHalfWidth = itemWidth / (2 * wallLength);
+      const minGap = 10 / wallLength; // Минимальный зазор между элементами
       
-      // Проверяем конфликты с существующими элементами
-      let hasConflict = true;
-      let attempts = 0;
-      
-      while (hasConflict && attempts < 10) {
-        hasConflict = false;
+      // Проверяем пересечение с существующими элементами
+      for (const existing of existingItems) {
+        const existingHalfWidth = existing.width / (2 * wallLength);
+        const distance = Math.abs(desiredPosition - existing.position);
+        const requiredDistance = itemHalfWidth + existingHalfWidth + minGap;
         
-        for (const existing of existingItems) {
-          const distance = Math.abs(finalPosition - existing.position);
-          const requiredDistance = (itemWidth + existing.width + 10) / (2 * wallLength);
-          
-          if (distance < requiredDistance) {
-            hasConflict = true;
-            // Сдвигаем позицию
-            if (finalPosition < existing.position) {
-              finalPosition = Math.max(0.1, existing.position - requiredDistance);
-            } else {
-              finalPosition = Math.min(0.9, existing.position + requiredDistance);
-            }
-            break;
-          }
+        if (distance < requiredDistance) {
+          alert(`Нельзя разместить ${type === 'door' ? 'дверь' : 'окно'} здесь - слишком близко к другому элементу`);
+          return;
         }
-        attempts++;
       }
       
       // Проверяем, что элемент помещается в стену
-      const itemHalfWidth = itemWidth / (2 * wallLength);
-      if (finalPosition - itemHalfWidth < 0) {
-        finalPosition = itemHalfWidth;
+      if (desiredPosition - itemHalfWidth < 0 || desiredPosition + itemHalfWidth > 1) {
+        alert(`Нельзя разместить ${type === 'door' ? 'дверь' : 'окно'} здесь - выходит за границы стены`);
+        return;
       }
-      if (finalPosition + itemHalfWidth > 1) {
-        finalPosition = 1 - itemHalfWidth;
-      }
+      
+      const finalPosition = desiredPosition;
       
       const newItem = {
         id: Date.now(),
@@ -2769,7 +2755,27 @@ export default function ConstructorInterface({ initialData, onBack }) {
       newPosition = (worldY - Math.min(wall.y1, wall.y2)) / wallLength;
     }
     
-    newPosition = Math.max(0.1, Math.min(0.9, newPosition));
+    // Проверяем пересечение с другими элементами
+    const otherItems = [
+      ...doors.filter(d => d.wallId === item.wallId && d.id !== item.id),
+      ...windows.filter(w => w.wallId === item.wallId && w.id !== item.id)
+    ];
+    
+    const itemHalfWidth = item.width / (2 * wallLength);
+    const minGap = 10 / wallLength;
+    
+    for (const other of otherItems) {
+      const otherHalfWidth = other.width / (2 * wallLength);
+      const distance = Math.abs(newPosition - other.position);
+      const requiredDistance = itemHalfWidth + otherHalfWidth + minGap;
+      
+      if (distance < requiredDistance) {
+        return; // Не перемещаем, если есть пересечение
+      }
+    }
+    
+    // Проверяем границы стены
+    newPosition = Math.max(itemHalfWidth, Math.min(1 - itemHalfWidth, newPosition));
     
     if (type === 'door') {
       setDoors(prev => prev.map(door => 
