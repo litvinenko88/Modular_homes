@@ -36,24 +36,59 @@ export default function ContactForm({
 
   return (
     <div style={{
-      background: 'rgba(255, 255, 255, 0.95)',
-      backdropFilter: 'blur(10px)',
-      borderRadius: '16px',
-      padding: '2rem',
-      boxShadow: '0 20px 40px rgba(0, 0, 0, 0.1)',
-      border: '1px solid rgba(255, 255, 255, 0.2)',
-      maxWidth: '400px',
-      width: '100%'
+      background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.85) 100%)',
+      backdropFilter: 'blur(20px)',
+      borderRadius: '25px',
+      padding: '2.5rem',
+      boxShadow: '0 25px 50px rgba(0, 0, 0, 0.15)',
+      border: '1px solid rgba(255, 255, 255, 0.3)',
+      maxWidth: '420px',
+      width: '100%',
+      position: 'relative',
+      overflow: 'hidden'
     }}>
-      <h3 style={{
-        fontSize: '1.5rem',
-        fontWeight: '700',
-        color: 'var(--text-dark)',
-        marginBottom: '0.5rem',
-        fontFamily: 'var(--font-primary)'
-      }}>
-        {title}
-      </h3>
+      {/* Декоративный фон */}
+      <div style={{
+        position: 'absolute',
+        top: '-50%',
+        right: '-50%',
+        width: '200px',
+        height: '200px',
+        background: 'linear-gradient(135deg, var(--accent-orange), #ff8c42)',
+        borderRadius: '50%',
+        opacity: 0.05,
+        filter: 'blur(40px)'
+      }} />
+      
+      <div style={{ position: 'relative', zIndex: 2 }}>
+        {/* Иконка */}
+        <div style={{
+          width: '60px',
+          height: '60px',
+          background: 'linear-gradient(135deg, var(--accent-orange), #ff8c42)',
+          borderRadius: '15px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '1.5rem',
+          marginBottom: '1.5rem'
+        }}>
+          💬
+        </div>
+        
+        <h3 style={{
+          fontSize: '1.6rem',
+          fontWeight: '800',
+          color: 'var(--text-dark)',
+          marginBottom: '0.5rem',
+          fontFamily: 'var(--font-primary)',
+          background: 'linear-gradient(135deg, #2c3e50 0%, #34495e 100%)',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          backgroundClip: 'text'
+        }}>
+          {title}
+        </h3>
       
       <p style={{
         fontSize: '0.9rem',
@@ -66,7 +101,7 @@ export default function ContactForm({
 
       <form onSubmit={handleSubmit}>
         {/* Поле имени */}
-        <div style={{ marginBottom: '1rem' }}>
+        <div style={{ marginBottom: '1.2rem' }}>
           <input
             type="text"
             name="name"
@@ -76,30 +111,34 @@ export default function ContactForm({
             required
             style={{
               width: '100%',
-              padding: '0.8rem 1rem',
-              border: '2px solid var(--border-gray)',
-              borderRadius: '8px',
+              padding: '1rem 1.2rem',
+              border: '2px solid rgba(0, 0, 0, 0.1)',
+              borderRadius: '15px',
               fontSize: '1rem',
               fontFamily: 'var(--font-primary)',
-              transition: 'all 0.2s ease',
-              backgroundColor: 'var(--white)',
-              outline: 'none'
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+              backgroundColor: 'rgba(255, 255, 255, 0.8)',
+              backdropFilter: 'blur(10px)',
+              outline: 'none',
+              boxSizing: 'border-box'
             }}
             onFocus={(e) => {
               e.target.style.borderColor = 'var(--accent-orange)';
-              e.target.style.transform = 'translateY(-2px)';
-              e.target.style.boxShadow = '0 4px 12px rgba(223, 104, 43, 0.2)';
+              e.target.style.transform = 'translateY(-3px) scale(1.02)';
+              e.target.style.boxShadow = '0 8px 25px rgba(223, 104, 43, 0.2)';
+              e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.95)';
             }}
             onBlur={(e) => {
-              e.target.style.borderColor = 'var(--border-gray)';
-              e.target.style.transform = 'translateY(0)';
+              e.target.style.borderColor = 'rgba(0, 0, 0, 0.1)';
+              e.target.style.transform = 'translateY(0) scale(1)';
               e.target.style.boxShadow = 'none';
+              e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
             }}
           />
         </div>
 
         {/* Поле телефона */}
-        <div style={{ marginBottom: '1rem' }}>
+        <div style={{ marginBottom: '1.2rem' }}>
           <input
             type="tel"
             name="phone"
@@ -109,24 +148,28 @@ export default function ContactForm({
             required
             style={{
               width: '100%',
-              padding: '0.8rem 1rem',
-              border: '2px solid var(--border-gray)',
-              borderRadius: '8px',
+              padding: '1rem 1.2rem',
+              border: '2px solid rgba(0, 0, 0, 0.1)',
+              borderRadius: '15px',
               fontSize: '1rem',
               fontFamily: 'var(--font-primary)',
-              transition: 'all 0.2s ease',
-              backgroundColor: 'var(--white)',
-              outline: 'none'
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+              backgroundColor: 'rgba(255, 255, 255, 0.8)',
+              backdropFilter: 'blur(10px)',
+              outline: 'none',
+              boxSizing: 'border-box'
             }}
             onFocus={(e) => {
               e.target.style.borderColor = 'var(--accent-orange)';
-              e.target.style.transform = 'translateY(-2px)';
-              e.target.style.boxShadow = '0 4px 12px rgba(223, 104, 43, 0.2)';
+              e.target.style.transform = 'translateY(-3px) scale(1.02)';
+              e.target.style.boxShadow = '0 8px 25px rgba(223, 104, 43, 0.2)';
+              e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.95)';
             }}
             onBlur={(e) => {
-              e.target.style.borderColor = 'var(--border-gray)';
-              e.target.style.transform = 'translateY(0)';
+              e.target.style.borderColor = 'rgba(0, 0, 0, 0.1)';
+              e.target.style.transform = 'translateY(0) scale(1)';
               e.target.style.boxShadow = 'none';
+              e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
             }}
           />
         </div>
@@ -175,28 +218,35 @@ export default function ContactForm({
           disabled={!formData.agreement || isSubmitting}
           style={{
             width: '100%',
-            padding: '0.8rem 1rem',
-            background: formData.agreement && !isSubmitting ? 'var(--accent-orange)' : '#ccc',
+            padding: '1.2rem 1.5rem',
+            background: formData.agreement && !isSubmitting 
+              ? 'linear-gradient(135deg, var(--accent-orange) 0%, #ff6b35 100%)' 
+              : 'linear-gradient(135deg, #ccc 0%, #bbb 100%)',
             color: 'var(--white)',
             border: 'none',
-            borderRadius: '8px',
-            fontSize: '1rem',
-            fontWeight: '600',
+            borderRadius: '15px',
+            fontSize: '1.1rem',
+            fontWeight: '700',
             fontFamily: 'var(--font-primary)',
             cursor: formData.agreement && !isSubmitting ? 'pointer' : 'not-allowed',
-            transition: 'all 0.2s ease',
+            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
             position: 'relative',
-            overflow: 'hidden'
+            overflow: 'hidden',
+            boxShadow: formData.agreement && !isSubmitting 
+              ? '0 8px 25px rgba(223, 104, 43, 0.3)' 
+              : '0 4px 15px rgba(0, 0, 0, 0.1)'
           }}
           onMouseEnter={(e) => {
             if (formData.agreement && !isSubmitting) {
-              e.target.style.transform = 'translateY(-2px)';
-              e.target.style.boxShadow = '0 6px 20px rgba(223, 104, 43, 0.4)';
+              e.target.style.transform = 'translateY(-3px) scale(1.02)';
+              e.target.style.boxShadow = '0 12px 35px rgba(223, 104, 43, 0.4)';
             }
           }}
           onMouseLeave={(e) => {
-            e.target.style.transform = 'translateY(0)';
-            e.target.style.boxShadow = 'none';
+            if (formData.agreement && !isSubmitting) {
+              e.target.style.transform = 'translateY(0) scale(1)';
+              e.target.style.boxShadow = '0 8px 25px rgba(223, 104, 43, 0.3)';
+            }
           }}
         >
           {isSubmitting ? (
@@ -221,6 +271,7 @@ export default function ContactForm({
           )}
         </button>
       </form>
+      </div>
     </div>
   );
 }
