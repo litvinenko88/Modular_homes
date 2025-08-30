@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function ContactForm({ 
   title = "Получить консультацию",
@@ -13,6 +13,13 @@ export default function ContactForm({
     agreement: false
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1400);
+
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -42,7 +49,7 @@ export default function ContactForm({
       padding: '2.5rem',
       boxShadow: '0 25px 50px rgba(0, 0, 0, 0.15)',
       border: '1px solid rgba(255, 255, 255, 0.3)',
-      maxWidth: '420px',
+      maxWidth: windowWidth <= 1200 ? 'none' : '420px',
       width: '100%',
       position: 'relative',
       overflow: 'hidden'

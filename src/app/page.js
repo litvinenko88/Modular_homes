@@ -365,6 +365,11 @@ export default function Home() {
           .hero-form {
             width: 100% !important;
           }
+          
+          .hero-form > div > div {
+            max-width: none !important;
+            width: 100% !important;
+          }
         }
         
         @media (max-width: 768px) {
