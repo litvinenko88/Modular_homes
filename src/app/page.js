@@ -357,17 +357,7 @@ export default function Home() {
             width: 100% !important;
           }
           
-          .hero-buttons button {
-            flex: 1 !important;
-            min-width: 200px !important;
-          }
-          
           .hero-form {
-            width: 100% !important;
-          }
-          
-          .hero-form > div > div {
-            max-width: none !important;
             width: 100% !important;
           }
         }
@@ -382,18 +372,6 @@ export default function Home() {
             grid-template-columns: 1fr !important;
             gap: 0.6rem !important;
           }
-          
-          .hero-buttons {
-            flex-direction: column !important;
-            align-items: stretch !important;
-          }
-          
-          .hero-buttons button {
-            width: 100% !important;
-            justify-content: center !important;
-          }
-          
-
         }
         
         @media (max-width: 480px) {
@@ -405,9 +383,16 @@ export default function Home() {
             font-size: 1.1rem !important;
           }
           
+          .hero-buttons {
+            flex-direction: column !important;
+            align-items: stretch !important;
+          }
+          
           .hero-buttons button {
+            width: 100% !important;
             padding: 1rem 2rem !important;
             font-size: 1rem !important;
+            justify-content: center !important;
           }
         }
       `}</style>
