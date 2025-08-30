@@ -288,10 +288,10 @@ export default function House3DViewer({
 
   const createExteriorWalls = (houseGroup, width, depth, height, thickness, material) => {
     // Создаем внешние стены с учетом дверей и окон
-    createWallWithOpenings(houseGroup, 'front', width, height, thickness, material, 0, height / 2, depth / 2, 0);
-    createWallWithOpenings(houseGroup, 'back', width, height, thickness, material, 0, height / 2, -depth / 2, 0);
-    createWallWithOpenings(houseGroup, 'left', depth, height, thickness, material, -width / 2, height / 2, 0, Math.PI / 2);
-    createWallWithOpenings(houseGroup, 'right', depth, height, thickness, material, width / 2, height / 2, 0, Math.PI / 2);
+    createWallWithOpenings(houseGroup, 'house-front', width, height, thickness, material, 0, height / 2, depth / 2, 0);
+    createWallWithOpenings(houseGroup, 'house-back', width, height, thickness, material, 0, height / 2, -depth / 2, 0);
+    createWallWithOpenings(houseGroup, 'house-left', depth, height, thickness, material, -width / 2, height / 2, 0, Math.PI / 2);
+    createWallWithOpenings(houseGroup, 'house-right', depth, height, thickness, material, width / 2, height / 2, 0, Math.PI / 2);
   };
 
   const createInteriorWalls = (houseGroup, wallHeight, wallThickness, material, scale) => {
@@ -661,26 +661,30 @@ export default function House3DViewer({
     // Находим все двери и окна на этой стене
     const wallOpenings = [];
     
-    // Проверяем двери
+    // Проверяем двери - ищем по точному совпадению wallId
     doors.forEach(door => {
-      if (door.wallId === `house-${wallId}`) {
+      if (door.wallId === wallId) {
+        const wallLengthMeters = wallLength / 10; // Переводим в метры
         wallOpenings.push({
           type: 'door',
-          position: door.position,
-          width: door.realWidth * 10, // Переводим в единицы Three.js
-          height: 2.1 * 10 // Высота двери 2.1м
+          position: door.position * wallLengthMeters, // Позиция в метрах от начала стены
+          width: (door.realWidth || 0.9) * 10, // Переводим в единицы Three.js
+          height: 2.1 * 10, // Высота двери 2.1м
+          data: door
         });
       }
     });
     
-    // Проверяем окна
+    // Проверяем окна - ищем по точному совпадению wallId
     windows.forEach(window => {
-      if (window.wallId === `house-${wallId}`) {
+      if (window.wallId === wallId) {
+        const wallLengthMeters = wallLength / 10; // Переводим в метры
         wallOpenings.push({
           type: 'window',
-          position: window.position,
-          width: window.realWidth * 10,
-          height: 1.2 * 10 // Высота окна 1.2м
+          position: window.position * wallLengthMeters, // Позиция в метрах от начала стены
+          width: (window.realWidth || 1.2) * 10,
+          height: 1.2 * 10, // Высота окна 1.2м
+          data: window
         });
       }
     });
@@ -703,28 +707,37 @@ export default function House3DViewer({
     // Сортируем проемы по позиции
     openings.sort((a, b) => a.position - b.position);
     
-    let currentPos = 0;
+    const wallLengthMeters = wallLength / 10; // Переводим в метры
+    let currentPos = 0; // Текущая позиция в метрах
     
     openings.forEach(opening => {
-      const openingStart = (opening.position * wallLength) - (opening.width / 2);
-      const openingEnd = (opening.position * wallLength) + (opening.width / 2);
+      const openingWidthMeters = opening.width / 10; // Ширина проема в метрах
+      const openingStart = Math.max(0, opening.position - (openingWidthMeters / 2));
+      const openingEnd = Math.min(wallLengthMeters, opening.position + (openingWidthMeters / 2));
       
       // Создаем сегмент стены до проема
       if (openingStart > currentPos) {
-        const segmentWidth = openingStart - currentPos;
-        const segmentGeometry = new THREE.BoxGeometry(segmentWidth, wallHeight, wallThickness);
-        const segmentMesh = new THREE.Mesh(segmentGeometry, material);
+        const segmentWidthMeters = openingStart - currentPos;
+        const segmentWidth = segmentWidthMeters * 10; // Переводим в единицы Three.js
         
-        const segmentX = x + (rotation === 0 ? (currentPos + segmentWidth / 2 - wallLength / 2) : 0);
-        const segmentZ = z + (rotation !== 0 ? (currentPos + segmentWidth / 2 - wallLength / 2) : 0);
-        
-        segmentMesh.position.set(segmentX, y, segmentZ);
-        segmentMesh.rotation.y = rotation;
-        segmentMesh.castShadow = true;
-        houseGroup.add(segmentMesh);
+        if (segmentWidth > 0.5) { // Минимальная ширина сегмента
+          const segmentGeometry = new THREE.BoxGeometry(segmentWidth, wallHeight, wallThickness);
+          const segmentMesh = new THREE.Mesh(segmentGeometry, material);
+          
+          const segmentCenterMeters = currentPos + (segmentWidthMeters / 2);
+          const segmentCenter = segmentCenterMeters * 10; // Центр сегмента в единицах Three.js
+          
+          const segmentX = x + (rotation === 0 ? (segmentCenter - wallLength / 2) : 0);
+          const segmentZ = z + (rotation !== 0 ? (segmentCenter - wallLength / 2) : 0);
+          
+          segmentMesh.position.set(segmentX, y, segmentZ);
+          segmentMesh.rotation.y = rotation;
+          segmentMesh.castShadow = true;
+          houseGroup.add(segmentMesh);
+        }
       }
       
-      // Создаем сегменты над и под проемом (для окон)
+      // Создаем сегменты над и под проемом
       if (opening.type === 'window') {
         const windowBottom = 0.9 * 10; // Окно начинается на высоте 90см
         const windowTop = windowBottom + opening.height;
@@ -734,8 +747,8 @@ export default function House3DViewer({
           const bottomGeometry = new THREE.BoxGeometry(opening.width, windowBottom, wallThickness);
           const bottomMesh = new THREE.Mesh(bottomGeometry, material);
           
-          const bottomX = x + (rotation === 0 ? (opening.position * wallLength - wallLength / 2) : 0);
-          const bottomZ = z + (rotation !== 0 ? (opening.position * wallLength - wallLength / 2) : 0);
+          const bottomX = x + (rotation === 0 ? (opening.position * 10 - wallLength / 2) : 0);
+          const bottomZ = z + (rotation !== 0 ? (opening.position * 10 - wallLength / 2) : 0);
           
           bottomMesh.position.set(bottomX, windowBottom / 2, bottomZ);
           bottomMesh.rotation.y = rotation;
@@ -749,10 +762,26 @@ export default function House3DViewer({
           const topGeometry = new THREE.BoxGeometry(opening.width, topHeight, wallThickness);
           const topMesh = new THREE.Mesh(topGeometry, material);
           
-          const topX = x + (rotation === 0 ? (opening.position * wallLength - wallLength / 2) : 0);
-          const topZ = z + (rotation !== 0 ? (opening.position * wallLength - wallLength / 2) : 0);
+          const topX = x + (rotation === 0 ? (opening.position * 10 - wallLength / 2) : 0);
+          const topZ = z + (rotation !== 0 ? (opening.position * 10 - wallLength / 2) : 0);
           
           topMesh.position.set(topX, windowTop + topHeight / 2, topZ);
+          topMesh.rotation.y = rotation;
+          topMesh.castShadow = true;
+          houseGroup.add(topMesh);
+        }
+      } else if (opening.type === 'door') {
+        // Для дверей создаем только сегмент над проемом
+        const doorHeight = 2.1 * 10; // Высота двери
+        if (doorHeight < wallHeight) {
+          const topHeight = wallHeight - doorHeight;
+          const topGeometry = new THREE.BoxGeometry(opening.width, topHeight, wallThickness);
+          const topMesh = new THREE.Mesh(topGeometry, material);
+          
+          const topX = x + (rotation === 0 ? (opening.position * 10 - wallLength / 2) : 0);
+          const topZ = z + (rotation !== 0 ? (opening.position * 10 - wallLength / 2) : 0);
+          
+          topMesh.position.set(topX, doorHeight + topHeight / 2, topZ);
           topMesh.rotation.y = rotation;
           topMesh.castShadow = true;
           houseGroup.add(topMesh);
@@ -763,18 +792,25 @@ export default function House3DViewer({
     });
     
     // Создаем последний сегмент стены
-    if (currentPos < wallLength) {
-      const segmentWidth = wallLength - currentPos;
-      const segmentGeometry = new THREE.BoxGeometry(segmentWidth, wallHeight, wallThickness);
-      const segmentMesh = new THREE.Mesh(segmentGeometry, material);
+    if (currentPos < wallLengthMeters) {
+      const segmentWidthMeters = wallLengthMeters - currentPos;
+      const segmentWidth = segmentWidthMeters * 10;
       
-      const segmentX = x + (rotation === 0 ? (currentPos + segmentWidth / 2 - wallLength / 2) : 0);
-      const segmentZ = z + (rotation !== 0 ? (currentPos + segmentWidth / 2 - wallLength / 2) : 0);
-      
-      segmentMesh.position.set(segmentX, y, segmentZ);
-      segmentMesh.rotation.y = rotation;
-      segmentMesh.castShadow = true;
-      houseGroup.add(segmentMesh);
+      if (segmentWidth > 0.5) { // Минимальная ширина сегмента
+        const segmentGeometry = new THREE.BoxGeometry(segmentWidth, wallHeight, wallThickness);
+        const segmentMesh = new THREE.Mesh(segmentGeometry, material);
+        
+        const segmentCenterMeters = currentPos + (segmentWidthMeters / 2);
+        const segmentCenter = segmentCenterMeters * 10;
+        
+        const segmentX = x + (rotation === 0 ? (segmentCenter - wallLength / 2) : 0);
+        const segmentZ = z + (rotation !== 0 ? (segmentCenter - wallLength / 2) : 0);
+        
+        segmentMesh.position.set(segmentX, y, segmentZ);
+        segmentMesh.rotation.y = rotation;
+        segmentMesh.castShadow = true;
+        houseGroup.add(segmentMesh);
+      }
     }
   };
 
@@ -783,13 +819,19 @@ export default function House3DViewer({
     if (!houseElement) return;
 
     // Обрабатываем двери на внешних стенах
-    const exteriorDoors = doors.filter(door => door.wallId && String(door.wallId).startsWith('house-'));
+    const exteriorDoors = doors.filter(door => {
+      const wallId = String(door.wallId);
+      return wallId.startsWith('house-') || ['house-front', 'house-back', 'house-left', 'house-right'].includes(wallId);
+    });
     exteriorDoors.forEach(door => {
       createExteriorDoor(houseGroup, door, wallHeight, doorMaterial, scale);
     });
 
     // Обрабатываем окна на внешних стенах
-    const exteriorWindows = windows.filter(window => window.wallId && String(window.wallId).startsWith('house-'));
+    const exteriorWindows = windows.filter(window => {
+      const wallId = String(window.wallId);
+      return wallId.startsWith('house-') || ['house-front', 'house-back', 'house-left', 'house-right'].includes(wallId);
+    });
     exteriorWindows.forEach(window => {
       createExteriorWindow(houseGroup, window, wallHeight, glassMaterial, frameMaterial, scale);
     });
@@ -805,12 +847,17 @@ export default function House3DViewer({
     let doorX = 0, doorZ = 0;
     
     // Определяем позицию двери на основе ID стены
-    switch (door.wallId) {
+    const wallId = String(door.wallId);
+    
+    // Позиция на стене (0-1) преобразуется в координаты
+    switch (wallId) {
       case 'house-front':
+      case 'house-top':
         doorX = (door.position - 0.5) * houseWidth;
         doorZ = houseDepth / 2;
         break;
       case 'house-back':
+      case 'house-bottom':
         doorX = (door.position - 0.5) * houseWidth;
         doorZ = -houseDepth / 2;
         break;
@@ -822,9 +869,12 @@ export default function House3DViewer({
         doorX = houseWidth / 2;
         doorZ = (door.position - 0.5) * houseDepth;
         break;
+      default:
+        // Если wallId не соответствует ожидаемому формату, пропускаем
+        return;
     }
 
-    const doorWidth = door.realWidth * scale;
+    const doorWidth = (door.realWidth || 0.9) * scale;
     const doorHeight = 2.1 * scale;
     
     // Создаем группу для входной двери
@@ -870,8 +920,9 @@ export default function House3DViewer({
     doorGroup.position.set(doorX, 0, doorZ);
     
     // Поворачиваем в зависимости от стены
-    switch (door.wallId) {
+    switch (wallId) {
       case 'house-back':
+      case 'house-bottom':
         doorGroup.rotation.y = Math.PI;
         break;
       case 'house-left':
@@ -899,13 +950,16 @@ export default function House3DViewer({
     let windowX = 0, windowZ = 0, rotation = 0;
     
     // Определяем позицию окна на основе ID стены
-    switch (window.wallId) {
+    const wallId = String(window.wallId);
+    switch (wallId) {
       case 'house-front':
+      case 'house-top':
         windowX = (window.position - 0.5) * houseWidth;
         windowZ = houseDepth / 2;
         rotation = 0;
         break;
       case 'house-back':
+      case 'house-bottom':
         windowX = (window.position - 0.5) * houseWidth;
         windowZ = -houseDepth / 2;
         rotation = Math.PI;
@@ -920,9 +974,12 @@ export default function House3DViewer({
         windowZ = (window.position - 0.5) * houseDepth;
         rotation = -Math.PI / 2;
         break;
+      default:
+        // Если wallId не соответствует ожидаемому формату, пропускаем
+        return;
     }
 
-    const windowWidth = window.realWidth * scale;
+    const windowWidth = (window.realWidth || 1.2) * scale;
     const windowHeight = 1.2 * scale;
     const frameThickness = 0.15 * scale;
     const windowBottom = 0.9 * scale;
