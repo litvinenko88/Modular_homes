@@ -535,6 +535,12 @@ canvas {
   animation-fill-mode: both;
 }
 
+.hero-form {
+  animation: heroFadeIn 0.8s ease-out;
+  animation-delay: 1s;
+  animation-fill-mode: both;
+}
+
 /* Плавные переходы для всех интерактивных элементов */
 * {
   -webkit-tap-highlight-color: transparent;
@@ -592,8 +598,20 @@ body.menu-open {
 
 @media (max-width: 768px) {
   .hero-section {
-    height: 80vh !important;
-    padding: 0 1rem !important;
+    height: auto !important;
+    min-height: 100vh !important;
+    padding: 2rem 1rem !important;
+  }
+  
+  .hero-section > div {
+    flex-direction: column !important;
+    gap: 2rem !important;
+    align-items: stretch !important;
+  }
+  
+  .hero-content {
+    max-width: 100% !important;
+    text-align: center !important;
   }
   
   .hero-section h1 {
@@ -616,6 +634,12 @@ body.menu-open {
   
   .hero-buttons button {
     width: 100% !important;
+    justify-content: center !important;
+  }
+  
+  .hero-form {
+    width: 100% !important;
+    display: flex !important;
     justify-content: center !important;
   }
 }

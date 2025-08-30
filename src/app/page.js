@@ -1,6 +1,7 @@
 'use client';
 
 import Header from '../components/layout/Header';
+import ContactForm from '../components/ui/ContactForm';
 import { useRegion } from '../hooks/useRegion';
 
 export default function Home() {
@@ -31,7 +32,7 @@ export default function Home() {
           left: 0,
           right: 0,
           bottom: 0,
-          background: 'linear-gradient(90deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.1) 100%)'
+          background: 'linear-gradient(90deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.6) 40%, rgba(0,0,0,0.3) 70%, rgba(0,0,0,0.1) 100%)'
         }} />
         
         {/* Контент */}
@@ -41,9 +42,15 @@ export default function Home() {
           maxWidth: '1200px',
           margin: '0 auto',
           padding: '0 2rem',
-          color: 'var(--white)'
+          color: 'var(--white)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '3rem',
+          width: '100%'
         }}>
+          {/* Левая часть - текст */}
           <div className="hero-content" style={{
+            flex: '1',
             maxWidth: '600px'
           }}>
             <h1 style={{
@@ -153,6 +160,13 @@ export default function Home() {
                 Каталог
               </button>
             </div>
+          </div>
+          
+          {/* Правая часть - форма */}
+          <div className="hero-form" style={{
+            flexShrink: 0
+          }}>
+            <ContactForm />
           </div>
         </div>
       </section>
