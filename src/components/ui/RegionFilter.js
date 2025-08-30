@@ -1,9 +1,11 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { regions } from '../../data/regions';
 
 export default function RegionFilter({ selectedRegion, onRegionChange, isMobile = false }) {
+  const router = useRouter();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 0 });
   const dropdownRef = useRef(null);
@@ -70,7 +72,11 @@ export default function RegionFilter({ selectedRegion, onRegionChange, isMobile 
               <button
                 key={region.id}
                 onClick={() => {
-                  onRegionChange(region.id);
+                  if (region.id === 'rf') {
+                    router.push('/');
+                  } else {
+                    router.push(`/${region.id}`);
+                  }
                   setIsDropdownOpen(false);
                 }}
                 style={{
@@ -144,7 +150,11 @@ export default function RegionFilter({ selectedRegion, onRegionChange, isMobile 
             <button
               key={region.id}
               onClick={() => {
-                onRegionChange(region.id);
+                if (region.id === 'rf') {
+                  router.push('/');
+                } else {
+                  router.push(`/${region.id}`);
+                }
                 setIsDropdownOpen(false);
               }}
               style={{
