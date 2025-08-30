@@ -618,16 +618,16 @@ export default function ConstructorInterface({ initialData, onBack }) {
         if ((x2 - x1) >= 15 && (y2 - y1) >= 15) {
           if (isRoomFullyEnclosed(x1, y1, x2, y2, allWalls)) {
             const roomWalls = getRoomWalls(x1, y1, x2, y2, walls);
-            // Создаем комнату только если в ней есть хотя бы одна пользовательская стена
-            if (roomWalls.length > 0) {
-              rooms.push({
-                bounds: { minX: x1, maxX: x2, minY: y1, maxY: y2 },
-                walls: roomWalls,
-                area: ((x2 - x1) * (y2 - y1)) / (30 * 30), // площадь в м²
-                width: (x2 - x1) / 30, // ширина в метрах
-                height: (y2 - y1) / 30 // высота в метрах
-              });
-            }
+            // Создаем комнату если она полностью окружена стенами
+            // Если есть пользовательские стены - показываем их количество
+            // Если нет пользовательских стен - это просто пустая комната
+            rooms.push({
+              bounds: { minX: x1, maxX: x2, minY: y1, maxY: y2 },
+              walls: roomWalls,
+              area: ((x2 - x1) * (y2 - y1)) / (30 * 30), // площадь в м²
+              width: (x2 - x1) / 30, // ширина в метрах
+              height: (y2 - y1) / 30 // высота в метрах
+            });
           }
         }
       }
@@ -874,10 +874,10 @@ export default function ConstructorInterface({ initialData, onBack }) {
       const center = getRoomCenter(room);
       const area = calculateRoomArea(room);
       
-      if (area > 0.5) { // Показываем только комнаты больше 0.5 м²
+      if (area > 0.3) { // Показываем комнаты больше 0.3 м²
         
         // Показываем площадь и название
-        if (zoom >= 0.4) {
+        if (zoom >= 0.3) {
           ctx.fillStyle = '#2196f3';
           ctx.font = '12px Arial';
           ctx.textAlign = 'center';
@@ -908,7 +908,7 @@ export default function ConstructorInterface({ initialData, onBack }) {
             center.y * zoom + 20
           );
           
-          // Показываем количество стен в комнате
+          // Показываем количество стен в комнате (только если есть пользовательские стены)
           if (room.walls && room.walls.length > 0) {
             ctx.fillStyle = '#ff6b35';
             ctx.font = '8px Arial';
