@@ -36,7 +36,7 @@ export default function Home() {
         }} />
         
         {/* Контент */}
-        <div className="container" style={{
+        <div className="container hero-container" style={{
           position: 'relative',
           zIndex: 2,
           color: 'var(--white)',

@@ -260,7 +260,7 @@ export default function Header({ selectedRegion, onRegionChange }) {
           }
         }
 
-        @media (max-width: 768px) {
+        @media (max-width: 850px) {
           .desktop-nav {
             display: none !important;
           }

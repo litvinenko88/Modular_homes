@@ -285,9 +285,16 @@ canvas {
   opacity: 1;
 }
 
+/* Базовые стили контейнера */
+.container {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 var(--container-padding);
+}
+
 /* Адаптивные отступы */
 @media (max-width: 1024px) {
-  .container {
+  .container:not(.hero-container) {
     padding: 0 var(--container-padding-tablet);
   }
   
@@ -305,7 +312,7 @@ canvas {
 }
 
 @media (max-width: 768px) {
-  .container {
+  .container:not(.hero-container) {
     padding: 0 var(--container-padding-mobile);
   }
   
@@ -355,35 +362,62 @@ canvas {
   }
 }
 
+/* Адаптивная навигация */
+@media (max-width: 1200px) {
+  .desktop-nav {
+    gap: 1.5rem !important;
+  }
+  
+  .desktop-nav a {
+    font-size: 0.9rem !important;
+  }
+}
+
 @media (max-width: 1024px) {
-  header nav {
+  .desktop-nav {
     gap: 1.2rem !important;
   }
   
-  header nav a {
-    font-size: 0.9rem !important;
-    white-space: nowrap !important;
+  .desktop-nav a {
+    font-size: 0.85rem !important;
   }
   
-  .request-button {
+  .header-right {
+    gap: 0.6rem !important;
+  }
+  
+  .header-right button {
     padding: 0.6rem 1rem !important;
     font-size: 0.85rem !important;
-    white-space: nowrap !important;
   }
 }
 
 @media (max-width: 900px) {
-  header nav {
-    gap: 0.8rem !important;
+  .desktop-nav {
+    gap: 1rem !important;
   }
   
-  header nav a {
-    font-size: 0.85rem !important;
+  .desktop-nav a {
+    font-size: 0.8rem !important;
   }
   
-  .request-button {
+  .header-right button {
     padding: 0.5rem 0.8rem !important;
     font-size: 0.8rem !important;
+  }
+}
+
+@media (max-width: 850px) {
+  .desktop-nav {
+    display: none !important;
+  }
+  
+  .hamburger {
+    display: flex !important;
+  }
+  
+  .header-right {
+    display: none !important;
   }
 }
 
@@ -471,6 +505,141 @@ canvas {
 /* Улучшенная анимация гамбургера */
 .hamburger span {
   border-radius: 1px;
+}
+
+/* Адаптивные стили для Hero секции */
+.hero-section {
+  padding: 2rem 0 !important;
+}
+
+.hero-section .container {
+  padding: 0 var(--container-padding) !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 3rem !important;
+}
+
+.hero-content {
+  flex: 1 !important;
+  max-width: 600px !important;
+}
+
+.hero-form {
+  flex-shrink: 0 !important;
+  width: auto !important;
+}
+
+/* Адаптация для планшетов */
+@media (max-width: 1200px) {
+  .hero-section .container {
+    padding: 0 var(--container-padding-tablet) !important;
+    gap: 2rem !important;
+  }
+  
+  .hero-content h1 {
+    font-size: 2.8rem !important;
+  }
+  
+  .hero-content p {
+    font-size: 1.1rem !important;
+  }
+}
+
+@media (max-width: 1024px) {
+  .hero-section .container {
+    gap: 1.5rem !important;
+  }
+  
+  .hero-content h1 {
+    font-size: 2.4rem !important;
+  }
+  
+  .hero-advantages {
+    grid-template-columns: 1fr !important;
+    gap: 0.8rem !important;
+  }
+}
+
+/* Мобильная адаптация Hero */
+@media (max-width: 768px) {
+  .hero-section {
+    height: auto !important;
+    min-height: 100vh !important;
+    padding: 1rem 0 !important;
+  }
+  
+  .hero-section .container {
+    flex-direction: column !important;
+    gap: 2rem !important;
+    padding: 0 var(--container-padding-mobile) !important;
+    justify-content: center !important;
+    text-align: center !important;
+  }
+  
+  .hero-content {
+    max-width: 100% !important;
+    order: 1 !important;
+  }
+  
+  .hero-content h1 {
+    font-size: 2rem !important;
+    margin-bottom: 1rem !important;
+  }
+  
+  .hero-content p {
+    font-size: 1rem !important;
+    margin-bottom: 2rem !important;
+  }
+  
+  .hero-advantages {
+    margin-bottom: 2rem !important;
+  }
+  
+  .hero-buttons {
+    flex-direction: column !important;
+    gap: 0.8rem !important;
+  }
+  
+  .hero-buttons button {
+    width: 100% !important;
+    padding: 0.8rem 1.5rem !important;
+    font-size: 0.9rem !important;
+  }
+  
+  .hero-form {
+    order: 2 !important;
+    width: 100% !important;
+    max-width: 400px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-content h1 {
+    font-size: 1.6rem !important;
+  }
+  
+  .hero-content p {
+    font-size: 0.9rem !important;
+  }
+  
+  .hero-advantages span {
+    font-size: 0.85rem !important;
+  }
+  
+  .hero-buttons button {
+    padding: 0.7rem 1.2rem !important;
+    font-size: 0.85rem !important;
+  }
+}
+
+@media (max-width: 320px) {
+  .hero-content h1 {
+    font-size: 1.4rem !important;
+  }
+  
+  .hero-section .container {
+    padding: 0 1rem !important;
+  }
 }
 
 /* Мобильное меню стили */
