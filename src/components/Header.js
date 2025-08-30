@@ -279,8 +279,8 @@ export default function Header() {
         position: 'fixed',
         top: 0,
         right: 0,
-        width: '280px',
-        maxWidth: '80vw',
+        width: '300px',
+        maxWidth: '85vw',
         height: '100vh',
         background: 'var(--white)',
         zIndex: 1000,
@@ -288,7 +288,7 @@ export default function Header() {
         transition: 'transform 0.3s ease-in-out',
         display: 'flex',
         flexDirection: 'column',
-        padding: '80px 1.5rem 2rem 1.5rem',
+        padding: '90px 2rem 2rem 2rem',
         boxShadow: '-5px 0 25px rgba(0,0,0,0.15)',
         overflowY: 'auto'
       }}>
@@ -296,8 +296,8 @@ export default function Header() {
         <nav style={{
           display: 'flex',
           flexDirection: 'column',
-          gap: '2rem',
-          marginBottom: '3rem'
+          gap: '0.5rem',
+          marginBottom: '2rem'
         }}>
           {['Каталог', 'Конструктор', 'Для бизнеса', 'Технология', 'О компании', 'Контакты'].map((item, index) => (
             <a
@@ -307,12 +307,16 @@ export default function Header() {
               style={{
                 color: 'var(--text-dark)',
                 textDecoration: 'none',
-                fontSize: '1.2rem',
+                fontSize: '1.1rem',
                 fontWeight: '500',
-                padding: '1rem 0',
+                padding: '1rem 1rem',
+                borderRadius: '8px',
                 borderBottom: '1px solid var(--border-gray)',
-                transition: 'color 0.2s ease',
+                transition: 'all 0.2s ease',
                 cursor: 'pointer',
+                minHeight: '48px',
+                display: 'flex',
+                alignItems: 'center',
                 animation: isMobileMenuOpen ? `menuItemFadeIn 0.4s ease ${index * 0.08}s both` : 'none'
               }}
               onTouchStart={(e) => {
@@ -421,6 +425,7 @@ export default function Header() {
       {/* Overlay */}
       {isMobileMenuOpen && (
         <div
+          className="mobile-menu-overlay"
           style={{
             position: 'fixed',
             top: 0,
@@ -494,6 +499,7 @@ export default function Header() {
             display: flex !important;
             min-height: 44px !important;
             min-width: 44px !important;
+            z-index: 1001 !important;
           }
           .header-right {
             display: none !important;
@@ -501,12 +507,16 @@ export default function Header() {
           .logo {
             font-size: 1.3rem !important;
           }
+          .mobile-menu {
+            z-index: 1000 !important;
+          }
         }
 
         @media (max-width: 480px) {
           .mobile-menu {
-            width: 85vw !important;
-            max-width: 300px !important;
+            width: 90vw !important;
+            max-width: 320px !important;
+            padding: 80px 1.5rem 2rem 1.5rem !important;
           }
           .logo {
             font-size: 1.2rem !important;
@@ -515,7 +525,8 @@ export default function Header() {
 
         @media (max-width: 360px) {
           .mobile-menu {
-            width: 90vw !important;
+            width: 95vw !important;
+            padding: 75px 1rem 2rem 1rem !important;
           }
           .logo {
             font-size: 1.1rem !important;
@@ -524,7 +535,8 @@ export default function Header() {
 
         @media (max-width: 320px) {
           .mobile-menu {
-            width: 95vw !important;
+            width: 100vw !important;
+            padding: 70px 1rem 2rem 1rem !important;
           }
           .logo {
             font-size: 1rem !important;

@@ -59,6 +59,13 @@ a {
   body {
     font-size: 12px;
   }
+  
+  /* Мобильное меню на маленьких экранах */
+  .mobile-menu {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    right: 0 !important;
+  }
 }
 
 /* Улучшенная типографика */
@@ -270,6 +277,26 @@ canvas {
   }
 }
 
+/* Улучшения для мобильного меню */
+@media (max-width: 768px) {
+  /* Гамбургер кнопка */
+  .hamburger {
+    z-index: 1001 !important;
+    position: relative !important;
+  }
+  
+  /* Мобильное меню */
+  .mobile-menu {
+    z-index: 1000 !important;
+    box-shadow: -10px 0 30px rgba(0,0,0,0.2) !important;
+  }
+  
+  /* Оверлей */
+  .mobile-menu-overlay {
+    z-index: 999 !important;
+  }
+}
+
 @media (max-width: 1024px) {
   header nav {
     gap: 1.2rem !important;
@@ -363,6 +390,28 @@ canvas {
   -webkit-backdrop-filter: blur(10px);
 }
 
+/* Улучшенные стили для мобильного меню */
+@media (max-width: 768px) {
+  .mobile-menu {
+    min-height: 100vh;
+    min-height: 100dvh; /* Для новых браузеров */
+  }
+  
+  .mobile-menu nav {
+    padding-top: 1rem;
+  }
+  
+  .mobile-menu nav a {
+    -webkit-tap-highlight-color: rgba(223, 104, 43, 0.1);
+    tap-highlight-color: rgba(223, 104, 43, 0.1);
+  }
+  
+  .mobile-menu nav a:active {
+    background-color: rgba(223, 104, 43, 0.1) !important;
+    color: var(--accent-orange) !important;
+  }
+}
+
 /* Улучшенные стили для гамбургера */
 .hamburger {
   -webkit-tap-highlight-color: transparent;
@@ -443,6 +492,18 @@ body.menu-open {
   overflow: hidden;
   position: fixed;
   width: 100%;
+  height: 100%;
+}
+
+/* Фиксация для iOS Safari */
+@supports (-webkit-touch-callout: none) {
+  body.menu-open {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+  }
 }
 
 /* Адаптивные стили для главной страницы */
