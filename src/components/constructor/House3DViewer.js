@@ -286,10 +286,18 @@ export default function House3DViewer({
   };
 
   const createExteriorWalls = (houseGroup, width, depth, height, thickness, material) => {
+    // Отладочная информация
+    console.log('Creating exterior walls with doors:', doors.map(d => ({ id: d.id, wallId: d.wallId, position: d.position })));
+    console.log('Creating exterior walls with windows:', windows.map(w => ({ id: w.id, wallId: w.wallId, position: w.position })));
+    
     // Создаем внешние стены с учетом дверей и окон
+    // Передняя стена (верхняя в 2D виде)
     createWallWithOpenings(houseGroup, 'house-front', width, height, thickness, material, 0, height / 2, depth / 2, 0);
+    // Задняя стена (нижняя в 2D виде)
     createWallWithOpenings(houseGroup, 'house-back', width, height, thickness, material, 0, height / 2, -depth / 2, 0);
+    // Левая стена
     createWallWithOpenings(houseGroup, 'house-left', depth, height, thickness, material, -width / 2, height / 2, 0, Math.PI / 2);
+    // Правая стена
     createWallWithOpenings(houseGroup, 'house-right', depth, height, thickness, material, width / 2, height / 2, 0, Math.PI / 2);
   };
 
@@ -593,11 +601,16 @@ export default function House3DViewer({
     const houseElement = elements.find(el => el.type === 'house');
     if (!houseElement) return null;
 
+    // Определяем границы дома в пикселях (2D координаты)
     const boundaries = {
+      // 2D планировщик использует эти ID
       'house-top': { x1: houseElement.x, y1: houseElement.y, x2: houseElement.x + houseElement.width, y2: houseElement.y },
       'house-bottom': { x1: houseElement.x, y1: houseElement.y + houseElement.height, x2: houseElement.x + houseElement.width, y2: houseElement.y + houseElement.height },
       'house-left': { x1: houseElement.x, y1: houseElement.y, x2: houseElement.x, y2: houseElement.y + houseElement.height },
-      'house-right': { x1: houseElement.x + houseElement.width, y1: houseElement.y, x2: houseElement.x + houseElement.width, y2: houseElement.y + houseElement.height }
+      'house-right': { x1: houseElement.x + houseElement.width, y1: houseElement.y, x2: houseElement.x + houseElement.width, y2: houseElement.y + houseElement.height },
+      // 3D визуализатор использует эти ID (соответствие с 2D)
+      'house-front': { x1: houseElement.x, y1: houseElement.y, x2: houseElement.x + houseElement.width, y2: houseElement.y }, // = house-top
+      'house-back': { x1: houseElement.x, y1: houseElement.y + houseElement.height, x2: houseElement.x + houseElement.width, y2: houseElement.y + houseElement.height } // = house-bottom
     };
 
     return boundaries[id] ? { id, ...boundaries[id], type: 'boundary' } : null;
@@ -660,9 +673,24 @@ export default function House3DViewer({
     // Находим все двери и окна на этой стене
     const wallOpenings = [];
     
-    // Проверяем двери - ищем по точному совпадению wallId
+    // Проверяем двери - ищем по точному совпадению wallId или альтернативным ID
     doors.forEach(door => {
-      if (door.wallId === wallId) {
+      const doorWallId = String(door.wallId);
+      const targetWallId = String(wallId);
+      
+      // Проверяем различные варианты ID стен
+      const isMatchingWall = doorWallId === targetWallId || 
+                           // Передняя стена (house-front в 3D = house-top в 2D)
+                           (targetWallId === 'house-front' && doorWallId === 'house-top') ||
+                           // Задняя стена (house-back в 3D = house-bottom в 2D)
+                           (targetWallId === 'house-back' && doorWallId === 'house-bottom') ||
+                           // Левая стена
+                           (targetWallId === 'house-left' && doorWallId === 'house-left') ||
+                           // Правая стена
+                           (targetWallId === 'house-right' && doorWallId === 'house-right');
+      
+      if (isMatchingWall) {
+        console.log(`Found matching door: wallId=${doorWallId} matches targetWallId=${targetWallId}`);
         const wallLengthMeters = wallLength / 10; // Переводим в метры
         wallOpenings.push({
           type: 'door',
@@ -671,12 +699,29 @@ export default function House3DViewer({
           height: 2.1 * 10, // Высота двери 2.1м
           data: door
         });
+      } else {
+        console.log(`Door not matching: wallId=${doorWallId} does not match targetWallId=${targetWallId}`);
       }
     });
     
-    // Проверяем окна - ищем по точному совпадению wallId
+    // Проверяем окна - ищем по точному совпадению wallId или альтернативным ID
     windows.forEach(window => {
-      if (window.wallId === wallId) {
+      const windowWallId = String(window.wallId);
+      const targetWallId = String(wallId);
+      
+      // Проверяем различные варианты ID стен
+      const isMatchingWall = windowWallId === targetWallId || 
+                           // Передняя стена (house-front в 3D = house-top в 2D)
+                           (targetWallId === 'house-front' && windowWallId === 'house-top') ||
+                           // Задняя стена (house-back в 3D = house-bottom в 2D)
+                           (targetWallId === 'house-back' && windowWallId === 'house-bottom') ||
+                           // Левая стена
+                           (targetWallId === 'house-left' && windowWallId === 'house-left') ||
+                           // Правая стена
+                           (targetWallId === 'house-right' && windowWallId === 'house-right');
+      
+      if (isMatchingWall) {
+        console.log(`Found matching window: wallId=${windowWallId} matches targetWallId=${targetWallId}`);
         const wallLengthMeters = wallLength / 10; // Переводим в метры
         wallOpenings.push({
           type: 'window',
@@ -685,6 +730,8 @@ export default function House3DViewer({
           height: 1.2 * 10, // Высота окна 1.2м
           data: window
         });
+      } else {
+        console.log(`Window not matching: wallId=${windowWallId} does not match targetWallId=${targetWallId}`);
       }
     });
     
@@ -703,6 +750,9 @@ export default function House3DViewer({
   };
   
   const createWallSegments = (houseGroup, wallLength, wallHeight, wallThickness, material, openings, x, y, z, rotation) => {
+    // Отладочная информация
+    console.log(`Creating wall segments with ${openings.length} openings:`, openings.map(o => ({ type: o.type, position: o.position, width: o.width })));
+    
     // Сортируем проемы по позиции
     openings.sort((a, b) => a.position - b.position);
     
