@@ -274,8 +274,7 @@ export default function House3DViewer({
     // Окна
     createWindows(houseGroup, wallHeight, windowMaterial, windowFrameMaterial, scale);
 
-    // Двери и окна на внешних стенах
-    createExteriorDoorsAndWindows(houseGroup, wallHeight, doorMaterial, windowMaterial, windowFrameMaterial, scale);
+    // Двери и окна на внешних стенах уже созданы в createExteriorWalls
 
     // Крыша убрана для просмотра внутренней планировки
     // createRoof(houseGroup, houseWidth, houseDepth, wallHeight, roofMaterial);
@@ -770,6 +769,31 @@ export default function House3DViewer({
           topMesh.castShadow = true;
           houseGroup.add(topMesh);
         }
+        
+        // Создаем само окно в проеме
+        const windowFrameGeometry = new THREE.BoxGeometry(opening.width * 0.9, opening.height * 0.9, wallThickness * 0.3);
+        const windowFrameMaterial = new THREE.MeshPhongMaterial({ color: 0xFFFFFF });
+        const windowFrameMesh = new THREE.Mesh(windowFrameGeometry, windowFrameMaterial);
+        
+        const windowGlassGeometry = new THREE.BoxGeometry(opening.width * 0.8, opening.height * 0.8, wallThickness * 0.1);
+        const windowGlassMaterial = new THREE.MeshPhongMaterial({ 
+          color: 0x87CEEB, 
+          transparent: true, 
+          opacity: 0.6 
+        });
+        const windowGlassMesh = new THREE.Mesh(windowGlassGeometry, windowGlassMaterial);
+        
+        const windowX = x + (rotation === 0 ? (opening.position * 10 - wallLength / 2) : 0);
+        const windowZ = z + (rotation !== 0 ? (opening.position * 10 - wallLength / 2) : 0);
+        
+        windowFrameMesh.position.set(windowX, windowBottom + opening.height / 2, windowZ);
+        windowFrameMesh.rotation.y = rotation;
+        windowFrameMesh.castShadow = true;
+        houseGroup.add(windowFrameMesh);
+        
+        windowGlassMesh.position.set(windowX, windowBottom + opening.height / 2, windowZ);
+        windowGlassMesh.rotation.y = rotation;
+        houseGroup.add(windowGlassMesh);
       } else if (opening.type === 'door') {
         // Для дверей создаем только сегмент над проемом
         const doorHeight = 2.1 * 10; // Высота двери
@@ -786,6 +810,28 @@ export default function House3DViewer({
           topMesh.castShadow = true;
           houseGroup.add(topMesh);
         }
+        
+        // Создаем саму дверь в проеме
+        const doorFrameGeometry = new THREE.BoxGeometry(opening.width * 0.9, doorHeight * 0.95, wallThickness * 0.3);
+        const doorFrameMaterial = new THREE.MeshPhongMaterial({ color: 0x8B4513 });
+        const doorFrameMesh = new THREE.Mesh(doorFrameGeometry, doorFrameMaterial);
+        
+        const doorGeometry = new THREE.BoxGeometry(opening.width * 0.8, doorHeight * 0.9, wallThickness * 0.1);
+        const doorMaterial = new THREE.MeshPhongMaterial({ color: 0x654321 });
+        const doorMesh = new THREE.Mesh(doorGeometry, doorMaterial);
+        
+        const doorX = x + (rotation === 0 ? (opening.position * 10 - wallLength / 2) : 0);
+        const doorZ = z + (rotation !== 0 ? (opening.position * 10 - wallLength / 2) : 0);
+        
+        doorFrameMesh.position.set(doorX, doorHeight / 2, doorZ);
+        doorFrameMesh.rotation.y = rotation;
+        doorFrameMesh.castShadow = true;
+        houseGroup.add(doorFrameMesh);
+        
+        doorMesh.position.set(doorX, doorHeight / 2, doorZ);
+        doorMesh.rotation.y = rotation;
+        doorMesh.castShadow = true;
+        houseGroup.add(doorMesh);
       }
       
       currentPos = openingEnd;
