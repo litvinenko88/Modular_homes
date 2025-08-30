@@ -76,7 +76,8 @@ export default function Home() {
               display: 'grid',
               gridTemplateColumns: 'repeat(2, 1fr)',
               gap: '1rem',
-              marginBottom: '3rem'
+              marginBottom: '3rem',
+              textAlign: 'center'
             }}>
               {[
                 'Заезжайте и живите через 30 дней',
@@ -87,6 +88,7 @@ export default function Home() {
                 <div key={index} style={{
                   display: 'flex',
                   alignItems: 'center',
+                  justifyContent: 'center',
                   gap: '0.8rem'
                 }}>
                   <div style={{
@@ -169,6 +171,28 @@ export default function Home() {
           </div>
         </div>
       </section>
+      
+      <style jsx>{`
+        @media (max-width: 768px) {
+          .hero-advantages {
+            grid-template-columns: repeat(2, 1fr) !important;
+            grid-template-rows: repeat(2, 1fr) !important;
+            gap: 1.5rem !important;
+          }
+          
+          .hero-advantages > div {
+            width: 100% !important;
+          }
+          
+          .hero-buttons {
+            flex-direction: column !important;
+          }
+          
+          .hero-buttons button {
+            width: 100% !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }
