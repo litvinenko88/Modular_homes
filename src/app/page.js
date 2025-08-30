@@ -38,8 +38,11 @@ export default function Home() {
         minHeight: '100vh',
         background: `
           radial-gradient(circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(223, 104, 43, 0.15) 0%, transparent 50%),
-          linear-gradient(135deg, #0f0f23 0%, #1a1b2e 25%, #16213e 50%, #0f3460 75%, #533483 100%)
+          linear-gradient(135deg, rgba(15, 15, 35, 0.85) 0%, rgba(26, 27, 46, 0.85) 25%, rgba(22, 33, 62, 0.85) 50%, rgba(15, 52, 96, 0.85) 75%, rgba(83, 52, 131, 0.85) 100%),
+          url(/images/mod-glav.jpeg)
         `,
+        backgroundSize: 'auto, auto, cover',
+        backgroundPosition: 'center, center, center',
         color: 'var(--white)',
         display: 'flex',
         alignItems: 'center',
@@ -286,57 +289,7 @@ export default function Home() {
           </div>
         </div>
         
-        {/* Секция преимуществ */}
-        <div style={{
-          position: 'absolute',
-          bottom: '2rem',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          display: 'flex',
-          gap: '3rem',
-          flexWrap: 'wrap',
-          justifyContent: 'center',
-          zIndex: 3
-        }}>
-          {[
-            'Заезжайте и живите через 30 дней',
-            'Полный цикл «под ключ»',
-            'Фиксированная цена',
-            'Скорость и прозрачность'
-          ].map((item, index) => (
-            <div key={index} style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.8rem',
-              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05))',
-              backdropFilter: 'blur(20px)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              padding: '0.8rem 1.5rem',
-              borderRadius: '50px',
-              fontSize: '0.9rem',
-              fontWeight: '500',
-              transition: 'all 0.3s ease',
-              cursor: 'pointer'
-            }}
-            onMouseEnter={(e) => {
-              e.target.style.transform = 'translateY(-2px)';
-              e.target.style.background = 'linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.08))';
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.transform = 'translateY(0)';
-              e.target.style.background = 'linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05))';
-            }}>
-              <div style={{
-                width: '8px',
-                height: '8px',
-                backgroundColor: 'var(--accent-orange)',
-                borderRadius: '50%',
-                flexShrink: 0
-              }} />
-              {item}
-            </div>
-          ))}
-        </div>
+
       </section>
       
       {/* Секция преимуществ */}
@@ -421,20 +374,7 @@ export default function Home() {
             justify-content: center !important;
           }
           
-          .hero-section > div:last-child {
-            position: relative !important;
-            bottom: auto !important;
-            left: auto !important;
-            transform: none !important;
-            margin-top: 2rem !important;
-            flex-direction: column !important;
-            gap: 1rem !important;
-          }
-          
-          .hero-section > div:last-child > div {
-            padding: 0.6rem 1rem !important;
-            font-size: 0.8rem !important;
-          }
+
         }
         
         @media (max-width: 480px) {

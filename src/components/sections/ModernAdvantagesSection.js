@@ -25,45 +25,31 @@ export default function ModernAdvantagesSection() {
   const advantages = [
     {
       icon: '🏠',
-      title: 'Полный цикл строительства',
-      description: 'От проектирования до сдачи ключей. Все работы выполняем собственными силами с гарантией качества.',
+      title: 'Заезжайте и живите через 30 дней',
+      description: 'Быстрое строительство модульных домов позволяет въехать в готовый дом уже через месяц.',
       gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
       color: '#667eea'
     },
     {
-      icon: '⚡',
-      title: 'Скорость возведения',
-      description: 'Готовый дом за 30-60 дней благодаря модульной технологии и заводскому производству.',
+      icon: '🔑',
+      title: 'Полный цикл «под ключ»',
+      description: 'От проектирования до сдачи готового дома со всеми коммуникациями и отделкой.',
       gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
       color: '#f5576c'
     },
     {
-      icon: '💎',
-      title: 'Премиум качество',
-      description: 'Используем только сертифицированные материалы и современные технологии строительства.',
+      icon: '💰',
+      title: 'Фиксированная цена',
+      description: 'Стоимость не изменится в процессе строительства. Никаких скрытых доплат.',
       gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
       color: '#00f2fe'
     },
     {
-      icon: '🛡️',
-      title: 'Гарантия и надежность',
-      description: 'Предоставляем расширенную гарантию на все виды работ и материалы сроком до 10 лет.',
+      icon: '⚡',
+      title: 'Скорость и прозрачность',
+      description: 'Открытый процесс строительства с контролем на каждом этапе и быстрой реализацией.',
       gradient: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
       color: '#43e97b'
-    },
-    {
-      icon: '💰',
-      title: 'Фиксированная стоимость',
-      description: 'Цена не изменится в процессе строительства. Никаких скрытых доплат и неожиданных расходов.',
-      gradient: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
-      color: '#fa709a'
-    },
-    {
-      icon: '🌿',
-      title: 'Экологичность',
-      description: 'Используем экологически чистые материалы, безопасные для здоровья и окружающей среды.',
-      gradient: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
-      color: '#a8edea'
     }
   ];
 
@@ -167,9 +153,9 @@ export default function ModernAdvantagesSection() {
         {/* Сетка преимуществ */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))',
-          gap: '2rem',
-          marginBottom: '4rem'
+          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+          gap: '1.5rem',
+          marginBottom: '3rem'
         }}>
           {advantages.map((advantage, index) => (
             <div
@@ -182,8 +168,8 @@ export default function ModernAdvantagesSection() {
                 border: hoveredCard === index 
                   ? `2px solid ${advantage.color}20`
                   : '1px solid rgba(255, 255, 255, 0.3)',
-                borderRadius: '25px',
-                padding: '2.5rem',
+                borderRadius: '20px',
+                padding: '1.5rem',
                 position: 'relative',
                 overflow: 'hidden',
                 cursor: 'pointer',
@@ -220,15 +206,15 @@ export default function ModernAdvantagesSection() {
               }}>
                 {/* Иконка */}
                 <div style={{
-                  width: '80px',
-                  height: '80px',
+                  width: '50px',
+                  height: '50px',
                   background: advantage.gradient,
-                  borderRadius: '20px',
+                  borderRadius: '12px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  marginBottom: '1.5rem',
-                  fontSize: '2rem',
+                  marginBottom: '1rem',
+                  fontSize: '1.5rem',
                   transform: hoveredCard === index ? 'scale(1.1) rotate(5deg)' : 'scale(1)',
                   transition: 'transform 0.3s ease'
                 }}>
@@ -237,9 +223,9 @@ export default function ModernAdvantagesSection() {
                 
                 {/* Заголовок */}
                 <h3 style={{
-                  fontSize: '1.5rem',
+                  fontSize: '1.2rem',
                   fontWeight: '700',
-                  marginBottom: '1rem',
+                  marginBottom: '0.8rem',
                   color: 'var(--text-dark)',
                   lineHeight: '1.3'
                 }}>
@@ -248,9 +234,9 @@ export default function ModernAdvantagesSection() {
                 
                 {/* Описание */}
                 <p style={{
-                  fontSize: '1rem',
+                  fontSize: '0.9rem',
                   color: 'var(--text-light)',
-                  lineHeight: '1.6',
+                  lineHeight: '1.5',
                   margin: 0
                 }}>
                   {advantage.description}
@@ -258,11 +244,11 @@ export default function ModernAdvantagesSection() {
                 
                 {/* Декоративная линия */}
                 <div style={{
-                  width: hoveredCard === index ? '60px' : '30px',
-                  height: '3px',
+                  width: hoveredCard === index ? '40px' : '20px',
+                  height: '2px',
                   background: advantage.gradient,
-                  borderRadius: '2px',
-                  marginTop: '1.5rem',
+                  borderRadius: '1px',
+                  marginTop: '1rem',
                   transition: 'width 0.3s ease'
                 }} />
               </div>
