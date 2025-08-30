@@ -101,6 +101,17 @@ input, select, textarea {
   input, select {
     min-height: 44px;
   }
+  
+  /* Улучшенные тач-цели для мобильных */
+  .hamburger {
+    min-height: 44px !important;
+    min-width: 44px !important;
+  }
+  
+  /* Убираем hover эффекты на тач-устройствах */
+  a:hover {
+    color: inherit !important;
+  }
 }
 
 /* Убираем выделение текста при перетаскивании */
@@ -154,6 +165,17 @@ canvas {
   to { transform: translateY(0); opacity: 1; }
 }
 
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
@@ -162,6 +184,40 @@ canvas {
 @keyframes pulse {
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.05); }
+}
+
+/* Гамбургер анимации */
+@keyframes hamburgerOpen {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(45deg); }
+}
+
+@keyframes hamburgerClose {
+  0% { transform: rotate(45deg); }
+  100% { transform: rotate(0deg); }
+}
+
+/* Плавная анимация для мобильного меню */
+@keyframes slideInFromRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutToRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
 }
 
 .fade-in {
@@ -205,6 +261,188 @@ canvas {
 
 .constructor-content.loaded {
   opacity: 1;
+}
+
+/* Адаптивные стили для header */
+@media (max-width: 1200px) {
+  header {
+    padding: 0 1.5rem !important;
+  }
+}
+
+@media (max-width: 1024px) {
+  header nav {
+    gap: 1.2rem !important;
+  }
+  
+  header nav a {
+    font-size: 0.9rem !important;
+    white-space: nowrap !important;
+  }
+  
+  .request-button {
+    padding: 0.6rem 1rem !important;
+    font-size: 0.85rem !important;
+    white-space: nowrap !important;
+  }
+}
+
+@media (max-width: 900px) {
+  header nav {
+    gap: 0.8rem !important;
+  }
+  
+  header nav a {
+    font-size: 0.85rem !important;
+  }
+  
+  .request-button {
+    padding: 0.5rem 0.8rem !important;
+    font-size: 0.8rem !important;
+  }
+}
+
+@media (max-width: 768px) {
+  header {
+    padding: 0 1rem !important;
+  }
+  
+  header > div {
+    height: 60px !important;
+  }
+  
+  .logo {
+    font-size: 1.3rem !important;
+    white-space: nowrap !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .logo {
+    font-size: 1.2rem !important;
+  }
+  
+  header > div {
+    height: 55px !important;
+  }
+}
+
+@media (max-width: 320px) {
+  .logo {
+    font-size: 1rem !important;
+  }
+  
+  header {
+    padding: 0 0.8rem !important;
+  }
+}
+
+/* Предотвращение деформации элементов */
+.logo {
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+}
+
+.request-button {
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+}
+
+.hamburger {
+  flex-shrink: 0 !important;
+}
+
+/* Улучшенная анимация гамбургера */
+.hamburger span {
+  border-radius: 1px;
+}
+
+/* Мобильное меню стили */
+.mobile-menu {
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* Улучшенные стили для гамбургера */
+.hamburger {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.hamburger span {
+  border-radius: 1px;
+  will-change: transform, opacity;
+}
+
+/* Анимации для мобильного меню */
+@keyframes mobileMenuSlideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes mobileMenuSlideOut {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+/* Улучшенная анимация для элементов меню */
+@keyframes menuItemFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Плавные переходы для всех интерактивных элементов */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button, a {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Оптимизация производительности анимаций */
+.hamburger {
+  will-change: transform;
+}
+
+.hamburger span {
+  will-change: transform, opacity;
+}
+
+/* Мобильное меню */
+.mobile-menu {
+  will-change: transform;
+  contain: layout style paint;
+}
+
+/* Предотвращение скролла при открытом меню */
+body.menu-open {
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
 }
 
 /* Адаптивные стили для главной страницы */
