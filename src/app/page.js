@@ -162,49 +162,49 @@ export default function Home() {
               Это не просто коробка с окнами — это полноценный дом с современными технологиями и инновационным подходом
             </p>
             
-            {/* Статистика */}
+            {/* Преимущества */}
             <div className="hero-stats" style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(3, 1fr)',
-              gap: '2rem',
+              gridTemplateColumns: 'repeat(2, 1fr)',
+              gap: '0.8rem',
               marginBottom: '3rem'
             }}>
               {[
-                { number: '30-60', label: 'дней строительства', icon: '🚀' },
-                { number: '1000+', label: 'довольных клиентов', icon: '⭐' },
-                { number: '100%', label: 'гарантия качества', icon: '✓' }
-              ].map((stat, index) => (
+                'Заезжайте и живите через 30 дней',
+                'Полный цикл «под ключ»',
+                'Фиксированная цена',
+                'Скорость и прозрачность'
+              ].map((item, index) => (
                 <div key={index} style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.6rem',
                   background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05))',
                   backdropFilter: 'blur(20px)',
                   border: '1px solid rgba(255, 255, 255, 0.1)',
-                  borderRadius: '20px',
-                  padding: '1.5rem',
-                  textAlign: 'center',
+                  borderRadius: '12px',
+                  padding: '0.8rem 1rem',
+                  fontSize: '0.85rem',
+                  fontWeight: '500',
                   transition: 'all 0.3s ease',
                   cursor: 'pointer'
                 }}
                 onMouseEnter={(e) => {
-                  e.target.style.transform = 'translateY(-5px)';
-                  e.target.style.boxShadow = '0 20px 40px rgba(0, 0, 0, 0.2)';
+                  e.target.style.transform = 'translateY(-2px)';
+                  e.target.style.background = 'linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.08))';
                 }}
                 onMouseLeave={(e) => {
                   e.target.style.transform = 'translateY(0)';
-                  e.target.style.boxShadow = 'none';
+                  e.target.style.background = 'linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05))';
                 }}>
-                  <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>{stat.icon}</div>
                   <div style={{
-                    fontSize: '1.8rem',
-                    fontWeight: '800',
-                    marginBottom: '0.5rem',
-                    background: 'linear-gradient(135deg, var(--accent-orange), #ff8c42)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    backgroundClip: 'text'
-                  }}>
-                    {stat.number}
-                  </div>
-                  <div style={{ fontSize: '0.9rem', opacity: 0.8 }}>{stat.label}</div>
+                    width: '6px',
+                    height: '6px',
+                    backgroundColor: 'var(--accent-orange)',
+                    borderRadius: '50%',
+                    flexShrink: 0
+                  }} />
+                  {item}
                 </div>
               ))}
             </div>
@@ -349,7 +349,7 @@ export default function Home() {
           }
           
           .hero-stats {
-            grid-template-columns: repeat(3, 1fr) !important;
+            grid-template-columns: repeat(2, 1fr) !important;
           }
         }
         
@@ -361,7 +361,7 @@ export default function Home() {
           
           .hero-stats {
             grid-template-columns: 1fr !important;
-            gap: 1rem !important;
+            gap: 0.6rem !important;
           }
           
           .hero-buttons {
