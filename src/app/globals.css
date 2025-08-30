@@ -145,8 +145,8 @@ canvas {
 
 /* Анимации */
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes slideIn {
@@ -157,6 +157,11 @@ canvas {
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
 }
 
 .fade-in {
@@ -200,4 +205,46 @@ canvas {
 
 .constructor-content.loaded {
   opacity: 1;
+}
+
+/* Адаптивные стили для главной страницы */
+@media (max-width: 768px) {
+  /* Hero секция */
+  section h1 {
+    font-size: 2rem !important;
+  }
+  
+  section p {
+    font-size: 1rem !important;
+  }
+  
+  section button {
+    padding: 0.8rem 1.5rem !important;
+    font-size: 1rem !important;
+  }
+  
+  /* Преимущества */
+  section h2 {
+    font-size: 2rem !important;
+  }
+  
+  /* Карточки */
+  div[style*="grid-template-columns"] {
+    grid-template-columns: 1fr !important;
+    gap: 1.5rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  section {
+    padding: 2rem 1rem !important;
+  }
+  
+  section h1 {
+    font-size: 1.8rem !important;
+  }
+  
+  section h2 {
+    font-size: 1.5rem !important;
+  }
 }
