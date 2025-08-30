@@ -53,6 +53,7 @@ export default function ConstructorInterface({ initialData, onBack }) {
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [doors, setDoors] = useState([]);
   const [windows, setWindows] = useState([]);
+  const [selectedWalls, setSelectedWalls] = useState([]);
 
   const SCALE = 30;
 
@@ -566,12 +567,12 @@ export default function ConstructorInterface({ initialData, onBack }) {
   
   const findRooms = () => {
     const houseElement = elements.find(el => el.type === 'house');
-    if (!houseElement) return [];
+    if (!houseElement || walls.length === 0) return []; // Не создаем комнаты без стен
     
     // Создаем массив всех стен включая границы дома
     const allWalls = [...walls];
     
-    // Добавляем границы дома как стены
+    // Добавляем границы дома как стены только если есть пользовательские стены
     const houseBounds = [
       { id: 'house-top', x1: houseElement.x, y1: houseElement.y, x2: houseElement.x + houseElement.width, y2: houseElement.y, type: 'boundary' },
       { id: 'house-right', x1: houseElement.x + houseElement.width, y1: houseElement.y, x2: houseElement.x + houseElement.width, y2: houseElement.y + houseElement.height, type: 'boundary' },
@@ -617,13 +618,16 @@ export default function ConstructorInterface({ initialData, onBack }) {
         if ((x2 - x1) >= 15 && (y2 - y1) >= 15) {
           if (isRoomFullyEnclosed(x1, y1, x2, y2, allWalls)) {
             const roomWalls = getRoomWalls(x1, y1, x2, y2, walls);
-            rooms.push({
-              bounds: { minX: x1, maxX: x2, minY: y1, maxY: y2 },
-              walls: roomWalls,
-              area: ((x2 - x1) * (y2 - y1)) / (30 * 30), // площадь в м²
-              width: (x2 - x1) / 30, // ширина в метрах
-              height: (y2 - y1) / 30 // высота в метрах
-            });
+            // Создаем комнату только если в ней есть хотя бы одна пользовательская стена
+            if (roomWalls.length > 0) {
+              rooms.push({
+                bounds: { minX: x1, maxX: x2, minY: y1, maxY: y2 },
+                walls: roomWalls,
+                area: ((x2 - x1) * (y2 - y1)) / (30 * 30), // площадь в м²
+                width: (x2 - x1) / 30, // ширина в метрах
+                height: (y2 - y1) / 30 // высота в метрах
+              });
+            }
           }
         }
       }
@@ -921,6 +925,7 @@ export default function ConstructorInterface({ initialData, onBack }) {
   
   const drawWall = (ctx, wall) => {
     const isSelected = selectedElement?.id === wall.id;
+    const isMultiSelected = selectedWalls.some(w => w.id === wall.id);
     const isHovered = selectedTool === 'select' && hoveredWall?.id === wall.id;
     
     // Масштабируем координаты (стены остаются на месте при масштабировании)
@@ -935,7 +940,7 @@ export default function ConstructorInterface({ initialData, onBack }) {
       ...windows.filter(w => w.wallId === wall.id)
     ];
     
-    ctx.strokeStyle = isSelected ? '#df682b' : (isHovered ? '#ff9800' : '#8B4513');
+    ctx.strokeStyle = isSelected ? '#df682b' : (isMultiSelected ? '#2196f3' : (isHovered ? '#ff9800' : '#8B4513'));
     ctx.lineWidth = Math.max(3, wall.thickness * 30 * zoom);
     
     if (wallOpenings.length === 0) {
@@ -986,7 +991,7 @@ export default function ConstructorInterface({ initialData, onBack }) {
     }
     
     // Маркеры на концах стены
-    if (isSelected && selectedTool === 'select') {
+    if ((isSelected || isMultiSelected) && selectedTool === 'select') {
       ctx.fillStyle = '#df682b';
       ctx.strokeStyle = '#fff';
       ctx.lineWidth = 1;
@@ -1013,49 +1018,51 @@ export default function ConstructorInterface({ initialData, onBack }) {
       ctx.fill();
       ctx.stroke();
       
-      // Кнопки управления (выше размеров)
-      const buttonY = Math.min(y1, y2) - 40;
-      const buttonSize = 24;
+      // Кнопки управления (выше размеров) - только для одиночно выбранной стены
+      if (isSelected && !isMultiSelected) {
+        const buttonY = Math.min(y1, y2) - 40;
+        const buttonSize = 24;
+        
+        // Проверяем, соединена ли стена с другими
+        const isConnected = walls.some(w => w.id !== wall.id && 
+          ((Math.abs(w.x1 - wall.x1) < 5 && Math.abs(w.y1 - wall.y1) < 5) ||
+           (Math.abs(w.x2 - wall.x2) < 5 && Math.abs(w.y2 - wall.y2) < 5) ||
+           (Math.abs(w.x1 - wall.x2) < 5 && Math.abs(w.y1 - wall.y2) < 5) ||
+           (Math.abs(w.x2 - wall.x1) < 5 && Math.abs(w.y2 - wall.y1) < 5)));
+        
+        const buttonCount = isConnected ? 3 : 2;
+        const startX = centerX - (buttonCount * buttonSize + (buttonCount - 1) * 5) / 2;
       
-      // Проверяем, соединена ли стена с другими
-      const isConnected = walls.some(w => w.id !== wall.id && 
-        ((Math.abs(w.x1 - wall.x1) < 5 && Math.abs(w.y1 - wall.y1) < 5) ||
-         (Math.abs(w.x2 - wall.x2) < 5 && Math.abs(w.y2 - wall.y2) < 5) ||
-         (Math.abs(w.x1 - wall.x2) < 5 && Math.abs(w.y1 - wall.y2) < 5) ||
-         (Math.abs(w.x2 - wall.x1) < 5 && Math.abs(w.y2 - wall.y1) < 5)));
-      
-      const buttonCount = isConnected ? 3 : 2;
-      const startX = centerX - (buttonCount * buttonSize + (buttonCount - 1) * 5) / 2;
-      
-      // Кнопка удаления
-      ctx.fillStyle = '#ff4444';
-      ctx.fillRect(startX, buttonY, buttonSize, buttonSize);
-      ctx.strokeStyle = '#fff';
-      ctx.lineWidth = 1;
-      ctx.strokeRect(startX, buttonY, buttonSize, buttonSize);
-      ctx.fillStyle = '#fff';
-      ctx.font = '16px Arial';
-      ctx.textAlign = 'center';
-      ctx.fillText('🗑️', startX + buttonSize/2, buttonY + 16);
-      
-      // Кнопка поворота
-      ctx.fillStyle = '#4CAF50';
-      ctx.fillRect(startX + buttonSize + 5, buttonY, buttonSize, buttonSize);
-      ctx.strokeStyle = '#fff';
-      ctx.lineWidth = 1;
-      ctx.strokeRect(startX + buttonSize + 5, buttonY, buttonSize, buttonSize);
-      ctx.fillStyle = '#fff';
-      ctx.fillText('🔄', startX + buttonSize + 5 + buttonSize/2, buttonY + 16);
-      
-      // Кнопка разъединения (если стена соединена)
-      if (isConnected) {
-        ctx.fillStyle = '#ff9800';
-        ctx.fillRect(startX + 2 * (buttonSize + 5), buttonY, buttonSize, buttonSize);
+        // Кнопка удаления
+        ctx.fillStyle = '#ff4444';
+        ctx.fillRect(startX, buttonY, buttonSize, buttonSize);
         ctx.strokeStyle = '#fff';
         ctx.lineWidth = 1;
-        ctx.strokeRect(startX + 2 * (buttonSize + 5), buttonY, buttonSize, buttonSize);
+        ctx.strokeRect(startX, buttonY, buttonSize, buttonSize);
         ctx.fillStyle = '#fff';
-        ctx.fillText('🔗', startX + 2 * (buttonSize + 5) + buttonSize/2, buttonY + 16);
+        ctx.font = '16px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('🗑️', startX + buttonSize/2, buttonY + 16);
+        
+        // Кнопка поворота
+        ctx.fillStyle = '#4CAF50';
+        ctx.fillRect(startX + buttonSize + 5, buttonY, buttonSize, buttonSize);
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(startX + buttonSize + 5, buttonY, buttonSize, buttonSize);
+        ctx.fillStyle = '#fff';
+        ctx.fillText('🔄', startX + buttonSize + 5 + buttonSize/2, buttonY + 16);
+        
+        // Кнопка разъединения (если стена соединена)
+        if (isConnected) {
+          ctx.fillStyle = '#ff9800';
+          ctx.fillRect(startX + 2 * (buttonSize + 5), buttonY, buttonSize, buttonSize);
+          ctx.strokeStyle = '#fff';
+          ctx.lineWidth = 1;
+          ctx.strokeRect(startX + 2 * (buttonSize + 5), buttonY, buttonSize, buttonSize);
+          ctx.fillStyle = '#fff';
+          ctx.fillText('🔗', startX + 2 * (buttonSize + 5) + buttonSize/2, buttonY + 16);
+        }
       }
     }
     
@@ -1238,13 +1245,30 @@ export default function ConstructorInterface({ initialData, onBack }) {
         });
         return;
       } else if (clickedWall) {
-        setSelectedElement(clickedWall);
-        if (!fixedElements.has(clickedWall.id)) {
-          setDraggedElement({ 
-            element: clickedWall, 
-            startX: worldX, 
-            startY: worldY 
+        // Проверяем, зажат ли Ctrl для множественного выбора стен
+        if (e.ctrlKey) {
+          setSelectedWalls(prev => {
+            const isAlreadySelected = prev.some(w => w.id === clickedWall.id);
+            if (isAlreadySelected) {
+              // Убираем из выбора
+              return prev.filter(w => w.id !== clickedWall.id);
+            } else {
+              // Добавляем к выбору
+              return [...prev, clickedWall];
+            }
           });
+          setSelectedElement(null);
+        } else {
+          // Обычный выбор одной стены
+          setSelectedWalls([]);
+          setSelectedElement(clickedWall);
+          if (!fixedElements.has(clickedWall.id)) {
+            setDraggedElement({ 
+              element: clickedWall, 
+              startX: worldX, 
+              startY: worldY 
+            });
+          }
         }
         return;
       } else if (clickedElement) {
@@ -1262,7 +1286,10 @@ export default function ConstructorInterface({ initialData, onBack }) {
         return;
       }
       
-      setSelectedElement(null);
+      if (!e.ctrlKey) {
+        setSelectedElement(null);
+        setSelectedWalls([]);
+      }
     }
     
     setIsDragging(true);
@@ -1770,7 +1797,96 @@ export default function ConstructorInterface({ initialData, onBack }) {
     }
   };
   
-  // Функция объединения стен
+  // Функция объединения выбранных стен
+  const mergeSelectedWalls = () => {
+    if (selectedWalls.length < 2) {
+      alert('Выберите минимум 2 стены для объединения (удерживайте Ctrl и кликайте по стенам)');
+      return;
+    }
+    
+    // Проверяем, что все стены соединены и параллельны
+    const canMerge = checkWallsCanMerge(selectedWalls);
+    if (!canMerge) {
+      alert('Выбранные стены не могут быть объединены. Убедитесь, что они соединены и параллельны.');
+      return;
+    }
+    
+    // Определяем направление стен
+    const firstWall = selectedWalls[0];
+    const isHorizontal = Math.abs(firstWall.x2 - firstWall.x1) > Math.abs(firstWall.y2 - firstWall.y1);
+    
+    // Находим крайние точки
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+    selectedWalls.forEach(wall => {
+      minX = Math.min(minX, wall.x1, wall.x2);
+      maxX = Math.max(maxX, wall.x1, wall.x2);
+      minY = Math.min(minY, wall.y1, wall.y2);
+      maxY = Math.max(maxY, wall.y1, wall.y2);
+    });
+    
+    // Создаем новую объединенную стену
+    const mergedWall = {
+      id: Date.now(),
+      x1: isHorizontal ? minX : firstWall.x1,
+      y1: isHorizontal ? firstWall.y1 : minY,
+      x2: isHorizontal ? maxX : firstWall.x2,
+      y2: isHorizontal ? firstWall.y2 : maxY,
+      length: isHorizontal ? (maxX - minX) / 30 : (maxY - minY) / 30,
+      thickness: firstWall.thickness,
+      type: firstWall.type
+    };
+    
+    // Удаляем старые стены и добавляем новую
+    const selectedIds = selectedWalls.map(w => w.id);
+    const newWalls = walls.filter(w => !selectedIds.includes(w.id));
+    newWalls.push(mergedWall);
+    
+    setWalls(newWalls);
+    setSelectedWalls([]);
+    setSelectedElement(mergedWall);
+    saveToHistory({ elements, walls: newWalls });
+  };
+  
+  // Проверка возможности объединения стен
+  const checkWallsCanMerge = (wallsToCheck) => {
+    if (wallsToCheck.length < 2) return false;
+    
+    const firstWall = wallsToCheck[0];
+    const isHorizontal = Math.abs(firstWall.x2 - firstWall.x1) > Math.abs(firstWall.y2 - firstWall.y1);
+    
+    // Проверяем, что все стены параллельны
+    for (let wall of wallsToCheck) {
+      const wallIsHorizontal = Math.abs(wall.x2 - wall.x1) > Math.abs(wall.y2 - wall.y1);
+      if (wallIsHorizontal !== isHorizontal) {
+        return false; // Стены не параллельны
+      }
+    }
+    
+    // Проверяем, что стены лежат на одной линии и соединены
+    const tolerance = 5;
+    
+    if (isHorizontal) {
+      // Для горизонтальных стен проверяем Y координату
+      const baseY = firstWall.y1;
+      for (let wall of wallsToCheck) {
+        if (Math.abs(wall.y1 - baseY) > tolerance || Math.abs(wall.y2 - baseY) > tolerance) {
+          return false;
+        }
+      }
+    } else {
+      // Для вертикальных стен проверяем X координату
+      const baseX = firstWall.x1;
+      for (let wall of wallsToCheck) {
+        if (Math.abs(wall.x1 - baseX) > tolerance || Math.abs(wall.x2 - baseX) > tolerance) {
+          return false;
+        }
+      }
+    }
+    
+    return true;
+  };
+  
+  // Функция объединения стен (старая версия для кнопки)
   const connectWall = (wallId) => {
     const wall = walls.find(w => w.id === wallId);
     if (!wall) return;
@@ -2777,6 +2893,18 @@ export default function ConstructorInterface({ initialData, onBack }) {
                 </button>
               ))}
             </div>
+            
+            {selectedWalls.length > 1 && (
+              <div className="merge-section">
+                <button 
+                  className="merge-btn"
+                  onClick={mergeSelectedWalls}
+                  title="Объединить выбранные стены"
+                >
+                  🔗 Объединить стены ({selectedWalls.length})
+                </button>
+              </div>
+            )}
           </div>
 
           <div className="panel-section">
@@ -2805,6 +2933,10 @@ export default function ConstructorInterface({ initialData, onBack }) {
               <div className="hotkey-item">
                 <span>Delete</span>
                 <span>Удалить</span>
+              </div>
+              <div className="hotkey-item">
+                <span>Ctrl+Click</span>
+                <span>Выбор стен</span>
               </div>
             </div>
           </div>
@@ -3309,6 +3441,33 @@ export default function ConstructorInterface({ initialData, onBack }) {
           outline: none;
           border-color: var(--accent-orange);
           background: rgba(255, 255, 255, 0.15);
+        }
+        
+        .merge-section {
+          margin-top: 8px;
+          padding-top: 8px;
+          border-top: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .merge-btn {
+          width: 100%;
+          padding: 8px 12px;
+          background: var(--accent-orange);
+          color: var(--white);
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+          font-size: 12px;
+          transition: all 0.2s;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 4px;
+        }
+        
+        .merge-btn:hover {
+          background: #c55a24;
+          transform: translateY(-1px);
         }
 
         @media (max-width: 768px) {
