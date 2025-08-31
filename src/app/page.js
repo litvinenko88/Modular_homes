@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Header from '../components/layout/Header';
+import Header from '../components/Header';
 import ContactForm from '../components/ui/ContactForm';
 import { useRegion } from '../hooks/useRegion';
 
