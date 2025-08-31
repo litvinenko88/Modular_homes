@@ -1,52 +1,37 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import InitialSetupModal from '../InitialSetupModal/InitialSetupModal';
-import ConstructorInterface from '../ConstructorInterface/ConstructorInterface';
+import EnhancedFloorPlanning from '../steps/EnhancedFloorPlanning';
 import styles from './ModularConstructor.module.css';
 
 function ModularConstructor() {
-  const [showSetup, setShowSetup] = useState(true);
-  const [constructorData, setConstructorData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [data, setData] = useState({
+    modules: [{ id: 1, x: 0, y: 0, width: 12, height: 8 }],
+    walls: [],
+    rooms: [],
+    openings: []
+  });
 
   useEffect(() => {
     document.body.style.margin = '0';
     document.body.style.padding = '0';
     document.body.style.overflow = 'hidden';
     
-    const checkReady = () => {
-      const rootStyles = getComputedStyle(document.documentElement);
-      const primaryDark = rootStyles.getPropertyValue('--primary-dark').trim();
-      
-      if (primaryDark && document.readyState === 'complete') {
-        setIsLoading(false);
-      } else {
-        setTimeout(checkReady, 50);
-      }
-    };
-    
-    const timer = setTimeout(checkReady, 100);
-    const maxTimer = setTimeout(() => {
+    const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 2000);
+    }, 1000);
     
     return () => {
       document.body.style.margin = '';
       document.body.style.padding = '';
       document.body.style.overflow = '';
       clearTimeout(timer);
-      clearTimeout(maxTimer);
     };
   }, []);
 
-  const handleSetupComplete = (data) => {
-    setConstructorData(data);
-    setShowSetup(false);
-  };
-
-  const handleBackToSetup = () => {
-    setShowSetup(true);
+  const updateData = (newData) => {
+    setData(prev => ({ ...prev, ...newData }));
   };
 
   if (isLoading) {
@@ -60,15 +45,15 @@ function ModularConstructor() {
     );
   }
 
-  if (showSetup) {
-    return <InitialSetupModal onComplete={handleSetupComplete} />;
-  }
-
   return (
-    <ConstructorInterface 
-      initialData={constructorData}
-      onBack={handleBackToSetup}
-    />
+    <div style={{ width: '100vw', height: '100vh', background: '#f5f5f5' }}>
+      <EnhancedFloorPlanning 
+        data={data}
+        updateData={updateData}
+        onNext={() => console.log('Next step')}
+        onPrev={() => window.history.back()}
+      />
+    </div>
   );
 }
 

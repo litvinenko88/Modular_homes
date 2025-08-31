@@ -2,7 +2,7 @@
 
 import dynamic from 'next/dynamic';
 
-const ModularConstructor = dynamic(() => import('../../components/constructor/ModularConstructor/ModularConstructor'), {
+const ModularConstructor = dynamic(() => import('../../components/constructor/ModularConstructor'), {
   ssr: false,
   loading: () => <div>Загрузка...</div>
 });
