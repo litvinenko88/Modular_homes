@@ -10,14 +10,12 @@ export default function Confirmation({ data, onPrev }) {
     setIsSubmitting(true);
     
     try {
-      // Сохраняем данные локально для статического сайта
       localStorage.setItem('constructor-project', JSON.stringify({
         ...data,
         timestamp: new Date().toISOString(),
         id: Date.now()
       }));
       
-      // Имитация отправки
       await new Promise(resolve => setTimeout(resolve, 1500));
       
       setIsSubmitted(true);
@@ -91,9 +89,6 @@ export default function Confirmation({ data, onPrev }) {
     );
   }
 
-  const totalArea = data.modules.reduce((sum, module) => sum + (module.width * module.height), 0);
-  const roomsCount = data.rooms.length;
-
   return (
     <div className="confirmation">
       <h2>Подтверждение проекта</h2>
@@ -102,16 +97,12 @@ export default function Confirmation({ data, onPrev }) {
         <div className="project-summary">
           <h3>Ваш проект</h3>
           <div className="summary-item">
-            <span>Общая площадь:</span>
-            <strong>{totalArea} м²</strong>
+            <span>Размер дома:</span>
+            <strong>{data.house.width}×{data.house.height} м</strong>
           </div>
           <div className="summary-item">
-            <span>Количество модулей:</span>
-            <strong>{data.modules.length}</strong>
-          </div>
-          <div className="summary-item">
-            <span>Количество комнат:</span>
-            <strong>{roomsCount}</strong>
+            <span>Площадь:</span>
+            <strong>{data.house.area} м²</strong>
           </div>
           <div className="summary-item">
             <span>Размер участка:</span>
@@ -123,59 +114,17 @@ export default function Confirmation({ data, onPrev }) {
           <h3>Контактные данные</h3>
           <div className="summary-item">
             <span>Имя:</span>
-            <strong>{data.formData.name}</strong>
+            <strong>{data.formData?.name || 'Не указано'}</strong>
           </div>
           <div className="summary-item">
             <span>Телефон:</span>
-            <strong>{data.formData.phone}</strong>
+            <strong>{data.formData?.phone || 'Не указан'}</strong>
           </div>
           <div className="summary-item">
             <span>Email:</span>
-            <strong>{data.formData.email}</strong>
+            <strong>{data.formData?.email || 'Не указан'}</strong>
           </div>
         </div>
-
-        <div className="preferences-summary">
-          <h3>Предпочтения</h3>
-          <div className="summary-item">
-            <span>Проживающих:</span>
-            <strong>{data.formData.adults} взр. + {data.formData.children} дет.</strong>
-          </div>
-          <div className="summary-item">
-            <span>Стиль:</span>
-            <strong>{getStyleName(data.formData.style)}</strong>
-          </div>
-          <div className="summary-item">
-            <span>Бюджет:</span>
-            <strong>{getBudgetName(data.formData.budget)}</strong>
-          </div>
-          {data.formData.timeline && (
-            <div className="summary-item">
-              <span>Сроки:</span>
-              <strong>{data.formData.timeline}</strong>
-            </div>
-          )}
-        </div>
-
-        {(data.formData?.additionalRooms?.length > 0) && (
-          <div className="additional-rooms">
-            <h3>Дополнительные помещения</h3>
-            <div className="rooms-list">
-              {(data.formData?.additionalRooms || []).map(roomId => (
-                <span key={roomId} className="room-tag">
-                  {getRoomName(roomId)}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {data.formData.additionalWishes && (
-          <div className="additional-wishes">
-            <h3>Дополнительные пожелания</h3>
-            <p>{data.formData.additionalWishes}</p>
-          </div>
-        )}
       </div>
 
       <div className="navigation">
@@ -203,8 +152,7 @@ export default function Confirmation({ data, onPrev }) {
           gap: 20px;
           margin-bottom: 30px;
         }
-        .project-summary, .contact-summary, .preferences-summary, 
-        .additional-rooms, .additional-wishes {
+        .project-summary, .contact-summary {
           background: #f9f9f9;
           padding: 20px;
           border-radius: 8px;
@@ -219,25 +167,6 @@ export default function Confirmation({ data, onPrev }) {
         }
         .summary-item:last-child {
           border-bottom: none;
-        }
-        .rooms-list {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 8px;
-        }
-        .room-tag {
-          background: #e3f2fd;
-          padding: 4px 12px;
-          border-radius: 16px;
-          font-size: 14px;
-          color: #1976d2;
-        }
-        .additional-wishes p {
-          background: white;
-          padding: 15px;
-          border-radius: 4px;
-          margin: 10px 0 0 0;
-          font-style: italic;
         }
         .navigation {
           display: flex;
@@ -267,36 +196,4 @@ export default function Confirmation({ data, onPrev }) {
       `}</style>
     </div>
   );
-}
-
-function getStyleName(styleId) {
-  const styles = {
-    scandi: 'Сканди',
-    classic: 'Классика',
-    loft: 'Лофт',
-    modern: 'Модерн'
-  };
-  return styles[styleId] || styleId;
-}
-
-function getBudgetName(budgetId) {
-  const budgets = {
-    under_1m: 'до 1 млн руб.',
-    '1m_1.5m': '1-1.5 млн руб.',
-    '1.5m_2m': '1.5-2 млн руб.',
-    over_2m: '2 млн руб. и выше'
-  };
-  return budgets[budgetId] || budgetId;
-}
-
-function getRoomName(roomId) {
-  const rooms = {
-    wardrobe: 'Гардеробная',
-    office: 'Кабинет',
-    laundry: 'Прачечная',
-    guest_bedroom: 'Гостевая спальня',
-    pantry: 'Кладовая',
-    gym: 'Спортзал'
-  };
-  return rooms[roomId] || roomId;
 }
