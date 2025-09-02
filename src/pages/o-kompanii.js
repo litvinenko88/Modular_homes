@@ -10,6 +10,12 @@ export default function OKompanii() {
       <Head>
         <title>О компании Easy House - производитель модульных домов</title>
         <meta name="description" content="О компании Easy House. Производство модульных домов, наши преимущества, гарантии и процесс производства." />
+        <meta name="keywords" content="о компании Easy House, производство модульных домов, преимущества, гарантии, качество строительства" />
+        <link rel="canonical" href="https://your-domain.com/o-kompanii" />
+        <meta property="og:title" content="О компании Easy House - производитель модульных домов" />
+        <meta property="og:description" content="О компании Easy House. Производство модульных домов, наши преимущества, гарантии и процесс производства." />
+        <meta property="og:url" content="https://your-domain.com/o-kompanii" />
+        <meta property="og:type" content="website" />
       </Head>
       <main style={{ paddingTop: '80px' }}>
         <section style={{ padding: '40px 0', backgroundColor: '#f8f9fa' }}>

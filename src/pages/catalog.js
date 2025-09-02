@@ -175,6 +175,12 @@ export default function Catalog() {
           name="description"
           content="Каталог модульных домов Easy House. Выберите готовый проект или создайте свой уникальный дом."
         />
+        <meta name="keywords" content="каталог модульных домов, проекты домов, цены на модульные дома, готовые проекты, строительство под ключ" />
+        <link rel="canonical" href="https://your-domain.com/catalog" />
+        <meta property="og:title" content="Каталог модульных домов | Easy House" />
+        <meta property="og:description" content="Каталог модульных домов Easy House. Выберите готовый проект или создайте свой уникальный дом." />
+        <meta property="og:url" content="https://your-domain.com/catalog" />
+        <meta property="og:type" content="website" />
       </Head>
 
       <main>

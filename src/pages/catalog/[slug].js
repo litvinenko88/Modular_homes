@@ -382,21 +382,51 @@ export default function CatalogDetail() {
   return (
     <Layout>
       <Head>
-        <title>{project.name} | Easy House</title>
-        <meta name="description" content={`Модульный дом ${project.name}. Подробная информация, характеристики и цены.`} />
+        <title>{project.name} - модульный дом от {currentPrice.toLocaleString('ru-RU')} руб | Easy House</title>
+        <meta name="description" content={`Модульный дом ${project.name} от ${currentPrice.toLocaleString('ru-RU')} руб. Подробные характеристики, фото, чертежи и комплектация. Строительство под ключ.`} />
+        <meta name="keywords" content={`${project.name}, модульный дом, цена, характеристики, купить, строительство под ключ`} />
+        <link rel="canonical" href={`https://your-domain.com/catalog/${slug}`} />
+        <meta property="og:title" content={`${project.name} - модульный дом от ${currentPrice.toLocaleString('ru-RU')} руб | Easy House`} />
+        <meta property="og:description" content={`Модульный дом ${project.name} от ${currentPrice.toLocaleString('ru-RU')} руб. Подробные характеристики, фото, чертежи и комплектация.`} />
+        <meta property="og:url" content={`https://your-domain.com/catalog/${slug}`} />
+        <meta property="og:type" content="product" />
+        <meta property="og:image" content={`https://your-domain.com${project.images[0]}`} />
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Product",
+            "name": project.name,
+            "description": `Модульный дом ${project.name}. Подробные характеристики, фото и комплектация.`,
+            "image": project.images.map(img => `https://your-domain.com${img}`),
+            "brand": {
+              "@type": "Brand",
+              "name": "Easy House"
+            },
+            "offers": {
+              "@type": "Offer",
+              "price": currentPrice,
+              "priceCurrency": "RUB",
+              "availability": "https://schema.org/InStock",
+              "seller": {
+                "@type": "Organization",
+                "name": "Easy House"
+              }
+            }
+          })}
+        </script>
       </Head>
 
       <main className={styles.container}>
         <div className={styles.gallery}>
           <div className={styles.mainImage}>
-            <img src={displayImages[currentImage]} alt={project.name} />
+            <img src={displayImages[currentImage]} alt={`Модульный дом ${project.name} - фото ${currentImage + 1}`} />
           </div>
           <div className={styles.thumbnails}>
             {displayImages.map((img, index) => (
               <img
                 key={index}
                 src={img}
-                alt={`${project.name} ${index + 1}`}
+                alt={`Модульный дом ${project.name} - миниатюра ${index + 1}`}
                 className={currentImage === index ? styles.active : ''}
                 onClick={() => setCurrentImage(index)}
               />
