@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Favicon Converter</title>
+</head>
+<body>
+    <canvas id="canvas" width="32" height="32" style="border: 1px solid #000;"></canvas>
+    <br><br>
+    <a id="download" download="favicon.ico">Скачать favicon.ico</a>
+    
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Рисуем фавикон
+        function drawFavicon() {
+            // Очищаем canvas
+            ctx.clearRect(0, 0, 32, 32);
+            
+            // Крыша
+            ctx.fillStyle = '#8B4513';
+            ctx.beginPath();
+            ctx.moveTo(16, 4);
+            ctx.lineTo(28, 14);
+            ctx.lineTo(26, 14);
+            ctx.lineTo(26, 16);
+            ctx.lineTo(24, 16);
+            ctx.lineTo(24, 14);
+            ctx.lineTo(16, 8);
+            ctx.lineTo(8, 14);
+            ctx.lineTo(8, 16);
+            ctx.lineTo(6, 16);
+            ctx.lineTo(6, 14);
+            ctx.lineTo(4, 14);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Основание дома
+            const gradient = ctx.createLinearGradient(8, 14, 24, 28);
+            gradient.addColorStop(0, '#4A90E2');
+            gradient.addColorStop(1, '#2E5BBA');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(8, 14, 16, 14);
+            
+            // Дверь
+            ctx.fillStyle = '#654321';
+            ctx.fillRect(13, 20, 6, 8);
+            
+            // Ручка двери
+            ctx.fillStyle = '#FFD700';
+            ctx.beginPath();
+            ctx.arc(17, 24, 0.5, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            // Окна
+            ctx.fillStyle = '#87CEEB';
+            ctx.strokeStyle = '#2E5BBA';
+            ctx.lineWidth = 0.5;
+            
+            // Левое окно
+            ctx.fillRect(10, 17, 3, 3);
+            ctx.strokeRect(10, 17, 3, 3);
+            
+            // Правое окно
+            ctx.fillRect(19, 17, 3, 3);
+            ctx.strokeRect(19, 17, 3, 3);
+            
+            // Разделители окон
+            ctx.strokeStyle = '#2E5BBA';
+            ctx.lineWidth = 0.3;
+            
+            // Левое окно разделители
+            ctx.beginPath();
+            ctx.moveTo(11.5, 17);
+            ctx.lineTo(11.5, 20);
+            ctx.moveTo(10, 18.5);
+            ctx.lineTo(13, 18.5);
+            ctx.stroke();
+            
+            // Правое окно разделители
+            ctx.beginPath();
+            ctx.moveTo(20.5, 17);
+            ctx.lineTo(20.5, 20);
+            ctx.moveTo(19, 18.5);
+            ctx.lineTo(22, 18.5);
+            ctx.stroke();
+            
+            // Модульная линия
+            ctx.strokeStyle = '#1E3A8A';
+            ctx.lineWidth = 0.5;
+            ctx.globalAlpha = 0.7;
+            ctx.beginPath();
+            ctx.moveTo(16, 14);
+            ctx.lineTo(16, 28);
+            ctx.stroke();
+            ctx.globalAlpha = 1;
+            
+            // Создаем ссылку для скачивания
+            canvas.toBlob(function(blob) {
+                const url = URL.createObjectURL(blob);
+                document.getElementById('download').href = url;
+            });
+        }
+        
+        drawFavicon();
+    </script>
+</body>
+</html>

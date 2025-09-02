@@ -1,0 +1,183 @@
+.reviews {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  margin-bottom: 40px;
+  min-height: 120px;
+}
+
+.title {
+  font-size: 32px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 16px;
+  line-height: 1.2;
+}
+
+.subtitle {
+  font-size: 16px;
+  color: #666;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.slider {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  border-radius: 16px;
+  margin-bottom: 24px;
+  touch-action: pan-y;
+}
+
+.slidesContainer {
+  display: flex;
+  transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  height: 100%;
+}
+
+.slide {
+  min-width: 100%;
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+}
+
+.reviewCard {
+  background: white;
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid #f0f0f0;
+  width: 100%;
+  min-height: 280px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.reviewCard::before {
+  content: '"';
+  position: absolute;
+  top: 16px;
+  left: 24px;
+  font-size: 48px;
+  color: #ff6701;
+  font-family: Georgia, serif;
+  line-height: 1;
+  opacity: 0.3;
+}
+
+.reviewCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+}
+
+.reviewText {
+  font-size: 16px;
+  line-height: 1.6;
+  color: #333;
+  margin-bottom: 24px;
+  font-style: italic;
+  padding-left: 20px;
+}
+
+.reviewAuthor {
+  border-top: 1px solid #f0f0f0;
+  padding-top: 20px;
+}
+
+.authorInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.authorAvatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: #f3f4f6;
+}
+
+.authorAvatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.authorDetails {
+  flex: 1;
+}
+
+.authorName {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 4px;
+}
+
+.authorLocation {
+  font-size: 14px;
+  color: #666;
+}
+
+.dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: auto;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: none;
+  background: #d1d5db;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.dot.active {
+  background: #ff6701;
+  transform: scale(1.2);
+}
+
+.dot:hover {
+  background: #ff6701;
+  opacity: 0.7;
+}
+
+@media (max-width: 768px) {
+  .title {
+    font-size: 28px;
+  }
+  
+  .reviewCard {
+    padding: 24px;
+    min-height: 240px;
+  }
+  
+  .reviewCard::before {
+    font-size: 36px;
+    top: 12px;
+    left: 20px;
+  }
+  
+  .reviewText {
+    font-size: 15px;
+    padding-left: 16px;
+  }
+  
+  .authorName {
+    font-size: 15px;
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "name": "Easy House - Модульные дома под ключ",
+  "short_name": "Easy House",
+  "description": "Строительство модульных домов под ключ за 30 дней от 655 000₽",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#007bff",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "16x16 32x32",
+      "type": "image/x-icon"
+    }
+  ],
+  "categories": ["business", "lifestyle"],
+  "lang": "ru",
+  "dir": "ltr"
+}

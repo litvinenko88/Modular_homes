@@ -1,0 +1,192 @@
+.footer {
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+  color: white;
+  padding: 60px 0 30px;
+  position: relative;
+  overflow: hidden;
+}
+
+.footer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 80%, rgba(255, 103, 1, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(120, 119, 198, 0.05) 0%, transparent 50%);
+  pointer-events: none;
+  animation: backgroundMove 20s ease-in-out infinite;
+}
+
+@keyframes backgroundMove {
+  0%, 100% {
+    transform: translateX(0) translateY(0);
+  }
+  25% {
+    transform: translateX(-10px) translateY(-5px);
+  }
+  50% {
+    transform: translateX(10px) translateY(5px);
+  }
+  75% {
+    transform: translateX(-5px) translateY(10px);
+  }
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.content {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.8s ease;
+}
+
+.content.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 40px;
+  margin-bottom: 40px;
+}
+
+.company {
+  max-width: 300px;
+}
+
+.logo {
+  font-size: 28px;
+  font-weight: 700;
+  color: #ff6701;
+  margin-bottom: 16px;
+}
+
+.description {
+  color: #b0b0b0;
+  line-height: 1.6;
+  margin-bottom: 24px;
+  font-size: 15px;
+}
+
+.contacts {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.phone,
+.email {
+  color: white;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.phone:hover,
+.email:hover {
+  color: #ff6701;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  color: white;
+}
+
+.linksList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.linksList li {
+  margin-bottom: 12px;
+}
+
+.linksList a {
+  color: #b0b0b0;
+  text-decoration: none;
+  font-size: 15px;
+  transition: color 0.3s ease;
+}
+
+.linksList a:hover {
+  color: #ff6701;
+}
+
+.bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 30px;
+  border-top: 1px solid #404040;
+}
+
+.copyright {
+  color: #888;
+  font-size: 14px;
+}
+
+.legal {
+  display: flex;
+  gap: 24px;
+}
+
+.legal a {
+  color: #888;
+  text-decoration: none;
+  font-size: 14px;
+  transition: color 0.3s ease;
+}
+
+.legal a:hover {
+  color: #ff6701;
+}
+
+@media (max-width: 1024px) {
+  .grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+  }
+  
+  .company {
+    grid-column: 1 / -1;
+    max-width: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .footer {
+    padding: 40px 0 20px;
+  }
+  
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+  
+  .bottom {
+    flex-direction: column;
+    gap: 16px;
+    text-align: center;
+  }
+  
+  .legal {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .container {
+    padding: 0 16px;
+  }
+}

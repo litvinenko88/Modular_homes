@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+
+# Запрещаем индексацию служебных файлов
+Disallow: /_next/
+Disallow: /api/
+Disallow: /*.json$
+Disallow: /*.xml$
+Disallow: /404
+Disallow: /500
+
+# Оптимизация для поисковых систем
+Crawl-delay: 1
+
+Sitemap: https://your-domain.com/sitemap.xml

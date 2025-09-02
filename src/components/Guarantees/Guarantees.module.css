@@ -1,0 +1,246 @@
+.guarantees {
+  padding: 80px 0;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  overflow: hidden;
+}
+
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.guaranteeItem {
+  margin: 30px 0;
+  opacity: 0;
+  transform: translateX(-100px);
+  transition: all 0.8s ease;
+}
+
+.guaranteeItem.right {
+  transform: translateX(100px);
+}
+
+.guaranteeItem.visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.stripe {
+  position: relative;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border-radius: 16px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(0, 123, 255, 0.1);
+}
+
+.stripe:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 35px rgba(0, 123, 255, 0.15);
+  border-color: rgba(0, 123, 255, 0.2);
+}
+
+.stripe::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #007bff, #0056b3);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.6s ease 0.3s;
+}
+
+.guaranteeItem.right .stripe::before {
+  background: linear-gradient(90deg, #28a745, #1e7e34);
+  transform-origin: right;
+}
+
+.guaranteeItem.visible .stripe::before {
+  transform: scaleX(1);
+}
+
+.stripe::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.stripe:hover::after {
+  opacity: 1;
+}
+
+.content {
+  display: flex;
+  align-items: center;
+  padding: 20px;
+  gap: 16px;
+}
+
+.guaranteeItem.left .content {
+  flex-direction: row-reverse;
+}
+
+.iconContainer {
+  flex: 0 0 120px;
+  height: 120px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #FF6B35, #ff8a5c);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+}
+
+.icon {
+  font-size: 48px;
+  transition: transform 0.3s ease;
+}
+
+.stripe:hover .icon {
+  transform: scale(1.1);
+}
+
+.textContent {
+  flex: 1;
+  padding: 0;
+}
+
+.title {
+  font-size: var(--h4-size) !important;
+  font-weight: 600;
+  color: #2c3e50;
+  margin: 0 0 12px 0;
+  line-height: 1.4;
+}
+
+.description {
+  font-size: var(--text-size-sm) !important;
+  line-height: 1.5;
+  color: #6c757d;
+  margin: 0;
+}
+
+.guaranteeItem:nth-child(1) { transition-delay: 0.1s; }
+.guaranteeItem:nth-child(2) { transition-delay: 0.2s; }
+.guaranteeItem:nth-child(3) { transition-delay: 0.3s; }
+.guaranteeItem:nth-child(4) { transition-delay: 0.4s; }
+.guaranteeItem:nth-child(5) { transition-delay: 0.5s; }
+
+.footer {
+  text-align: center;
+  padding: 40px 24px;
+  background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+  border-radius: 16px;
+  border-left: 4px solid #FF6B35;
+  margin-top: 40px;
+}
+
+.footerText {
+  font-size: 18px;
+  color: #2d3748;
+  line-height: 1.6;
+  font-weight: 500;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+@media (max-width: 1024px) {
+  .content {
+    padding: 25px;
+    gap: 25px;
+  }
+  
+  .iconContainer {
+    flex: 0 0 100px;
+    height: 100px;
+  }
+  
+  .icon {
+    font-size: 40px;
+  }
+  
+  .title {
+    font-size: var(--h4-size) !important;
+  }
+  
+  .description {
+    font-size: var(--text-size-sm) !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .guarantees {
+    padding: 60px 0;
+  }
+  
+  .container {
+    padding: 0 15px;
+  }
+  
+  .content {
+    padding: 20px;
+    gap: 20px;
+  }
+  
+  .iconContainer {
+    flex: 0 0 80px;
+    height: 80px;
+  }
+  
+  .icon {
+    font-size: 32px;
+  }
+  
+  .title {
+    font-size: var(--h4-size) !important;
+  }
+  
+  .description {
+    font-size: var(--text-size-sm) !important;
+  }
+  
+  .footer {
+    padding: 24px 20px;
+  }
+  
+  .footerText {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .content {
+    padding: 15px;
+    gap: 15px;
+  }
+  
+  .iconContainer {
+    flex: 0 0 60px;
+    height: 60px;
+  }
+  
+  .icon {
+    font-size: 24px;
+  }
+  
+  .title {
+    font-size: var(--h4-size) !important;
+  }
+  
+  .description {
+    font-size: var(--text-size-sm) !important;
+  }
+}
