@@ -105,9 +105,9 @@ export default function Reviews() {
   return (
     <div className={styles.reviews}>
       <div className={styles.header}>
-        <h2 className={styles.title}>
+        <h3 className={styles.title}>
           Что говорят наши клиенты
-        </h2>
+        </h3>
         <p className={styles.subtitle}>
           Мы гордимся каждым реализованным проектом и благодарны нашим клиентам за доверие и честные отзывы. Вот что они рассказывают о своем опыте.
         </p>

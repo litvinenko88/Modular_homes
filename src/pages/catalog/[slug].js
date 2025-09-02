@@ -476,7 +476,7 @@ export default function CatalogDetail() {
           </button>
 
           <div className={styles.specs}>
-            <h3>Технические параметры</h3>
+            <h2>Технические параметры</h2>
             <ul>
               <li>Высота потолка: {project.specs.ceiling}</li>
               <li>Толщина стены: {project.specs.wallThickness}</li>
@@ -487,7 +487,7 @@ export default function CatalogDetail() {
           </div>
 
           <div className={styles.equipment}>
-            <h3>Базовая комплектация</h3>
+            <h2>Базовая комплектация</h2>
             <ul>
               {project.equipment.map((item, index) => (
                 <li key={index}>{item}</li>
