@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import styles from "./Header.module.css";
 
-const Header = () => {
+const Header = ({ onConstructorOpen }) => {
   const [isRegionOpen, setIsRegionOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [selectedRegion, setSelectedRegion] = useState("Вся Россия");
@@ -153,6 +153,19 @@ const Header = () => {
               if (item === 'О компании') href = '/o-kompanii';
               if (item === 'Контакты') href = '/kontakty';
               
+              if (item === 'Конструктор') {
+                return (
+                  <button
+                    key={index}
+                    onClick={onConstructorOpen}
+                    className={styles.navLink}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+                    title={`Открыть конструктор`}>
+                    {item}
+                  </button>
+                );
+              }
+              
               return (
                 <a
                   key={index}
@@ -297,6 +310,21 @@ const Header = () => {
               if (item === 'Отзывы') href = '/otzyvy';
               if (item === 'О компании') href = '/o-kompanii';
               if (item === 'Контакты') href = '/kontakty';
+              
+              if (item === 'Конструктор') {
+                return (
+                  <button
+                    key={index}
+                    onClick={() => {
+                      onConstructorOpen();
+                      closeMobileMenu();
+                    }}
+                    className={styles.mobileNavLink}
+                    style={{ animationDelay: `${index * 0.1}s`, background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', width: '100%' }}>
+                    {item}
+                  </button>
+                );
+              }
               
               return (
                 <a

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import styles from './ProjectConstructor.module.css';
 
-const ProjectConstructor = () => {
+const ProjectConstructor = ({ onConstructorOpen }) => {
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef(null);
 
@@ -53,7 +53,7 @@ const ProjectConstructor = () => {
             Всего за несколько минут - и готовый 3D-тур по вашей будущему дому
           </p>
           
-          <button className={styles.constructorButton}>
+          <button className={styles.constructorButton} onClick={onConstructorOpen}>
             Перейти в конструктор
           </button>
         </div>
