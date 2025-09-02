@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import styles from './VideoReviews.module.css'
 
-export default function VideoReviews() {
+export default function VideoReviews({ showAllVideos = false }) {
   const [isVisible, setIsVisible] = useState(false)
   const [playingVideo, setPlayingVideo] = useState(null)
   const [isPlaying, setIsPlaying] = useState({})
@@ -10,12 +10,29 @@ export default function VideoReviews() {
   const videoRefs = useRef([])
   const audioRefs = useRef([])
 
-  const videos = [
+  const baseVideos = [
     { video: '/video/1.mp4', audio: '/audio/1.1.mp4', title: 'Обзор дома 1' },
     { video: '/video/2.mp4', audio: '/audio/2.1.mp4', title: 'Обзор дома 2' },
     { video: '/video/3.mp4', audio: '/audio/3.1.mp4', title: 'Обзор дома 3' },
     { video: '/video/4.mp4', audio: '/audio/4.1.mp4', title: 'Обзор дома 4' }
   ]
+
+  const additionalVideos = [
+    { video: '/video/5.mp4', audio: '/audio/5.1.mp4', title: 'Обзор дома 5' },
+    { video: '/video/6.mp4', audio: '/audio/6.1.mp4', title: 'Обзор дома 6' },
+    { video: '/video/7.mp4', audio: '/audio/7.1.mp4', title: 'Обзор дома 7' },
+    { video: '/video/8.mp4', title: 'Обзор дома 8' },
+    { video: '/video/9.mp4', audio: '/audio/9.1.mp4', title: 'Обзор дома 9' },
+    { video: '/video/10.mp4', audio: '/audio/10.1.mp4', title: 'Обзор дома 10' },
+    { video: '/video/11.mp4', title: 'Обзор дома 11' },
+    { video: '/video/12.mp4', title: 'Обзор дома 12' },
+    { video: '/video/13.mp4', title: 'Обзор дома 13' },
+    { video: '/video/14.mp4', title: 'Обзор дома 14' },
+    { video: '/video/15.mp4', title: 'Обзор дома 15' },
+    { video: '/video/16.mp4', title: 'Обзор дома 16' }
+  ]
+
+  const videos = showAllVideos ? [...baseVideos, ...additionalVideos] : baseVideos
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -52,7 +69,10 @@ export default function VideoReviews() {
       })
       
       video?.play()
-      audio?.play()
+      if (audio && videos[index].audio) {
+        audio.currentTime = video.currentTime
+        audio?.play()
+      }
     }
   }
 
@@ -90,10 +110,12 @@ export default function VideoReviews() {
   const handleSeek = (index, value) => {
     const video = videoRefs.current[index]
     const audio = audioRefs.current[index]
-    if (video && audio) {
+    if (video) {
       const seekTime = Math.max(0, Math.min(value, video.duration || 0))
       video.currentTime = seekTime
-      audio.currentTime = seekTime
+      if (audio && videos[index].audio) {
+        audio.currentTime = seekTime
+      }
       setCurrentTime(prev => ({ ...prev, [index]: seekTime }))
     }
   }
@@ -178,11 +200,13 @@ export default function VideoReviews() {
                     onDurationChange={() => handleLoadedMetadata(index)}
                     className={styles.video}
                   />
-                  <audio
-                    ref={el => audioRefs.current[index] = el}
-                    src={item.audio}
-                    preload="metadata"
-                  />
+                  {item.audio && (
+                    <audio
+                      ref={el => audioRefs.current[index] = el}
+                      src={item.audio}
+                      preload="metadata"
+                    />
+                  )}
                   
                   {!isPlaying[index] && (
                     <div className={styles.centerPlayButton}>

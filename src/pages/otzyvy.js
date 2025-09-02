@@ -13,7 +13,7 @@ export default function Otzyvy() {
       </Head>
       <main style={{ paddingTop: '80px' }}>
         <VideoTestimonials />
-        <VideoReviews />
+        <VideoReviews showAllVideos={true} />
         <FAQReviews />
       </main>
     </Layout>
