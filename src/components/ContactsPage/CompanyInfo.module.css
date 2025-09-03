@@ -1,0 +1,98 @@
+.companyInfo {
+  background: var(--color-gray-light);
+  padding: 80px 0;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.title {
+  font-size: var(--h2-size) !important;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 50px;
+  color: var(--color-primary);
+}
+
+.infoGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 30px;
+}
+
+.infoCard {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(223, 104, 43, 0.1);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.infoCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(223, 104, 43, 0.05), transparent);
+  transition: left 0.6s ease;
+}
+
+.infoCard:hover::before {
+  left: 100%;
+}
+
+.infoCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+.cardTitle {
+  font-size: var(--h4-size) !important;
+  font-weight: 600;
+  margin-bottom: 20px;
+  color: var(--color-accent);
+  border-bottom: 2px solid var(--color-accent);
+  padding-bottom: 10px;
+}
+
+.infoText {
+  color: var(--color-gray);
+  line-height: 1.6;
+  font-size: var(--text-size-sm) !important;
+}
+
+.infoText p {
+  margin-bottom: 8px;
+}
+
+.infoText strong {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .companyInfo {
+    padding: 40px 0;
+  }
+  
+  .container {
+    padding: 0 16px;
+  }
+  
+  .infoGrid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .infoCard {
+    padding: 20px;
+  }
+}

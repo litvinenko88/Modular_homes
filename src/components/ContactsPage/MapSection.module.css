@@ -1,0 +1,173 @@
+.mapSection {
+  padding: 80px 0;
+  background: var(--color-gray-light);
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.title {
+  font-size: var(--h2-size) !important;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 50px;
+  color: var(--color-primary);
+}
+
+.mapContainer {
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  margin-bottom: 40px;
+}
+
+.map {
+  width: 100%;
+  height: 400px;
+  position: relative;
+}
+
+.mapPlaceholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, var(--color-primary) 0%, rgba(49, 50, 61, 0.95) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.mapPlaceholder::before {
+  content: '';
+  position: absolute;
+  top: -30%;
+  right: -15%;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(223, 104, 43, 0.2) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: float 8s ease-in-out infinite;
+}
+
+.placeholderContent {
+  text-align: center;
+  padding: 40px;
+  position: relative;
+  z-index: 2;
+}
+
+.mapIcon {
+  font-size: 4rem;
+  margin-bottom: 20px;
+  animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-10px);
+  }
+  60% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+}
+
+.placeholderContent h3 {
+  font-size: var(--h3-size) !important;
+  margin-bottom: 15px;
+  font-weight: 600;
+}
+
+.placeholderContent p {
+  font-size: var(--text-size-lg) !important;
+  margin-bottom: 8px;
+  opacity: 0.9;
+}
+
+.addressInfo {
+  display: flex;
+  justify-content: center;
+}
+
+.addressCard {
+  background: white;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+  max-width: 500px;
+  width: 100%;
+  border: 1px solid rgba(223, 104, 43, 0.1);
+}
+
+.addressCard h3 {
+  font-size: var(--h4-size) !important;
+  font-weight: 600;
+  margin-bottom: 20px;
+  color: var(--color-primary);
+  text-align: center;
+}
+
+.addressCard ul {
+  list-style: none;
+  padding: 0;
+}
+
+.addressCard li {
+  padding: 10px 0;
+  border-bottom: 1px solid #eee;
+  color: var(--color-gray);
+  line-height: 1.5;
+  position: relative;
+  padding-left: 25px;
+  font-size: var(--text-size) !important;
+}
+
+.addressCard li:before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: var(--color-accent);
+  font-weight: bold;
+}
+
+.addressCard li:last-child {
+  border-bottom: none;
+}
+
+@media (max-width: 768px) {
+  .mapSection {
+    padding: 40px 0;
+  }
+  
+  .container {
+    padding: 0 16px;
+  }
+  
+  .map {
+    height: 300px;
+  }
+  
+  .placeholderContent {
+    padding: 20px;
+  }
+  
+  .mapIcon {
+    font-size: 3rem;
+  }
+  
+  .addressCard {
+    padding: 20px;
+  }
+}

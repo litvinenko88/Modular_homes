@@ -1,0 +1,247 @@
+.contactsPage {
+  padding-top: 80px;
+}
+
+.heroSection {
+  background: linear-gradient(135deg, var(--color-white) 0%, #fafafa 100%);
+  padding: 60px 0;
+  position: relative;
+  overflow: hidden;
+  color: var(--color-primary);
+}
+
+.heroSection::before {
+  content: '';
+  position: absolute;
+  top: -30%;
+  right: -15%;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(223, 104, 43, 0.15) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: float 8s ease-in-out infinite;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.heroContent {
+  text-align: center;
+  position: relative;
+  z-index: 2;
+}
+
+.contactIcon {
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, var(--color-accent) 0%, #e8763a 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+  font-size: 24px;
+  color: white;
+  box-shadow: 0 8px 25px rgba(223, 104, 43, 0.3);
+}
+
+.title {
+  font-size: var(--h2-size) !important;
+  font-weight: 700;
+  margin-bottom: 16px;
+  color: var(--color-primary);
+  line-height: 1.2;
+  text-align: center;
+}
+
+.subtitle {
+  font-size: var(--text-size-lg) !important;
+  color: var(--color-gray);
+  margin-bottom: 40px;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.contactsSection {
+  padding: 80px 0;
+  background: linear-gradient(135deg, var(--color-white) 0%, #fafafa 100%);
+}
+
+.contactsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 30px;
+  margin-bottom: 40px;
+}
+
+.contactCard {
+  background: white;
+  padding: 40px 30px;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(223, 104, 43, 0.1);
+}
+
+.contactCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(223, 104, 43, 0.1), transparent);
+  transition: left 0.6s ease;
+}
+
+.contactCard:hover::before {
+  left: 100%;
+}
+
+.contactCard:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+.contactIcon {
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, var(--color-accent) 0%, #e8763a 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+  font-size: 24px;
+  color: white;
+  box-shadow: 0 8px 25px rgba(223, 104, 43, 0.3);
+}
+
+.contactTitle {
+  font-size: var(--h4-size) !important;
+  font-weight: 600;
+  margin-bottom: 15px;
+  color: var(--color-primary);
+}
+
+.contactInfo {
+  color: var(--color-gray);
+  line-height: 1.6;
+}
+
+.contactInfo a {
+  color: var(--color-accent);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.contactInfo a:hover {
+  color: #e8763a;
+}
+
+.workingHours {
+  background: var(--color-gray-light);
+  padding: 80px 0;
+}
+
+.hoursGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 30px;
+}
+
+.hoursCard {
+  background: white;
+  padding: 30px;
+  border-radius: 15px;
+  text-align: center;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+  border: 1px solid rgba(223, 104, 43, 0.1);
+}
+
+.hoursCard:hover {
+  transform: translateY(-5px);
+}
+
+.hoursTitle {
+  font-size: var(--h4-size) !important;
+  font-weight: 600;
+  margin-bottom: 15px;
+  color: var(--color-primary);
+}
+
+.hoursInfo {
+  color: var(--color-gray);
+  line-height: 1.6;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+}
+
+@media (max-width: 1024px) {
+  .contactsGrid {
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 25px;
+  }
+  
+  .heroSection {
+    padding: 40px 0;
+  }
+  
+  .contactsSection {
+    padding: 60px 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .contactsPage {
+    padding-top: 60px;
+  }
+  
+  .heroSection {
+    padding: 30px 0;
+  }
+  
+  .contactsSection {
+    padding: 40px 0;
+  }
+  
+  .workingHours {
+    padding: 40px 0;
+  }
+  
+  .container {
+    padding: 0 16px;
+  }
+  
+  .contactsGrid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .hoursGrid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .contactCard {
+    padding: 30px 20px;
+  }
+  
+  .hoursCard {
+    padding: 20px;
+  }
+}

@@ -1,0 +1,178 @@
+.socialSection {
+  background: linear-gradient(135deg, var(--color-primary) 0%, rgba(49, 50, 61, 0.95) 100%);
+  padding: 80px 0;
+  text-align: center;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.socialSection::before {
+  content: '';
+  position: absolute;
+  top: -30%;
+  left: -15%;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(223, 104, 43, 0.2) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: float 8s ease-in-out infinite;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+  position: relative;
+  z-index: 2;
+}
+
+.contactButtons {
+  margin-bottom: 60px;
+}
+
+.title {
+  font-size: var(--h2-size) !important;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 40px;
+  background: linear-gradient(135deg, #ffffff 0%, var(--color-accent) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.buttonsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.contactButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  background: white;
+  color: var(--color-primary);
+  padding: 20px 30px;
+  border-radius: 50px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: var(--text-size-lg) !important;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.contactButton::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(223, 104, 43, 0.1), transparent);
+  transition: left 0.6s ease;
+}
+
+.contactButton:hover::before {
+  left: 100%;
+}
+
+.contactButton:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+  background: #f8f9fa;
+}
+
+.buttonIcon {
+  font-size: 1.5rem;
+}
+
+.buttonText {
+  white-space: nowrap;
+}
+
+.socialNetworks {
+  text-align: center;
+}
+
+.socialTitle {
+  font-size: var(--h3-size) !important;
+  font-weight: 600;
+  margin-bottom: 30px;
+  opacity: 0.9;
+}
+
+.socialGrid {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  flex-wrap: wrap;
+}
+
+.socialLink {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 20px;
+  border-radius: 15px;
+  text-decoration: none;
+  color: white;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  min-width: 100px;
+}
+
+.socialLink:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-5px);
+}
+
+.socialIcon {
+  font-size: 2rem;
+}
+
+.socialName {
+  font-weight: 500;
+  font-size: var(--text-size-sm) !important;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+}
+
+@media (max-width: 768px) {
+  .socialSection {
+    padding: 40px 0;
+  }
+  
+  .container {
+    padding: 0 16px;
+  }
+  
+  .buttonsGrid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  
+  .contactButton {
+    padding: 15px 20px;
+  }
+  
+  .socialGrid {
+    gap: 20px;
+  }
+  
+  .socialLink {
+    padding: 15px;
+  }
+}
