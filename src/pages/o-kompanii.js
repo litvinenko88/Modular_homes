@@ -1,5 +1,6 @@
 import Head from "next/head";
 import Layout from "../components/Layout/Layout";
+import Breadcrumbs from '../components/Breadcrumbs/Breadcrumbs';
 import VideoReviews from "../components/VideoReviews/VideoReviews";
 import styles from "./OKompanii.module.css";
 
@@ -28,7 +29,7 @@ export default function OKompanii() {
         <meta property="og:url" content="https://your-domain.com/o-kompanii" />
         <meta property="og:type" content="website" />
       </Head>
-
+      <Breadcrumbs />
       <main className={styles.aboutPage}>
         {/* Hero Section */}
         <section className={styles.heroSection}>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Layout from '../components/Layout/Layout';
+import Breadcrumbs from '../components/Breadcrumbs/Breadcrumbs';
 import CompanyInfo from '../components/ContactsPage/CompanyInfo';
 import TeamSection from '../components/ContactsPage/TeamSection';
 import MapSection from '../components/ContactsPage/MapSection';
@@ -172,7 +173,7 @@ ${formData.message}
         </script>
         <script src="https://api-maps.yandex.ru/2.1/?apikey=c5bfbaa0-c71b-4913-a5e1-8e22a733a686&lang=ru_RU" async></script>
       </Head>
-
+      <Breadcrumbs />
       <main className={styles.contactsPage}>
         {/* Animated Background */}
         {mounted && (

@@ -1,5 +1,6 @@
 import Head from 'next/head';
 import Layout from '../components/Layout/Layout';
+import Breadcrumbs from '../components/Breadcrumbs/Breadcrumbs';
 
 export default function DlyaBiznesa() {
   return (
@@ -14,6 +15,7 @@ export default function DlyaBiznesa() {
         <meta property="og:url" content="https://your-domain.com/dlya-biznesa" />
         <meta property="og:type" content="website" />
       </Head>
+      <Breadcrumbs />
       <main style={{ padding: '100px 20px', textAlign: 'center' }}>
         <h1>Для бизнеса</h1>
         <p>Раздел в разработке</p>
