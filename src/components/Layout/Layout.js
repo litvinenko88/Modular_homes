@@ -1,6 +1,7 @@
 import { useState, createContext, useContext, cloneElement, Children } from "react";
 import Header from "../Header/Header";
 import Footer from "../Footer/Footer";
+import ScrollToTop from "../ScrollToTop/ScrollToTop";
 import ModularConstructor from "../ConstructorApp/constructor/ModularConstructor";
 import styles from "./Layout.module.css";
 
@@ -43,6 +44,7 @@ const Layout = ({ children }) => {
           {enhanceChildren(children)}
         </main>
         <Footer />
+        <ScrollToTop />
         
         {isConstructorOpen && (
           <div style={{
