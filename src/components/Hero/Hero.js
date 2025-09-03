@@ -94,9 +94,9 @@ export default function Hero() {
               >
                 Рассчитать стоимость
               </button>
-              <button className={`${styles.btn} ${styles.btnSecondary}`} type="button" aria-label="Посмотреть каталог модульных домов">
+              <a href="/catalog" className={`${styles.btn} ${styles.btnSecondary}`} aria-label="Посмотреть каталог модульных домов">
                 Посмотреть каталог
-              </button>
+              </a>
             </div>
           </div>
           
