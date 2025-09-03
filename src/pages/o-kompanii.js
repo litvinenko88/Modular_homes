@@ -79,6 +79,16 @@ export default function OKompanii() {
         </section>
 
         <section className={styles.reviewsCallout}>
+          <div className={styles.animatedBackground}>
+            <div className={styles.particle}></div>
+            <div className={styles.particle}></div>
+            <div className={styles.particle}></div>
+            <div className={styles.wave}></div>
+            <div className={styles.wave}></div>
+            <div className={styles.star}></div>
+            <div className={styles.star}></div>
+            <div className={styles.star}></div>
+          </div>
           <div className={styles.container}>
             <div className={styles.calloutContent}>
               <h2 className={styles.calloutTitle}>

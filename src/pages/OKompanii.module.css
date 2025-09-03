@@ -98,17 +98,130 @@
   overflow: hidden;
 }
 
-.reviewsCallout::before {
-  content: '';
+.reviewsCallout .animatedBackground {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 300px;
-  height: 300px;
-  background: radial-gradient(circle, rgba(223, 104, 43, 0.1) 0%, transparent 70%);
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.reviewsCallout .particle {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: rgba(223, 104, 43, 0.6);
   border-radius: 50%;
-  transform: translate(-50%, -50%);
-  animation: pulse 4s ease-in-out infinite;
+  animation: particleFloat 15s linear infinite;
+}
+
+.reviewsCallout .particle:nth-child(1) {
+  top: 20%;
+  left: 10%;
+  animation-delay: 0s;
+}
+
+.reviewsCallout .particle:nth-child(2) {
+  top: 60%;
+  left: 80%;
+  animation-delay: 5s;
+}
+
+.reviewsCallout .particle:nth-child(3) {
+  top: 80%;
+  left: 30%;
+  animation-delay: 10s;
+}
+
+.reviewsCallout .wave {
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  border: 2px solid rgba(223, 104, 43, 0.2);
+  border-radius: 50%;
+  animation: waveExpand 6s ease-out infinite;
+}
+
+.reviewsCallout .wave:nth-child(4) {
+  top: 10%;
+  right: 15%;
+  animation-delay: 0s;
+}
+
+.reviewsCallout .wave:nth-child(5) {
+  bottom: 20%;
+  left: 10%;
+  animation-delay: 3s;
+}
+
+.reviewsCallout .star {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  animation: starTwinkle 3s ease-in-out infinite;
+}
+
+.reviewsCallout .star:nth-child(6) {
+  top: 25%;
+  left: 70%;
+  animation-delay: 0s;
+}
+
+.reviewsCallout .star:nth-child(7) {
+  top: 70%;
+  left: 60%;
+  animation-delay: 1s;
+}
+
+.reviewsCallout .star:nth-child(8) {
+  top: 40%;
+  right: 25%;
+  animation-delay: 2s;
+}
+
+@keyframes particleFloat {
+  0% {
+    transform: translateY(0px) translateX(0px);
+    opacity: 0.7;
+  }
+  50% {
+    transform: translateY(-30px) translateX(20px);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0px) translateX(0px);
+    opacity: 0.7;
+  }
+}
+
+@keyframes waveExpand {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.3;
+  }
+  100% {
+    transform: scale(0.8);
+    opacity: 0.6;
+  }
+}
+
+@keyframes starTwinkle {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.5);
+  }
 }
 
 .calloutContent {
