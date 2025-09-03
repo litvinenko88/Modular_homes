@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import styles from './VideoReviews.module.css'
 
-export default function VideoReviews({ showAllVideos = false }) {
+export default function VideoReviews({ showAllVideos = false, showViewAllButton = false }) {
   const [isVisible, setIsVisible] = useState(false)
   const [playingVideo, setPlayingVideo] = useState(null)
   const [isPlaying, setIsPlaying] = useState({})
@@ -276,6 +276,14 @@ export default function VideoReviews({ showAllVideos = false }) {
               </div>
             ))}
           </div>
+          
+          {showViewAllButton && (
+            <div className={styles.buttonContainer}>
+              <a href="/otzyvy" className={styles.viewAllButton}>
+                Смотреть все обзоры
+              </a>
+            </div>
+          )}
         </div>
       </div>
     </section>

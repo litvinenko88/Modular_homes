@@ -144,7 +144,7 @@ export default function Home() {
         <Hero />
         <ProblemSolution />
         <Bestsellers />
-        <VideoReviews />
+        <VideoReviews showViewAllButton={true} />
         <Features />
         <VirtualTour />
         <ProductionProcess />
