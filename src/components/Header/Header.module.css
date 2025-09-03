@@ -1,5 +1,9 @@
 .header {
-  background: linear-gradient(135deg, var(--color-primary) 0%, rgba(49, 50, 61, 0.95) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-primary) 0%,
+    rgba(49, 50, 61, 0.95) 100%
+  );
   backdrop-filter: blur(20px);
   box-shadow: 0 8px 32px rgba(49, 50, 61, 0.15);
   position: sticky;
@@ -44,7 +48,11 @@
   color: var(--color-white);
   white-space: nowrap;
   position: relative;
-  background: linear-gradient(135deg, var(--color-white) 0%, var(--color-accent) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-white) 0%,
+    var(--color-accent) 100%
+  );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -99,7 +107,7 @@
 }
 
 .navLink::after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: 4px;
   left: 50%;
@@ -121,7 +129,6 @@
   gap: 1rem;
   flex-shrink: 0;
   min-width: 0;
-  overflow: hidden;
   max-width: calc(100vw - 200px);
 }
 
@@ -154,13 +161,18 @@
 }
 
 .contactBtn::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
   transition: left 0.6s ease;
 }
 
@@ -296,7 +308,11 @@
 .hamburger {
   width: 30px;
   height: 3px;
-  background: linear-gradient(90deg, var(--color-white) 0%, var(--color-accent) 100%);
+  background: linear-gradient(
+    90deg,
+    var(--color-white) 0%,
+    var(--color-accent) 100%
+  );
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   border-radius: 3px;
   display: block;
@@ -339,7 +355,11 @@
   right: -100%;
   width: min(320px, 90vw);
   height: 100vh;
-  background: linear-gradient(135deg, var(--color-primary) 0%, rgba(49, 50, 61, 0.98) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-primary) 0%,
+    rgba(49, 50, 61, 0.98) 100%
+  );
   backdrop-filter: blur(20px);
   z-index: 1000;
   transition: right 0.5s cubic-bezier(0.4, 0, 0.2, 1);
@@ -533,13 +553,18 @@
 }
 
 .mobileContactBtn::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
   transition: left 0.6s ease;
 }
 
@@ -558,19 +583,19 @@
   .container {
     padding: 1rem 1.5rem;
   }
-  
+
   .contactBtn {
     padding: 0.75rem 1.25rem;
     font-size: var(--text-size-sm) !important;
     white-space: nowrap;
   }
-  
+
   .regionButton {
     width: 60px;
     font-size: var(--font-size-xs) !important;
     padding: 0.45rem 0.65rem;
   }
-  
+
   .rightSection {
     gap: 0.75rem;
     max-width: calc(100vw - 180px);
@@ -582,13 +607,13 @@
     padding: 0.65rem 1rem;
     font-size: var(--text-size-sm) !important;
   }
-  
+
   .regionButton {
     width: 55px;
     font-size: var(--font-size-xs) !important;
     padding: 0.4rem 0.6rem;
   }
-  
+
   .rightSection {
     gap: 0.5rem;
     max-width: calc(100vw - 160px);
@@ -599,11 +624,11 @@
   .desktopOnly {
     display: none !important;
   }
-  
+
   .mobileMenuBtn {
     display: flex !important;
   }
-  
+
   .nav {
     display: none !important;
   }
@@ -613,19 +638,19 @@
   .nav {
     display: none;
   }
-  
+
   .mobileMenuBtn {
     display: flex;
   }
-  
+
   .desktopOnly {
     display: none;
   }
-  
+
   .dropdown {
     display: none !important;
   }
-  
+
   .rightSection {
     max-width: none;
   }
@@ -635,7 +660,7 @@
   .container {
     padding: 1rem 1.25rem;
   }
-  
+
   .rightSection {
     max-width: calc(100vw - 140px);
   }
@@ -646,18 +671,16 @@
     padding: 0.75rem 1rem;
     min-height: 60px;
   }
-  
+
   .logoText {
     font-size: var(--h3-size) !important;
   }
-  
+
   .mobileNav {
     width: min(280px, 85vw);
     max-width: calc(100vw - 15px);
   }
-  
 
-  
   .rightSection {
     max-width: none;
   }
@@ -667,35 +690,107 @@
   .container {
     padding: 0.75rem 0.75rem;
   }
-  
+
   .logoText {
     font-size: var(--h3-size) !important;
   }
-  
+
   .mobileNav {
     width: min(100vw, 100%);
     right: -100%;
     max-width: 100vw;
   }
-  
+
   .mobileNav.open {
     right: 0;
   }
-  
-
 }
 
 @media (max-width: 320px) {
   .mobileNavContent {
     padding: 1rem 1rem 2rem 1rem;
   }
-  
+
   .mobileHeader {
     padding: 1rem;
   }
-  
+
   .mobileContactBtn {
     padding: 1rem 0.75rem;
     font-size: var(--text-size-sm) !important;
+  }
+}
+
+/* Модальное окно */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: var(--spacing-lg);
+  animation: fadeIn 0.3s ease-out;
+}
+
+.modalContent {
+  position: relative;
+  animation: slideInFromTop 0.4s ease-out;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modalClose {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  width: 40px;
+  height: 40px;
+  background: var(--color-accent);
+  color: var(--color-white);
+  border: none;
+  border-radius: 50%;
+  font-size: 20px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+  z-index: 10000;
+  box-shadow: 0 4px 15px rgba(223, 104, 43, 0.4);
+}
+
+.modalClose:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(223, 104, 43, 0.6);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (max-width: 768px) {
+  .modal {
+    padding: var(--spacing-md);
+  }
+
+  .modalClose {
+    top: -5px;
+    right: -5px;
+    width: 35px;
+    height: 35px;
+    font-size: 18px;
   }
 }
