@@ -443,7 +443,7 @@ export default function CatalogDetail() {
               className={showBlueprints ? styles.active : ''}
               onClick={() => { setShowBlueprints(true); setCurrentImage(0); }}
             >
-              Чертежи
+              Планировка
             </button>
           </div>
         </div>
