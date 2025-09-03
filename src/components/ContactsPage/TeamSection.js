@@ -83,7 +83,7 @@ export default function TeamSection() {
               <div className={styles.photoContainer}>
                 <img
                   src={member.photo}
-                  alt={member.name}
+                  alt={`${member.name} - ${member.position} компании Easy House`}
                   className={styles.memberPhoto}
                 />
               </div>

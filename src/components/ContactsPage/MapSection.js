@@ -196,7 +196,7 @@ export default function MapSection() {
               <div className={styles.mapPlaceholder}>
                 <div className={styles.placeholderContent}>
                   <div className={styles.placeholderIcon}>📍</div>
-                  <h3>Наш адрес</h3>
+                  <h4>Наш адрес</h4>
                   <p>г. Ставрополь, ул. Севрюкова, 94</p>
                   <p>Производственная база Easy House</p>
                   <div className={styles.loadingText}>Загрузка карты...</div>
@@ -208,7 +208,7 @@ export default function MapSection() {
               <div className={styles.mapPlaceholder}>
                 <div className={styles.placeholderContent}>
                   <div className={styles.placeholderIcon}>⚠️</div>
-                  <h3>Карта временно недоступна</h3>
+                  <h4>Карта временно недоступна</h4>
                   <p>г. Ставрополь, ул. Севрюкова, 94</p>
                   <p>Производственная база Easy House</p>
                   <div className={styles.errorText}>
@@ -224,7 +224,7 @@ export default function MapSection() {
             <div className={styles.infoCard}>
               <div className={styles.infoHeader}>
                 <div className={styles.infoIcon}>📍</div>
-                <h3>Наш адрес</h3>
+                <h4>Наш адрес</h4>
               </div>
               <div className={styles.infoContent}>
                 <p><strong>г. Ставрополь, ул. Севрюкова, 94</strong></p>

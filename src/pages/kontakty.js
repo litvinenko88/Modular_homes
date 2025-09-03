@@ -130,6 +130,46 @@ ${formData.message}
         <meta property="og:description" content="Контакты компании Easy House. Телефон 8(996)417-90-01, адрес, время работы. Свяжитесь с нами для заказа модульного дома." />
         <meta property="og:url" content="https://your-domain.com/kontakty" />
         <meta property="og:type" content="website" />
+        <meta property="og:image" content="https://your-domain.com/img/contacts-preview.jpg" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt" content="Контакты Easy House - модульные дома" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Контакты Easy House - модульные дома" />
+        <meta name="twitter:description" content="Контакты компании Easy House. Телефон 8(996)417-90-01, адрес, время работы. Свяжитесь с нами для заказа модульного дома." />
+        <meta name="twitter:image" content="https://your-domain.com/img/contacts-preview.jpg" />
+        <meta name="robots" content="index, follow" />
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "LocalBusiness",
+            "name": "Easy House",
+            "description": "Производство модульных домов",
+            "url": "https://your-domain.com",
+            "telephone": "+79964179001",
+            "email": "info@easyhouse.ru",
+            "address": {
+              "@type": "PostalAddress",
+              "streetAddress": "ул. Севрюкова, 94",
+              "addressLocality": "Ставрополь",
+              "addressRegion": "Ставропольский край",
+              "postalCode": "355013",
+              "addressCountry": "RU"
+            },
+            "geo": {
+              "@type": "GeoCoordinates",
+              "latitude": 45.0448,
+              "longitude": 41.9691
+            },
+            "openingHours": [
+              "Mo-Fr 09:00-18:00",
+              "Sa 10:00-16:00"
+            ],
+            "sameAs": [
+              "https://wa.me/79964179001"
+            ]
+          })}
+        </script>
         <script src="https://api-maps.yandex.ru/2.1/?apikey=c5bfbaa0-c71b-4913-a5e1-8e22a733a686&lang=ru_RU" async></script>
       </Head>
 
@@ -180,6 +220,7 @@ ${formData.message}
         {/* Quick Contacts */}
         <section className={styles.quickContacts}>
           <div className={styles.container}>
+            <h2 className={styles.sectionTitle} style={{textAlign: 'center', marginBottom: '40px', fontSize: '2rem', color: '#333'}}>Контактная информация</h2>
             <div className={styles.contactsGrid}>
               <div className={styles.contactCard}>
                 <div className={styles.contactIcon}>
@@ -339,7 +380,7 @@ ${formData.message}
                 {isSuccess ? (
                   <div className={styles.successMessage}>
                     <div className={styles.successIcon}>✓</div>
-                    <h3>Спасибо за сообщение!</h3>
+                    <h4>Спасибо за сообщение!</h4>
                     <p>Мы свяжемся с вами в ближайшее время</p>
                   </div>
                 ) : (
