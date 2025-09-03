@@ -14,6 +14,7 @@ const ContactForm = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [phoneError, setPhoneError] = useState('');
+  const [consentError, setConsentError] = useState(false);
 
   const validatePhone = (phone) => {
     const cleanPhone = phone.replace(/\D/g, '');
@@ -52,6 +53,9 @@ const ContactForm = ({
         ...prev,
         [name]: type === 'checkbox' ? checked : value
       }));
+      if (name === 'consent' && checked) {
+        setConsentError(false);
+      }
     }
   };
 
@@ -64,10 +68,17 @@ const ContactForm = ({
       return;
     }
     
-    if (!formData.name || !formData.phone || !formData.consent) {
-      alert('Пожалуйста, заполните все поля и дайте согласие на обработку данных');
+    if (!formData.consent) {
+      setConsentError(true);
       return;
     }
+    
+    if (!formData.name || !formData.phone) {
+      alert('Пожалуйста, заполните все поля');
+      return;
+    }
+    
+    setConsentError(false);
 
     setIsSubmitting(true);
 
@@ -95,7 +106,14 @@ const ContactForm = ({
         setIsSuccess(true);
         setFormData({ name: '', phone: '', consent: false });
         setPhoneError('');
-        setTimeout(() => setIsSuccess(false), 5000);
+        setConsentError(false);
+        setTimeout(() => {
+          setIsSuccess(false);
+          // Закрываем форму через родительский компонент
+          if (window.closeContactForm) {
+            window.closeContactForm();
+          }
+        }, 3000);
       } else {
         throw new Error('Ошибка отправки');
       }
@@ -148,7 +166,7 @@ const ContactForm = ({
       </div>
 
       <div className={styles.checkbox}>
-        <label className={styles.checkboxLabel}>
+        <label className={`${styles.checkboxLabel} ${consentError ? styles.checkboxError : ''}`}>
           <input
             type="checkbox"
             name="consent"
@@ -156,11 +174,12 @@ const ContactForm = ({
             onChange={handleChange}
             required
           />
-          <span className={styles.checkmark}></span>
+          <span className={`${styles.checkmark} ${consentError ? styles.checkmarkError : ''}`}></span>
           <span className={styles.checkboxText}>
             Согласен на обработку персональных данных
           </span>
         </label>
+        {consentError && <div className={styles.errorText}>Необходимо дать согласие на обработку данных</div>}
       </div>
 
       <button 

@@ -80,6 +80,15 @@
   animation: slideInFromTop 0.3s ease-out;
 }
 
+.checkboxError {
+  color: #dc3545;
+}
+
+.checkmarkError {
+  border-color: #dc3545;
+  background: rgba(220, 53, 69, 0.1);
+}
+
 .checkbox {
   margin-bottom: var(--spacing-xl);
 }

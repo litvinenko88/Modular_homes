@@ -88,6 +88,14 @@ const Header = ({ onConstructorOpen }) => {
     setIsMobileMenuOpen(false);
   };
 
+  // Глобальная функция для закрытия формы
+  useEffect(() => {
+    window.closeContactForm = () => setIsContactFormOpen(false);
+    return () => {
+      delete window.closeContactForm;
+    };
+  }, []);
+
   useEffect(() => {
     if (isMobileMenuOpen || isContactFormOpen) {
       document.body.style.overflow = "hidden";
@@ -356,7 +364,12 @@ const Header = ({ onConstructorOpen }) => {
 
       {/* Модальное окно с формой обратной связи */}
       {isContactFormOpen && (
-        <div className={styles.modal} onClick={() => setIsContactFormOpen(false)}>
+        <div 
+          className={styles.modal} 
+          onClick={() => setIsContactFormOpen(false)}
+          onWheel={(e) => e.preventDefault()}
+          onTouchMove={(e) => e.preventDefault()}
+        >
           <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
             <button 
               className={styles.modalClose}
