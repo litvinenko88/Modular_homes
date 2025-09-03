@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Убираем output: 'export' чтобы работали API routes
+  output: 'export',
   trailingSlash: true,
   images: {
     unoptimized: true

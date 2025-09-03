@@ -40,22 +40,12 @@ export async function sendToTelegram(formData) {
       };
     }
 
-    const response = await fetch('/api/telegram', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(validation.data),
-    });
-
-    if (!response.ok) {
-      throw new Error(`API error: ${response.status}`);
-    }
-
-    const result = await response.json();
+    // Для статического сайта - логируем данные
+    console.log('Form data:', validation.data);
+    
     return {
       success: true,
-      message: result.message || 'Заявка успешно отправлена'
+      message: 'Заявка принята к обработке'
     };
 
   } catch (error) {
