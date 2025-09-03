@@ -329,28 +329,7 @@ export default function Kontakty() {
         <CompanyInfo />
       </main>
 
-      {mounted && (
-        <script dangerouslySetInnerHTML={{
-          __html: `
-            if (typeof window !== 'undefined' && window.L) {
-              setTimeout(function() {
-                const mapElement = document.getElementById('map');
-                if (mapElement && !mapElement._leaflet_id) {
-                  const map = L.map('map').setView([45.0448, 41.9691], 13);
-                  
-                  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: '© OpenStreetMap contributors'
-                  }).addTo(map);
-                  
-                  const marker = L.marker([45.0448, 41.9691]).addTo(map)
-                    .bindPopup('<b>Easy House</b><br>ул. Севрюкова, 94<br>Ставрополь')
-                    .openPopup();
-                }
-              }, 1000);
-            }
-          `
-        }} />
-      )}
+
     </Layout>
   );
 }

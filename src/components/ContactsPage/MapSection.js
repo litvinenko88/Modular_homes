@@ -5,142 +5,163 @@ export default function MapSection() {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const [mounted, setMounted] = useState(false);
+  const [mapLoaded, setMapLoaded] = useState(false);
 
   useEffect(() => {
     setMounted(true);
     
+    // Функция для проверки загрузки Leaflet
+    const checkLeaflet = () => {
+      return typeof window !== 'undefined' && window.L;
+    };
+    
     // Инициализация Leaflet карты
     const initMap = () => {
-      if (typeof window !== 'undefined' && window.L && mapRef.current && !mapInstanceRef.current) {
-      // Координаты Ставрополя, ул. Севрюкова, 94
-      const coordinates = [45.0448, 41.9691];
-      
-      // Создание карты
-      mapInstanceRef.current = window.L.map(mapRef.current, {
-        center: coordinates,
-        zoom: 15,
-        zoomControl: true,
-        scrollWheelZoom: true,
-        doubleClickZoom: true,
-        boxZoom: true,
-        keyboard: true,
-        dragging: true,
-        touchZoom: true
-      });
+      if (checkLeaflet() && mapRef.current && !mapInstanceRef.current) {
+        // Координаты Ставрополя, ул. Севрюкова, 94
+        const coordinates = [45.0448, 41.9691];
+        
+        try {
+          // Создание карты
+          mapInstanceRef.current = window.L.map(mapRef.current, {
+            center: coordinates,
+            zoom: 15,
+            zoomControl: true,
+            scrollWheelZoom: true,
+            doubleClickZoom: true,
+            boxZoom: true,
+            keyboard: true,
+            dragging: true,
+            touchZoom: true
+          });
 
-      // Добавление тайлов OpenStreetMap
-      window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-        maxZoom: 19
-      }).addTo(mapInstanceRef.current);
+          // Добавление тайлов OpenStreetMap
+          window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            maxZoom: 19
+          }).addTo(mapInstanceRef.current);
 
-      // Создание кастомной иконки
-      const customIcon = window.L.divIcon({
-        html: `
-          <div style="
-            background: linear-gradient(135deg, #df682b 0%, #e8763a 100%);
-            width: 40px;
-            height: 40px;
-            border-radius: 50% 50% 50% 0;
-            transform: rotate(-45deg);
-            border: 3px solid white;
-            box-shadow: 0 4px 15px rgba(223, 104, 43, 0.4);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-          ">
-            <div style="
-              color: white;
-              font-size: 16px;
-              transform: rotate(45deg);
-              font-weight: bold;
-            ">🏠</div>
-          </div>
-        `,
-        className: 'custom-marker',
-        iconSize: [40, 40],
-        iconAnchor: [20, 40],
-        popupAnchor: [0, -40]
-      });
+          // Создание кастомной иконки
+          const customIcon = window.L.divIcon({
+            html: `
+              <div style="
+                background: linear-gradient(135deg, #df682b 0%, #e8763a 100%);
+                width: 40px;
+                height: 40px;
+                border-radius: 50% 50% 50% 0;
+                transform: rotate(-45deg);
+                border: 3px solid white;
+                box-shadow: 0 4px 15px rgba(223, 104, 43, 0.4);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+              ">
+                <div style="
+                  color: white;
+                  font-size: 16px;
+                  transform: rotate(45deg);
+                  font-weight: bold;
+                ">🏠</div>
+              </div>
+            `,
+            className: 'custom-marker',
+            iconSize: [40, 40],
+            iconAnchor: [20, 40],
+            popupAnchor: [0, -40]
+          });
 
-      // Добавление маркера
-      const marker = window.L.marker(coordinates, { icon: customIcon })
-        .addTo(mapInstanceRef.current);
+          // Добавление маркера
+          const marker = window.L.marker(coordinates, { icon: customIcon })
+            .addTo(mapInstanceRef.current);
 
-      // Создание popup с информацией
-      const popupContent = `
-        <div style="text-align: center; padding: 10px; font-family: Arial, sans-serif;">
-          <h3 style="margin: 0 0 10px 0; color: #df682b; font-size: 18px;">Easy House</h3>
-          <p style="margin: 5px 0; color: #333; font-size: 14px;">
-            <strong>📍 Адрес:</strong><br>
-            г. Ставрополь, ул. Севрюкова, 94
-          </p>
-          <p style="margin: 5px 0; color: #333; font-size: 14px;">
-            <strong>🏭 Производственная база</strong>
-          </p>
-          <p style="margin: 10px 0 5px 0; color: #666; font-size: 12px;">
-            <strong>📞 Телефон:</strong> 8 (996) 417-90-01
-          </p>
-          <div style="margin-top: 15px;">
-            <a href="https://www.google.com/maps/dir/?api=1&destination=45.0448,41.9691" 
-               target="_blank" 
-               style="
-                 background: linear-gradient(135deg, #df682b 0%, #e8763a 100%);
-                 color: white;
-                 padding: 8px 16px;
-                 border-radius: 6px;
-                 text-decoration: none;
-                 font-size: 12px;
-                 font-weight: bold;
-                 display: inline-block;
-                 margin: 2px;
-               ">
-              🗺️ Маршрут в Google Maps
-            </a>
-            <a href="https://yandex.ru/maps/?pt=41.9691,45.0448&z=15&l=map" 
-               target="_blank" 
-               style="
-                 background: linear-gradient(135deg, #df682b 0%, #e8763a 100%);
-                 color: white;
-                 padding: 8px 16px;
-                 border-radius: 6px;
-                 text-decoration: none;
-                 font-size: 12px;
-                 font-weight: bold;
-                 display: inline-block;
-                 margin: 2px;
-               ">
-              🗺️ Яндекс.Карты
-            </a>
-          </div>
-        </div>
-      `;
+          // Создание popup с информацией
+          const popupContent = `
+            <div style="text-align: center; padding: 10px; font-family: Arial, sans-serif;">
+              <h3 style="margin: 0 0 10px 0; color: #df682b; font-size: 18px;">Easy House</h3>
+              <p style="margin: 5px 0; color: #333; font-size: 14px;">
+                <strong>📍 Адрес:</strong><br>
+                г. Ставрополь, ул. Севрюкова, 94
+              </p>
+              <p style="margin: 5px 0; color: #333; font-size: 14px;">
+                <strong>🏭 Производственная база</strong>
+              </p>
+              <p style="margin: 10px 0 5px 0; color: #666; font-size: 12px;">
+                <strong>📞 Телефон:</strong> 8 (996) 417-90-01
+              </p>
+              <div style="margin-top: 15px;">
+                <a href="https://www.google.com/maps/dir/?api=1&destination=45.0448,41.9691" 
+                   target="_blank" 
+                   style="
+                     background: linear-gradient(135deg, #df682b 0%, #e8763a 100%);
+                     color: white;
+                     padding: 8px 16px;
+                     border-radius: 6px;
+                     text-decoration: none;
+                     font-size: 12px;
+                     font-weight: bold;
+                     display: inline-block;
+                     margin: 2px;
+                   ">
+                  🗺️ Маршрут в Google Maps
+                </a>
+                <a href="https://yandex.ru/maps/?pt=41.9691,45.0448&z=15&l=map" 
+                   target="_blank" 
+                   style="
+                     background: linear-gradient(135deg, #df682b 0%, #e8763a 100%);
+                     color: white;
+                     padding: 8px 16px;
+                     border-radius: 6px;
+                     text-decoration: none;
+                     font-size: 12px;
+                     font-weight: bold;
+                     display: inline-block;
+                     margin: 2px;
+                   ">
+                  🗺️ Яндекс.Карты
+                </a>
+              </div>
+            </div>
+          `;
 
-      marker.bindPopup(popupContent, {
-        maxWidth: 300,
-        className: 'custom-popup'
-      });
+          marker.bindPopup(popupContent, {
+            maxWidth: 300,
+            className: 'custom-popup'
+          });
 
-      // Открытие popup по умолчанию
-      marker.openPopup();
+          // Открытие popup по умолчанию
+          marker.openPopup();
 
-      // Добавление анимации появления маркера
-      setTimeout(() => {
-        marker.setLatLng(coordinates);
-      }, 500);
-
-        // Добавление обработчика клика по карте
-        mapInstanceRef.current.on('click', function(e) {
-          console.log('Clicked at:', e.latlng);
-        });
+          // Добавление обработчика клика по карте
+          mapInstanceRef.current.on('click', function(e) {
+            console.log('Clicked at:', e.latlng);
+          });
+          
+          setMapLoaded(true);
+        } catch (error) {
+          console.error('Ошибка инициализации карты:', error);
+        }
       }
     };
 
-    // Задержка для загрузки Leaflet
-    const timer = setTimeout(initMap, 1000);
+    // Проверяем загрузку Leaflet каждые 500мс
+    const checkInterval = setInterval(() => {
+      if (checkLeaflet()) {
+        clearInterval(checkInterval);
+        initMap();
+      }
+    }, 500);
+    
+    // Fallback таймер
+    const fallbackTimer = setTimeout(() => {
+      clearInterval(checkInterval);
+      if (checkLeaflet()) {
+        initMap();
+      }
+    }, 5000);
 
     return () => {
-      clearTimeout(timer);
+      clearInterval(checkInterval);
+      clearTimeout(fallbackTimer);
       // Очистка карты при размонтировании компонента
       if (mapInstanceRef.current) {
         mapInstanceRef.current.remove();
@@ -167,7 +188,7 @@ export default function MapSection() {
         <h2 className={styles.title}>Как нас найти</h2>
         <div className={styles.mapContainer}>
           <div ref={mapRef} className={styles.map} id="leaflet-map">
-            {!mounted && (
+            {(!mounted || !mapLoaded) && (
               <div className={styles.mapPlaceholder}>
                 <div className={styles.placeholderContent}>
                   <div className={styles.placeholderIcon}>📍</div>
