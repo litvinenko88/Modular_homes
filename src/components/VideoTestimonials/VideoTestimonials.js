@@ -72,21 +72,25 @@ export default function VideoTestimonials() {
     const audio = audioRefs.current[videoId];
     if (audio) {
       audio.currentTime = videoRefs.current[videoId].currentTime;
-      audio.play();
+      audio.play().catch(error => {
+        console.error('Audio playback failed:', error);
+      });
     }
     setPlayingVideo(videoId);
   };
 
-  const handleVideoEnd = (videoId) => {
+  const stopAudio = (videoId) => {
     const audio = audioRefs.current[videoId];
     audio?.pause();
     setPlayingVideo(null);
   };
 
+  const handleVideoEnd = (videoId) => {
+    stopAudio(videoId);
+  };
+
   const handleVideoPause = (videoId) => {
-    const audio = audioRefs.current[videoId];
-    audio?.pause();
-    setPlayingVideo(null);
+    stopAudio(videoId);
   };
 
   return (
@@ -117,8 +121,11 @@ export default function VideoTestimonials() {
                   controls
                   controlsList="nodownload nofullscreen noremoteplayback"
                   disablePictureInPicture
+                  aria-label={`Видео отзыв клиента о модульном доме Easy House №${item.id}`}
+                  title={`Отзыв клиента №${item.id}`}
                 >
                   <source src={item.video} type="video/mp4" />
+                  <track kind="captions" srcLang="ru" label="Русские субтитры" />
                 </video>
                 
                 {item.audio && (

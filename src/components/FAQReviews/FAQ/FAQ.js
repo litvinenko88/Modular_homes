@@ -48,35 +48,46 @@ export default function FAQ() {
   const visibleItems = isExpanded ? faqData : faqData.slice(0, 3);
 
   return (
-    <div className={styles.faq}>
-      <div className={styles.header}>
+    <section className={styles.faq}>
+      <header className={styles.header}>
         <h2 className={styles.title}>Что спрашивают клиенты</h2>
         <p className={styles.subtitle}>
           У вас остались сомнения или вопросы о наших быстровозводимых домах? Мы
           собрали самые популярные из них и дали подробные ответы. Если не нашли
           то, что искали — просто позвоните нам для индивидуального подхода.
         </p>
-      </div>
+      </header>
 
-      <div className={styles.faqList}>
+      <div className={styles.faqList} itemScope itemType="https://schema.org/FAQPage">
         {faqData.slice(0, 3).map((item, index) => (
-          <div
+          <article
             key={index}
             className={`${styles.faqItem} ${
               openItems[index] ? styles.open : ""
-            }`}>
+            }`}
+            itemScope
+            itemType="https://schema.org/Question"
+          >
             <button
               className={styles.question}
-              onClick={() => toggleItem(index)}>
-              <span>{item.question}</span>
-              <span className={styles.icon}>
+              onClick={() => toggleItem(index)}
+              aria-expanded={openItems[index]}
+              aria-controls={`answer-${index}`}
+            >
+              <span itemProp="name">{item.question}</span>
+              <span className={styles.icon} aria-hidden="true">
                 {openItems[index] ? "−" : "+"}
               </span>
             </button>
-            <div className={styles.answer}>
-              <p>{item.answer}</p>
+            <div 
+              className={styles.answer}
+              id={`answer-${index}`}
+              itemScope
+              itemType="https://schema.org/Answer"
+            >
+              <p itemProp="text">{item.answer}</p>
             </div>
-          </div>
+          </article>
         ))}
 
         <div
@@ -86,23 +97,34 @@ export default function FAQ() {
           {faqData.slice(3).map((item, index) => {
             const actualIndex = index + 3;
             return (
-              <div
+              <article
                 key={actualIndex}
                 className={`${styles.faqItem} ${
                   openItems[actualIndex] ? styles.open : ""
-                }`}>
+                }`}
+                itemScope
+                itemType="https://schema.org/Question"
+              >
                 <button
                   className={styles.question}
-                  onClick={() => toggleItem(actualIndex)}>
-                  <span>{item.question}</span>
-                  <span className={styles.icon}>
+                  onClick={() => toggleItem(actualIndex)}
+                  aria-expanded={openItems[actualIndex]}
+                  aria-controls={`answer-${actualIndex}`}
+                >
+                  <span itemProp="name">{item.question}</span>
+                  <span className={styles.icon} aria-hidden="true">
                     {openItems[actualIndex] ? "−" : "+"}
                   </span>
                 </button>
-                <div className={styles.answer}>
-                  <p>{item.answer}</p>
+                <div 
+                  className={styles.answer}
+                  id={`answer-${actualIndex}`}
+                  itemScope
+                  itemType="https://schema.org/Answer"
+                >
+                  <p itemProp="text">{item.answer}</p>
                 </div>
-              </div>
+              </article>
             );
           })}
         </div>
@@ -113,6 +135,6 @@ export default function FAQ() {
         onClick={() => setIsExpanded(!isExpanded)}>
         {isExpanded ? "свернуть" : "развернуть"}
       </button>
-    </div>
+    </section>
   );
 }

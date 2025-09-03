@@ -3,7 +3,6 @@ import styles from './Reviews.module.css'
 
 export default function Reviews() {
   const [currentSlide, setCurrentSlide] = useState(0)
-  const [isAutoPlaying, setIsAutoPlaying] = useState(true)
   const touchStartX = useRef(0)
   const touchEndX = useRef(0)
 
@@ -72,7 +71,7 @@ export default function Reviews() {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentSlide(prev => (prev + 1) % (reviews.length * 2))
+      setCurrentSlide(prev => (prev + 1) % reviews.length)
     }, 6000)
 
     return () => clearInterval(interval)
@@ -80,7 +79,6 @@ export default function Reviews() {
 
   const handleTouchStart = (e) => {
     touchStartX.current = e.touches[0].clientX
-    setIsAutoPlaying(false)
   }
 
   const handleTouchMove = (e) => {
@@ -98,8 +96,6 @@ export default function Reviews() {
         setCurrentSlide(prev => (prev - 1 + reviews.length) % reviews.length)
       }
     }
-
-    setTimeout(() => setIsAutoPlaying(true), 1000)
   }
 
   return (
@@ -121,9 +117,9 @@ export default function Reviews() {
       >
         <div 
           className={styles.slidesContainer}
-          style={{ transform: `translateX(-${(currentSlide % reviews.length) * 100}%)` }}
+          style={{ transform: `translateX(-${currentSlide * 100}%)` }}
         >
-          {[...reviews, ...reviews].map((review, index) => (
+          {reviews.map((review, index) => (
             <div key={index} className={styles.slide}>
               <div className={styles.reviewCard}>
                 <div className={styles.reviewText}>
@@ -132,7 +128,16 @@ export default function Reviews() {
                 <div className={styles.reviewAuthor}>
                   <div className={styles.authorInfo}>
                     <div className={styles.authorAvatar}>
-                      <img src={review.avatar} alt={review.name} />
+                      <img 
+                        src={review.avatar} 
+                        alt={`Фото клиента ${review.name} из ${review.location} - отзыв о модульном доме Easy House`}
+                        width="60"
+                        height="60"
+                        onError={(e) => {
+                          e.target.src = '/img/default-avatar.jpg';
+                          e.target.alt = 'Аватар по умолчанию';
+                        }}
+                      />
                     </div>
                     <div className={styles.authorDetails}>
                       <div className={styles.authorName}>{review.name}</div>
@@ -155,6 +160,31 @@ export default function Reviews() {
           />
         ))}
       </div>
+      
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "Easy House",
+            "review": reviews.slice(0, 5).map((review, index) => ({
+              "@type": "Review",
+              "author": {
+                "@type": "Person",
+                "name": review.name
+              },
+              "reviewRating": {
+                "@type": "Rating",
+                "ratingValue": "5",
+                "bestRating": "5"
+              },
+              "reviewBody": review.text,
+              "datePublished": new Date(Date.now() - (index * 30 * 24 * 60 * 60 * 1000)).toISOString().split('T')[0]
+            }))
+          })
+        }}
+      />
     </div>
   )
 }

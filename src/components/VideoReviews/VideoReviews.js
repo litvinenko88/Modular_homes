@@ -62,16 +62,20 @@ export default function VideoReviews({ showAllVideos = false, showViewAllButton 
     } else {
       // Pause other videos
       Object.keys(isPlaying).forEach(key => {
-        if (key != index && isPlaying[key]) {
+        if (key !== String(index) && isPlaying[key]) {
           videoRefs.current[key]?.pause()
           audioRefs.current[key]?.pause()
         }
       })
       
-      video?.play()
+      video?.play().catch(error => {
+        console.error('Video playback failed:', error);
+      })
       if (audio && videos[index].audio) {
         audio.currentTime = video.currentTime
-        audio?.play()
+        audio?.play().catch(error => {
+          console.error('Audio playback failed:', error);
+        })
       }
     }
   }
@@ -248,13 +252,19 @@ export default function VideoReviews({ showAllVideos = false, showViewAllButton 
                         <div 
                           className={styles.progressFill}
                           style={{ 
-                            width: `${videoRefs.current[index]?.duration ? ((currentTime[index] || 0) / videoRefs.current[index].duration) * 100 : 0}%` 
+                            width: `${(() => {
+                              const video = videoRefs.current[index];
+                              return video?.duration ? ((currentTime[index] || 0) / video.duration) * 100 : 0;
+                            })()}%` 
                           }}
                         />
                         <div 
                           className={styles.progressThumb}
                           style={{ 
-                            left: `${videoRefs.current[index]?.duration ? ((currentTime[index] || 0) / videoRefs.current[index].duration) * 100 : 0}%` 
+                            left: `${(() => {
+                              const video = videoRefs.current[index];
+                              return video?.duration ? ((currentTime[index] || 0) / video.duration) * 100 : 0;
+                            })()}%` 
                           }}
                         />
                       </div>
