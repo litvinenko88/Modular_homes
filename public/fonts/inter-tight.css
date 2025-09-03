@@ -1,0 +1,35 @@
+/* InterTight Variable Font */
+@font-face {
+  font-family: 'InterTight';
+  src: url('./InterTight-Variable.woff2') format('woff2-variations');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'InterTight';
+  src: url('./InterTight-VariableItalic.woff2') format('woff2-variations');
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Fallback для старых браузеров */
+@font-face {
+  font-family: 'InterTight';
+  src: url('./InterTight-Regular.woff2') format('woff2'),
+       url('./InterTight-Regular.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'InterTight';
+  src: url('./InterTight-Bold.woff2') format('woff2'),
+       url('./InterTight-Bold.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}

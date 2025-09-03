@@ -1,0 +1,12 @@
+Для полной работы шрифта InterTight скачайте следующие файлы с Google Fonts:
+
+1. InterTight-Variable.woff2
+2. InterTight-VariableItalic.woff2  
+3. InterTight-Regular.woff2
+4. InterTight-Regular.woff
+5. InterTight-Bold.woff2
+6. InterTight-Bold.woff
+
+Ссылка для скачивания: https://fonts.google.com/specimen/Inter+Tight
+
+Поместите эти файлы в папку public/fonts/

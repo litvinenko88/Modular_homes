@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100..900;1,100..900&display=swap');
+@import url('/fonts/inter-tight.css');
 
 :root {
   /* Цвета */
@@ -22,7 +22,7 @@
   --dark-green: #2e7d32;
   
   /* Шрифты */
-  --font-family: 'Raleway', Arial, sans-serif;
+  --font-family: 'InterTight', Arial, sans-serif;
   --font-size-xs: 12px;
   --font-size-sm: 14px;
   --font-size-base: 16px;
