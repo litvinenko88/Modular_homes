@@ -1,7 +1,7 @@
 import styles from './TeamSection.module.css';
 
 const teamMembers = [
-  { name: 'Владимир Бажанов', position: 'Руководитель', photo: '/img/team/director.jpg' },
+  { name: 'Владимир Бажанов', position: 'Руководитель', photo: '/img/sotrudnik/1.jpg' },
   { name: 'Анна Петрова', position: 'Старший менеджер', photo: '/img/team/manager1.jpg' },
   { name: 'Михаил Сидоров', position: 'Менеджер', photo: '/img/team/manager2.jpg' },
   { name: 'Елена Козлова', position: 'Конструктор', photo: '/img/team/constructor.jpg' },
@@ -29,9 +29,7 @@ export default function TeamSection() {
           {teamMembers.map((member, index) => (
             <div key={index} className={styles.teamCard}>
               <div className={styles.photoContainer}>
-                <div className={styles.photoPlaceholder}>
-                  👤
-                </div>
+                <img src={member.photo} alt={member.name} className={styles.memberPhoto} />
               </div>
               <h3 className={styles.memberName}>{member.name}</h3>
               <p className={styles.memberPosition}>{member.position}</p>
