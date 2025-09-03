@@ -1,0 +1,146 @@
+.floatingContacts {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(20px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.floatingContacts.visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(0);
+}
+
+.contactButton {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  color: white;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #df682b 0%, #e8763a 100%);
+}
+
+.contactButton::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.6s ease;
+}
+
+.contactButton:hover::before {
+  left: 100%;
+}
+
+.contactButton:hover {
+  transform: translateY(-5px) scale(1.1);
+  box-shadow: 0 15px 40px rgba(223, 104, 43, 0.6);
+}
+
+.contactButton:active {
+  transform: translateY(-2px) scale(1.05);
+}
+
+.contactButton.whatsapp {
+  background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
+}
+
+.contactButton.whatsapp:hover {
+  box-shadow: 0 15px 40px rgba(37, 211, 102, 0.6);
+}
+
+.contactButton svg {
+  width: 28px;
+  height: 28px;
+  transition: transform 0.3s ease;
+}
+
+.contactButton:hover svg {
+  transform: scale(1.1);
+}
+
+/* Анимация появления кнопок */
+.floatingContacts.visible .contactButton:nth-child(1) {
+  animation: slideInRight 0.5s ease forwards;
+  animation-delay: 0.1s;
+}
+
+.floatingContacts.visible .contactButton:nth-child(2) {
+  animation: slideInRight 0.5s ease forwards;
+  animation-delay: 0.2s;
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Пульсация для привлечения внимания */
+.contactButton::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: inherit;
+  animation: pulse 2s infinite;
+  z-index: -1;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1.4);
+    opacity: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .floatingContacts {
+    bottom: 20px;
+    right: 20px;
+    gap: 12px;
+  }
+  
+  .contactButton {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .contactButton svg {
+    width: 24px;
+    height: 24px;
+  }
+}

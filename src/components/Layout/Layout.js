@@ -2,6 +2,7 @@ import { useState, createContext, useContext, cloneElement, Children } from "rea
 import Header from "../Header/Header";
 import Footer from "../Footer/Footer";
 import ScrollToTop from "../ScrollToTop/ScrollToTop";
+import FloatingContacts from "../FloatingContacts/FloatingContacts";
 import ModularConstructor from "../ConstructorApp/constructor/ModularConstructor";
 import styles from "./Layout.module.css";
 
@@ -45,6 +46,7 @@ const Layout = ({ children }) => {
         </main>
         <Footer />
         <ScrollToTop />
+        <FloatingContacts />
         
         {isConstructorOpen && (
           <div style={{
