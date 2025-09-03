@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/router";
 import Head from "next/head";
 import Layout from "../components/Layout/Layout";
+import Breadcrumbs from "../components/Breadcrumbs/Breadcrumbs";
 import styles from "../components/Bestsellers/Bestsellers.module.css";
 import { safeLog } from "../utils/security";
 
@@ -162,8 +163,10 @@ export default function Catalog() {
 
   const handleCardClick = (slug) => {
     if (typeof window !== "undefined" && slug) {
-      safeLog(`Navigation to project: ${slug}`, "info");
-      router.push(`/catalog/${encodeURIComponent(slug)}`);
+      // Sanitize slug to prevent XSS
+      const sanitizedSlug = slug.replace(/[^a-zA-Z0-9-_]/g, '');
+      safeLog(`Navigation to project: ${sanitizedSlug}`, "info");
+      router.push(`/catalog/${encodeURIComponent(sanitizedSlug)}`);
     }
   };
 
@@ -182,6 +185,13 @@ export default function Catalog() {
         <meta property="og:url" content="https://your-domain.com/catalog" />
         <meta property="og:type" content="website" />
         <meta property="og:image" content="https://your-domain.com/img/catalog-preview.jpg" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt" content="Каталог модульных домов Easy House" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Каталог модульных домов под ключ от 855 000 руб" />
+        <meta name="twitter:description" content="Каталог модульных домов Easy House от 855 000 руб. 11 готовых проектов площадью от 15 до 80 м²." />
+        <meta name="twitter:image" content="https://your-domain.com/img/catalog-preview.jpg" />
         <meta name="robots" content="index, follow" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <script type="application/ld+json">
@@ -202,7 +212,7 @@ export default function Catalog() {
                 "image": `https://your-domain.com${house.image}`,
                 "offers": {
                   "@type": "Offer",
-                  "price": house.price.replace(/[^0-9]/g, ''),
+                  "price": house.price?.replace(/[^0-9]/g, '') || '0',
                   "priceCurrency": "RUB",
                   "availability": "https://schema.org/InStock"
                 }
@@ -213,6 +223,7 @@ export default function Catalog() {
       </Head>
 
       <main>
+        <Breadcrumbs />
         <section style={{ padding: "80px 0 40px", backgroundColor: "#f8f9fa" }}>
           <div
             style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 20px" }}>
@@ -246,7 +257,13 @@ export default function Catalog() {
           itemScope
           itemType="https://schema.org/ItemList">
           <div className="container">
-            <h2 style={{ position: 'absolute', left: '-9999px', fontSize: '1px' }}>Готовые проекты модульных домов</h2>
+            <h2 style={{
+              fontSize: "2rem",
+              fontWeight: "600",
+              textAlign: "center",
+              marginBottom: "40px",
+              color: "#333"
+            }}>Готовые проекты модульных домов</h2>
             <div
               className={styles.grid}
               role="list"
@@ -273,7 +290,9 @@ export default function Catalog() {
                     <picture>
                       <img
                         src={house.image}
-                        alt={`Модульный дом ${house.name} - ${house.feature}`}
+                        alt={`Модульный дом ${house.name} площадью ${house.area} - ${house.feature}. Цена ${house.price}`}
+                        width="400"
+                        height="300"
                         className={styles.image}
                         loading="lazy"
                         itemProp="image"

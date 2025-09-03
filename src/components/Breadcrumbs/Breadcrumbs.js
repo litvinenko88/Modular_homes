@@ -6,11 +6,22 @@ const Breadcrumbs = () => {
   const router = useRouter()
   const pathSegments = router.asPath.split('/').filter(segment => segment)
 
+  // Map for better page names
+  const pageNames = {
+    'catalog': 'Каталог',
+    'projects': 'Проекты',
+    'kontakty': 'Контакты',
+    'o-kompanii': 'О компании',
+    'otzyvy': 'Отзывы',
+    'konstruktor': 'Конструктор',
+    'dlya-biznesa': 'Для бизнеса'
+  }
+
   const breadcrumbItems = [
     { name: 'Главная', href: '/' },
     ...pathSegments.map((segment, index) => {
       const href = '/' + pathSegments.slice(0, index + 1).join('/')
-      const name = segment.charAt(0).toUpperCase() + segment.slice(1)
+      const name = pageNames[segment] || segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, ' ')
       return { name, href }
     })
   ]

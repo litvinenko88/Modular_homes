@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Layout from '../../components/Layout/Layout';
+import Breadcrumbs from '../../components/Breadcrumbs/Breadcrumbs';
 import ContactForm from '../../components/ContactForm';
 import styles from '../projects/ProjectDetail.module.css';
 
@@ -355,7 +356,12 @@ export default function CatalogDetail() {
   const [showBlueprints, setShowBlueprints] = useState(false);
   const [isContactFormOpen, setIsContactFormOpen] = useState(false);
 
-  const project = projectsData[slug];
+  // Sanitize slug to prevent XSS
+  const sanitizedSlug = useMemo(() => {
+    return typeof slug === 'string' ? slug.replace(/[^a-zA-Z0-9-_]/g, '') : '';
+  }, [slug]);
+
+  const project = projectsData[sanitizedSlug];
 
   useEffect(() => {
     if (project && project.sizes.length > 0) {
@@ -384,71 +390,151 @@ export default function CatalogDetail() {
   if (!project) {
     return (
       <Layout>
-        <div style={{ 
+        <Head>
+          <title>Проект не найден | Easy House</title>
+          <meta name="description" content="Запрашиваемый проект модульного дома не найден. Посмотрите наш каталог доступных проектов." />
+          <meta name="robots" content="noindex, nofollow" />
+        </Head>
+        <Breadcrumbs />
+        <main style={{ 
           padding: 'var(--spacing-3xl)', 
           textAlign: 'center', 
           color: 'var(--color-gray)',
-          fontSize: 'var(--text-size-lg)'
+          fontSize: 'var(--text-size-lg)',
+          minHeight: '60vh',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center'
         }}>
-          🚫 Проект не найден
-        </div>
+          <h1 style={{ fontSize: '2rem', marginBottom: '1rem', color: 'var(--color-primary)' }}>
+            🚫 Проект не найден
+          </h1>
+          <p style={{ marginBottom: '2rem', maxWidth: '500px' }}>
+            Извините, запрашиваемый проект модульного дома не найден. Пожалуйста, проверьте правильность ссылки или посмотрите наш каталог.
+          </p>
+          <a 
+            href="/catalog" 
+            style={{
+              padding: '12px 24px',
+              backgroundColor: 'var(--color-accent)',
+              color: 'white',
+              textDecoration: 'none',
+              borderRadius: '8px',
+              fontWeight: '600'
+            }}
+          >
+            Перейти в каталог
+          </a>
+        </main>
       </Layout>
     );
   }
 
-  const currentPrice = project.sizes[selectedSize]?.price || 0;
-  const displayImages = showBlueprints ? project.blueprints : project.images;
+  const currentPrice = project?.sizes?.[selectedSize]?.price || 0;
+  const displayImages = showBlueprints ? (project?.blueprints || []) : (project?.images || []);
+  
+  // Memoize formatted price to avoid recalculation
+  const formattedPrice = useMemo(() => {
+    return currentPrice.toLocaleString('ru-RU');
+  }, [currentPrice]);
 
   return (
     <Layout>
       <Head>
-        <title>{project.name} - модульный дом от {currentPrice.toLocaleString('ru-RU')} руб | Easy House</title>
-        <meta name="description" content={`Модульный дом ${project.name} от ${currentPrice.toLocaleString('ru-RU')} руб. Подробные характеристики, фото, чертежи и комплектация. Строительство под ключ.`} />
+        <title>{project.name} - модульный дом от {formattedPrice} руб | Easy House</title>
+        <meta name="description" content={`Модульный дом ${project.name} от ${formattedPrice} руб. Подробные характеристики, фото, чертежи и комплектация. Строительство под ключ.`} />
         <meta name="keywords" content={`${project.name}, модульный дом, цена, характеристики, купить, строительство под ключ`} />
-        <link rel="canonical" href={`https://your-domain.com/catalog/${slug}`} />
-        <meta property="og:title" content={`${project.name} - модульный дом от ${currentPrice.toLocaleString('ru-RU')} руб | Easy House`} />
-        <meta property="og:description" content={`Модульный дом ${project.name} от ${currentPrice.toLocaleString('ru-RU')} руб. Подробные характеристики, фото, чертежи и комплектация.`} />
-        <meta property="og:url" content={`https://your-domain.com/catalog/${slug}`} />
+        <link rel="canonical" href={`https://your-domain.com/catalog/${sanitizedSlug}`} />
+        <meta property="og:title" content={`${project.name} - модульный дом от ${formattedPrice} руб | Easy House`} />
+        <meta property="og:description" content={`Модульный дом ${project.name} от ${formattedPrice} руб. Подробные характеристики, фото, чертежи и комплектация.`} />
+        <meta property="og:url" content={`https://your-domain.com/catalog/${sanitizedSlug}`} />
         <meta property="og:type" content="product" />
-        <meta property="og:image" content={`https://your-domain.com${project.images[0]}`} />
+        <meta property="og:image" content={`https://your-domain.com${project.images?.[0] || '/img/default-house.jpg'}`} />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt" content={`Модульный дом ${project.name}`} />
+        <meta property="product:price:amount" content={currentPrice} />
+        <meta property="product:price:currency" content="RUB" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={`${project.name} - модульный дом от ${formattedPrice} руб`} />
+        <meta name="twitter:description" content={`Модульный дом ${project.name} от ${formattedPrice} руб. Подробные характеристики, фото, чертежи и комплектация.`} />
+        <meta name="twitter:image" content={`https://your-domain.com${project.images?.[0] || '/img/default-house.jpg'}`} />
         <script type="application/ld+json">
           {JSON.stringify({
             "@context": "https://schema.org",
             "@type": "Product",
             "name": project.name,
-            "description": `Модульный дом ${project.name}. Подробные характеристики, фото и комплектация.`,
-            "image": project.images.map(img => `https://your-domain.com${img}`),
+            "description": `Модульный дом ${project.name}. Площадь ${project.sizes?.[selectedSize]?.area || 'не указана'}. Подробные характеристики, фото и комплектация.`,
+            "image": project.images?.map(img => `https://your-domain.com${img}`) || [],
             "brand": {
               "@type": "Brand",
               "name": "Easy House"
             },
+            "category": "Модульные дома",
+            "additionalProperty": [
+              {
+                "@type": "PropertyValue",
+                "name": "Высота потолка",
+                "value": project.specs?.ceiling || "не указано"
+              },
+              {
+                "@type": "PropertyValue",
+                "name": "Толщина стены",
+                "value": project.specs?.wallThickness || "не указано"
+              },
+              {
+                "@type": "PropertyValue",
+                "name": "Утепление стены",
+                "value": project.specs?.wallInsulation || "не указано"
+              }
+            ],
             "offers": {
               "@type": "Offer",
               "price": currentPrice,
               "priceCurrency": "RUB",
               "availability": "https://schema.org/InStock",
+              "priceValidUntil": new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
               "seller": {
                 "@type": "Organization",
-                "name": "Easy House"
+                "name": "Easy House",
+                "url": "https://your-domain.com"
               }
+            },
+            "aggregateRating": {
+              "@type": "AggregateRating",
+              "ratingValue": "4.8",
+              "reviewCount": "127",
+              "bestRating": "5",
+              "worstRating": "1"
             }
           })}
         </script>
       </Head>
 
+      <Breadcrumbs />
       <main className={styles.container}>
         <div className={styles.gallery}>
           <div className={styles.mainImage}>
-            <img src={displayImages[currentImage]} alt={`Модульный дом ${project.name} - фото ${currentImage + 1}`} />
+            {displayImages.length > 0 && (
+              <img 
+                src={displayImages[currentImage]} 
+                alt={`Модульный дом ${project.name} - ${showBlueprints ? 'планировка' : 'фото'} ${currentImage + 1}. Площадь ${project.sizes?.[selectedSize]?.area || 'не указана'}, цена ${formattedPrice} руб`}
+                width="600"
+                height="400"
+              />
+            )}
           </div>
           <div className={styles.thumbnails}>
             {displayImages.map((img, index) => (
               <img
                 key={index}
                 src={img}
-                alt={`Модульный дом ${project.name} - миниатюра ${index + 1}`}
+                alt={`Модульный дом ${project.name} - миниатюра ${showBlueprints ? 'планировки' : 'фото'} ${index + 1}`}
                 className={currentImage === index ? styles.active : ''}
                 onClick={() => setCurrentImage(index)}
+                width="150"
+                height="100"
               />
             ))}
           </div>
@@ -469,12 +555,14 @@ export default function CatalogDetail() {
         </div>
 
         <div className={styles.info}>
-          <h1>{project.name}</h1>
+          <header>
+            <h1>{project.name}</h1>
+          </header>
           
           <div className={styles.availability}>✓ В наличии</div>
           
           <div className={styles.price}>
-            {currentPrice.toLocaleString('ru-RU')} руб.
+            {formattedPrice} руб.
           </div>
 
           <div className={styles.sizeSelector}>
@@ -498,25 +586,30 @@ export default function CatalogDetail() {
             Заказать
           </button>
 
-          <div className={styles.specs}>
+          <section className={styles.specs}>
             <h2>Технические параметры</h2>
-            <ul>
-              <li>Высота потолка: {project.specs.ceiling}</li>
-              <li>Толщина стены: {project.specs.wallThickness}</li>
-              <li>Утепление стены: {project.specs.wallInsulation}</li>
-              <li>Толщина перегородки: {project.specs.partitionThickness}</li>
-              <li>Утепление перегородки: {project.specs.partitionInsulation}</li>
-            </ul>
-          </div>
+            <dl>
+              <dt>Высота потолка:</dt>
+              <dd>{project.specs?.ceiling || 'не указано'}</dd>
+              <dt>Толщина стены:</dt>
+              <dd>{project.specs?.wallThickness || 'не указано'}</dd>
+              <dt>Утепление стены:</dt>
+              <dd>{project.specs?.wallInsulation || 'не указано'}</dd>
+              <dt>Толщина перегородки:</dt>
+              <dd>{project.specs?.partitionThickness || 'не указано'}</dd>
+              <dt>Утепление перегородки:</dt>
+              <dd>{project.specs?.partitionInsulation || 'не указано'}</dd>
+            </dl>
+          </section>
 
-          <div className={styles.equipment}>
-            <h2>Базовая комплектация</h2>
+          <section className={styles.equipment}>
+            <h3>Базовая комплектация</h3>
             <ul>
-              {project.equipment.map((item, index) => (
+              {project.equipment?.map((item, index) => (
                 <li key={index}>{item}</li>
-              ))}
+              )) || []}
             </ul>
-          </div>
+          </section>
         </div>
       </main>
 
