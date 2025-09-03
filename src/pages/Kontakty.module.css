@@ -18,17 +18,22 @@
 
 .particle {
   position: absolute;
-  background: linear-gradient(45deg, rgba(223, 104, 43, 0.3), rgba(223, 104, 43, 0.1));
+  background: linear-gradient(
+    45deg,
+    rgba(223, 104, 43, 0.3),
+    rgba(223, 104, 43, 0.1)
+  );
   border-radius: 50%;
   animation: float 6s ease-in-out infinite;
 }
 
 @keyframes float {
-  0%, 100% { 
+  0%,
+  100% {
     transform: translateY(0px) rotate(0deg);
     opacity: 0.3;
   }
-  50% { 
+  50% {
     transform: translateY(-20px) rotate(180deg);
     opacity: 0.8;
   }
@@ -53,20 +58,31 @@
 }
 
 .heroSection::before {
-  content: '';
+  content: "";
   position: absolute;
   top: -50%;
   right: -20%;
   width: 600px;
   height: 600px;
-  background: radial-gradient(circle, rgba(223, 104, 43, 0.2) 0%, transparent 70%);
+  background: radial-gradient(
+    circle,
+    rgba(223, 104, 43, 0.2) 0%,
+    transparent 70%
+  );
   border-radius: 50%;
   animation: pulse 4s ease-in-out infinite;
 }
 
 @keyframes pulse {
-  0%, 100% { transform: scale(1); opacity: 0.5; }
-  50% { transform: scale(1.1); opacity: 0.8; }
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
 }
 
 .heroContent {
@@ -79,10 +95,8 @@
   font-size: 4rem;
   font-weight: 800;
   margin-bottom: 24px;
-  background: linear-gradient(45deg, #fff, #df682b);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #ffffff;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5), 0 0 20px rgba(223, 104, 43, 0.3);
   line-height: 1.2;
 }
 
@@ -148,32 +162,43 @@
 }
 
 .contactsGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 40px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 30px;
+  max-width: 1000px;
+  margin: 0 auto;
 }
 
 .contactCard {
   background: white;
-  padding: 40px 30px;
-  border-radius: 24px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+  padding: 30px 20px;
+  border-radius: 20px;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
   text-align: center;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
   border: 1px solid rgba(223, 104, 43, 0.1);
   cursor: pointer;
+  flex: 1;
+  min-width: 200px;
+  max-width: 220px;
 }
 
 .contactCard::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(223, 104, 43, 0.1), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(223, 104, 43, 0.1),
+    transparent
+  );
   transition: left 0.6s ease;
 }
 
@@ -274,7 +299,7 @@
   font-weight: 700;
   color: #df682b;
   margin-bottom: 8px;
-  font-family: 'Courier New', monospace;
+  font-family: "Courier New", monospace;
 }
 
 .dateDisplay {
@@ -332,7 +357,6 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 30px;
-  max-width: 800px;
   margin: 0 auto;
 }
 
@@ -350,7 +374,7 @@
 }
 
 .socialCard::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -379,7 +403,11 @@
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--accent-color), rgba(var(--accent-color), 0.8));
+  background: linear-gradient(
+    135deg,
+    var(--accent-color),
+    rgba(var(--accent-color), 0.8)
+  );
   transition: transform 0.3s ease;
 }
 
@@ -515,7 +543,12 @@
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
   transition: left 0.6s ease;
 }
 
@@ -598,16 +631,16 @@
   .heroTitle {
     font-size: 3rem;
   }
-  
+
   .sectionTitle {
     font-size: 2.5rem;
   }
-  
+
   .contactsGrid {
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 30px;
   }
-  
+
   .hoursGrid {
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 30px;
@@ -618,19 +651,19 @@
   .contactsPage {
     padding-top: 60px;
   }
-  
+
   .heroSection {
     padding: 80px 0 60px;
   }
-  
+
   .heroTitle {
     font-size: 2.5rem;
   }
-  
+
   .sectionTitle {
     font-size: 2rem;
   }
-  
+
   .quickContacts,
   .workingHours,
   .socialSection,
@@ -638,51 +671,52 @@
   .mapSection {
     padding: 60px 0;
   }
-  
+
   .container {
     padding: 0 16px;
   }
-  
+
   .contactsGrid {
-    grid-template-columns: 1fr;
+    flex-direction: column;
+    align-items: center;
     gap: 20px;
   }
-  
+
+  .contactCard {
+    max-width: 300px;
+    width: 100%;
+  }
+
   .hoursGrid {
     grid-template-columns: 1fr;
     gap: 20px;
   }
-  
-  .socialGrid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
-  }
-  
+
   .contactCard {
     padding: 30px 20px;
   }
-  
+
   .hoursCard {
     padding: 30px 20px;
   }
-  
+
   .formContent {
     padding: 40px 20px;
   }
-  
+
   .timeDisplay {
     font-size: 2rem;
   }
-  
+
   .mapContainer {
     height: 400px;
   }
-  
+
   .mapOverlay {
     position: static;
     margin-top: 20px;
   }
-  
+
   .addressCard {
     max-width: none;
   }
@@ -692,20 +726,20 @@
   .heroTitle {
     font-size: 2rem;
   }
-  
+
   .sectionTitle {
     font-size: 1.8rem;
   }
-  
+
   .socialGrid {
     grid-template-columns: 1fr;
   }
-  
+
   .contactIcon {
     width: 60px;
     height: 60px;
   }
-  
+
   .contactIcon svg {
     width: 24px;
     height: 24px;
