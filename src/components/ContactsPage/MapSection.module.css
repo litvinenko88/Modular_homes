@@ -122,6 +122,14 @@
   animation: spin 1s linear infinite;
 }
 
+.errorText {
+  color: #ef4444;
+  font-weight: 600;
+  margin-top: 20px;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
@@ -296,40 +304,37 @@
   font-size: 1rem;
 }
 
-/* Кастомные стили для Leaflet popup */
-:global(.custom-popup .leaflet-popup-content-wrapper) {
+/* Кастомные стили для Яндекс.Карт */
+.map :global([class*='ymaps']) {
+  font-family: Arial, sans-serif;
+}
+
+.map :global(.ymaps-2-1-79-balloon__content) {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.map :global(.ymaps-2-1-79-balloon__tail) {
   background: white;
-  border-radius: 15px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+}
+
+.map :global(.ymaps-2-1-79-balloon__layout) {
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+  border-radius: 12px;
   border: 1px solid rgba(223, 104, 43, 0.1);
-}
-
-:global(.custom-popup .leaflet-popup-tip) {
-  background: white;
-  border: 1px solid rgba(223, 104, 43, 0.1);
-}
-
-:global(.custom-popup .leaflet-popup-content) {
-  margin: 0;
-  padding: 0;
-}
-
-:global(.custom-marker) {
-  background: transparent !important;
-  border: none !important;
 }
 
 /* Анимация для маркера */
-:global(.leaflet-marker-icon) {
-  animation: markerBounce 2s ease-in-out infinite;
+.map :global([class*='placemark']) {
+  animation: markerPulse 2s ease-in-out infinite;
 }
 
-@keyframes markerBounce {
+@keyframes markerPulse {
   0%, 100% {
-    transform: translateY(0);
+    transform: scale(1);
   }
   50% {
-    transform: translateY(-10px);
+    transform: scale(1.1);
   }
 }
 

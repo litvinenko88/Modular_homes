@@ -33,7 +33,7 @@ const socialNetworks = [
   },
   { 
     name: 'WhatsApp', 
-    url: 'https://wa.me/89964179001', 
+    url: 'https://wa.me/79964179001', 
     color: '#25d366',
     icon: (
       <svg viewBox="0 0 24 24" fill="currentColor">

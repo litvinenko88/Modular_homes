@@ -3,6 +3,7 @@ import Head from 'next/head';
 import Layout from '../components/Layout/Layout';
 import CompanyInfo from '../components/ContactsPage/CompanyInfo';
 import TeamSection from '../components/ContactsPage/TeamSection';
+import MapSection from '../components/ContactsPage/MapSection';
 import styles from './Kontakty.module.css';
 
 export default function Kontakty() {
@@ -48,8 +49,7 @@ export default function Kontakty() {
         <meta property="og:description" content="Контакты компании Easy House. Телефон 8(996)417-90-01, адрес, время работы. Свяжитесь с нами для заказа модульного дома." />
         <meta property="og:url" content="https://your-domain.com/kontakty" />
         <meta property="og:type" content="website" />
-        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+        <script src="https://api-maps.yandex.ru/2.1/?apikey=c5bfbaa0-c71b-4913-a5e1-8e22a733a686&lang=ru_RU" async></script>
       </Head>
 
       <main className={styles.contactsPage}>
@@ -147,7 +147,7 @@ export default function Kontakty() {
                 </div>
                 <h3 className={styles.contactTitle}>WhatsApp</h3>
                 <div className={styles.contactInfo}>
-                  <a href="https://wa.me/89964179001" className={styles.contactLink}>8 (996) 417-90-01</a>
+                  <a href="https://wa.me/79964179001" className={styles.contactLink}>8 (996) 417-90-01</a>
                   <p>Быстрые ответы в мессенджере</p>
                 </div>
               </div>
@@ -303,24 +303,7 @@ export default function Kontakty() {
         </section>
 
         {/* Interactive Map */}
-        <section className={styles.mapSection}>
-          <div className={styles.container}>
-            <h2 className={styles.sectionTitle}>Как нас найти</h2>
-            <div className={styles.mapContainer}>
-              <div id="map" className={styles.map}></div>
-              <div className={styles.mapOverlay}>
-                <div className={styles.addressCard}>
-                  <h3>Наш адрес</h3>
-                  <p>г. Ставрополь, ул. Севрюкова, 94</p>
-                  <p>Производственная база Easy House</p>
-                  <div className={styles.mapActions}>
-                    <button className={styles.routeButton}>Построить маршрут</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
+        <MapSection />
 
         {/* Team Section */}
         <TeamSection />
