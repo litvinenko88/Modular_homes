@@ -736,6 +736,7 @@
   z-index: 9999;
   padding: var(--spacing-lg);
   animation: fadeIn 0.3s ease-out;
+  overflow: hidden;
 }
 
 .modalContent {
@@ -743,7 +744,6 @@
   animation: slideInFromTop 0.4s ease-out;
   max-width: 90vw;
   max-height: 90vh;
-  overflow-y: auto;
 }
 
 .modalClose {

@@ -13,17 +13,7 @@
   contain: layout;
 }
 
-.form::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, var(--color-accent), transparent);
-  animation: shimmer 2s infinite;
-  overflow: hidden;
-}
+
 
 .title {
   font-size: var(--h3-size);
@@ -228,10 +218,7 @@
   100% { transform: rotate(360deg); }
 }
 
-@keyframes shimmer {
-  0% { left: -100%; }
-  100% { left: 100%; }
-}
+
 
 @keyframes slideInFromTop {
   0% {
