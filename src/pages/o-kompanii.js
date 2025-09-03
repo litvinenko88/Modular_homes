@@ -97,6 +97,26 @@ export default function OKompanii() {
               <p className={styles.calloutText}>
                 Посмотрите честные отзывы людей, которые уже живут в наших домах
               </p>
+              
+              <div className={styles.videoReviewsGrid}>
+                <video className={styles.reviewVideo} controls preload="metadata">
+                  <source src="/video/otz1.mp4" type="video/mp4" />
+                  Ваш браузер не поддерживает видео.
+                </video>
+                <video className={styles.reviewVideo} controls preload="metadata">
+                  <source src="/video/otz2.mp4" type="video/mp4" />
+                  Ваш браузер не поддерживает видео.
+                </video>
+                <video className={styles.reviewVideo} controls preload="metadata">
+                  <source src="/video/otz3.mp4" type="video/mp4" />
+                  Ваш браузер не поддерживает видео.
+                </video>
+                <video className={styles.reviewVideo} controls preload="metadata">
+                  <source src="/video/otz4.mp4" type="video/mp4" />
+                  Ваш браузер не поддерживает видео.
+                </video>
+              </div>
+              
               <a href="/otzyvy" className={styles.calloutButton}>
                 Смотреть все отзывы
               </a>
