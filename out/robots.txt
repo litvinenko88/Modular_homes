@@ -1,0 +1,26 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://house-modular.ru/sitemap.xml
+Sitemap: https://house-modular.ru/sitemap-img.xml
+
+# Disallow admin and private areas
+Disallow: /admin/
+Disallow: /api/
+Disallow: /_next/
+Disallow: /static/
+
+# Allow important pages
+Allow: /
+Allow: /catalog
+Allow: /catalog/*
+Allow: /konstruktor
+Allow: /constructor
+Allow: /otzyvy
+Allow: /o-kompanii
+Allow: /kontakty
+Allow: /dlya-biznesa
+
+# Crawl delay
+Crawl-delay: 1
