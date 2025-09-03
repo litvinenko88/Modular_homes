@@ -70,6 +70,20 @@
   margin-bottom: 20px;
 }
 
+.memberPhoto {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin: 0 auto;
+  box-shadow: 0 8px 25px rgba(223, 104, 43, 0.3);
+  transition: transform 0.3s ease;
+}
+
+.teamCard:hover .memberPhoto {
+  transform: scale(1.1);
+}
+
 .photoPlaceholder {
   width: 80px;
   height: 80px;
