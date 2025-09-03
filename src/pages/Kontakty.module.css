@@ -403,11 +403,7 @@
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  background: linear-gradient(
-    135deg,
-    var(--accent-color),
-    rgba(var(--accent-color), 0.8)
-  );
+  background: var(--accent-color, #df682b);
   transition: transform 0.3s ease;
 }
 
