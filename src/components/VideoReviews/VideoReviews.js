@@ -67,13 +67,13 @@ export default function VideoReviews({ showAllVideos = false, showViewAllButton 
         }
       })
       
-      video?.play().catch(error => {
-        console.error('Video playback failed:', error);
+      video?.play().catch(() => {
+        // Video playback failed - handled silently
       })
       if (audio && videos[index].audio) {
         audio.currentTime = video.currentTime
-        audio?.play().catch(error => {
-          console.error('Audio playback failed:', error);
+        audio?.play().catch(() => {
+          // Audio playback failed - handled silently
         })
       }
     }

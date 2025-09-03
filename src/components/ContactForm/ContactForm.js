@@ -75,7 +75,7 @@ const ContactForm = ({
     }
     
     if (!formData.name || !formData.phone) {
-      alert('Пожалуйста, заполните все поля');
+      setPhoneError('Пожалуйста, заполните все поля');
       return;
     }
     
@@ -139,7 +139,7 @@ const ContactForm = ({
         throw new Error('Ошибка отправки');
       }
     } catch (error) {
-      alert('Произошла ошибка при отправке. Попробуйте еще раз.');
+      setPhoneError('Произошла ошибка при отправке. Попробуйте еще раз.');
     } finally {
       setIsSubmitting(false);
     }

@@ -129,10 +129,10 @@ export default function Bestsellers() {
       <Head>
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(getBestsellersSchema()),
-          }}
-        />
+          id="bestsellers-schema"
+        >
+          {JSON.stringify(getBestsellersSchema())}
+        </script>
       </Head>
 
       <section

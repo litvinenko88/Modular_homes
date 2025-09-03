@@ -102,12 +102,18 @@ export default function Hero() {
           
           <div className={styles.rightSection}>
             <div className={styles.videoContainer}>
-              <img 
+              <div 
                 className={styles.video}
-                src="/img/New_Arkhangelsk/1.jpg"
-                alt="Модульный дом Easy House - пример готового проекта"
-                title="Модульные дома Easy House - строительство под ключ"
-                loading="lazy"
+                style={{
+                  backgroundImage: 'url(/img/New_Arkhangelsk/1.jpg)',
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  width: '100%',
+                  height: '400px',
+                  borderRadius: '32px'
+                }}
+                role="img"
+                aria-label="Модульный дом Easy House - пример готового проекта"
               />
               <div className={styles.videoOverlay} aria-hidden="true"></div>
             </div>
