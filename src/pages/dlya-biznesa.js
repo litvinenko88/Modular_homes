@@ -14,6 +14,32 @@ export default function DlyaBiznesa() {
         <meta property="og:description" content="Модульные дома для бизнеса. Офисы, торговые павильоны, кафе и другие коммерческие решения." />
         <meta property="og:url" content="https://house-modular.ru/dlya-biznesa" />
         <meta property="og:type" content="website" />
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "WebPage",
+            "name": "Для бизнеса - модульные дома",
+            "description": "Модульные дома для бизнеса. Офисы, торговые павильоны, кафе и другие коммерческие решения.",
+            "url": "https://house-modular.ru/dlya-biznesa",
+            "breadcrumb": {
+              "@type": "BreadcrumbList",
+              "itemListElement": [
+                {
+                  "@type": "ListItem",
+                  "position": 1,
+                  "name": "Главная",
+                  "item": "https://house-modular.ru/"
+                },
+                {
+                  "@type": "ListItem",
+                  "position": 2,
+                  "name": "Для бизнеса",
+                  "item": "https://house-modular.ru/dlya-biznesa"
+                }
+              ]
+            }
+          })}
+        </script>
       </Head>
       <Breadcrumbs />
       <main style={{ padding: '100px 20px', textAlign: 'center' }}>

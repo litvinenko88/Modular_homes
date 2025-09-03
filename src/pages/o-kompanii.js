@@ -28,6 +28,32 @@ export default function OKompanii() {
         />
         <meta property="og:url" content="https://house-modular.ru/o-kompanii" />
         <meta property="og:type" content="website" />
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "WebPage",
+            "name": "О компании Easy House",
+            "description": "О компании Easy House. Производство модульных домов, наши преимущества, гарантии и процесс производства.",
+            "url": "https://house-modular.ru/o-kompanii",
+            "breadcrumb": {
+              "@type": "BreadcrumbList",
+              "itemListElement": [
+                {
+                  "@type": "ListItem",
+                  "position": 1,
+                  "name": "Главная",
+                  "item": "https://house-modular.ru/"
+                },
+                {
+                  "@type": "ListItem",
+                  "position": 2,
+                  "name": "О компании",
+                  "item": "https://house-modular.ru/o-kompanii"
+                }
+              ]
+            }
+          })}
+        </script>
       </Head>
       <Breadcrumbs />
       <main className={styles.aboutPage}>

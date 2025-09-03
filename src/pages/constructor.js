@@ -32,6 +32,32 @@ export default function Constructor() {
         <meta property="og:description" content="Спроектируйте свой идеальный модульный дом с помощью нашего 3D конструктора" />
         <meta property="og:url" content="https://house-modular.ru/constructor" />
         <meta property="og:type" content="website" />
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "WebPage",
+            "name": "3D Конструктор модульных домов",
+            "description": "Спроектируйте свой идеальный модульный дом с помощью нашего 3D конструктора",
+            "url": "https://house-modular.ru/constructor",
+            "breadcrumb": {
+              "@type": "BreadcrumbList",
+              "itemListElement": [
+                {
+                  "@type": "ListItem",
+                  "position": 1,
+                  "name": "Главная",
+                  "item": "https://house-modular.ru/"
+                },
+                {
+                  "@type": "ListItem",
+                  "position": 2,
+                  "name": "3D Конструктор",
+                  "item": "https://house-modular.ru/constructor"
+                }
+              ]
+            }
+          })}
+        </script>
       </Head>
 
       <Layout>

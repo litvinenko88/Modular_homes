@@ -14,6 +14,32 @@ export default function Konstruktor() {
         <meta property="og:description" content="Создайте свой уникальный модульный дом с помощью нашего конструктора. Выберите размер, планировку и комплектацию." />
         <meta property="og:url" content="https://house-modular.ru/konstruktor" />
         <meta property="og:type" content="website" />
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "WebPage",
+            "name": "Конструктор модульных домов",
+            "description": "Создайте свой уникальный модульный дом с помощью нашего конструктора. Выберите размер, планировку и комплектацию.",
+            "url": "https://house-modular.ru/konstruktor",
+            "breadcrumb": {
+              "@type": "BreadcrumbList",
+              "itemListElement": [
+                {
+                  "@type": "ListItem",
+                  "position": 1,
+                  "name": "Главная",
+                  "item": "https://house-modular.ru/"
+                },
+                {
+                  "@type": "ListItem",
+                  "position": 2,
+                  "name": "Конструктор",
+                  "item": "https://house-modular.ru/konstruktor"
+                }
+              ]
+            }
+          })}
+        </script>
       </Head>
       <main>
         <h1 style={{ position: 'absolute', left: '-9999px', fontSize: '1px' }}>Конструктор модульных домов</h1>

@@ -197,7 +197,7 @@ export default function Catalog() {
         <script type="application/ld+json">
           {JSON.stringify({
             "@context": "https://schema.org",
-            "@type": "CollectionPage",
+            "@type": "WebPage",
             "name": "Каталог модульных домов Easy House",
             "description": "Каталог готовых проектов модульных домов от 855 000 руб. Строительство под ключ.",
             "url": "https://house-modular.ru/catalog",
@@ -217,6 +217,23 @@ export default function Catalog() {
                   "availability": "https://schema.org/InStock"
                 }
               }))
+            },
+            "breadcrumb": {
+              "@type": "BreadcrumbList",
+              "itemListElement": [
+                {
+                  "@type": "ListItem",
+                  "position": 1,
+                  "name": "Главная",
+                  "item": "https://house-modular.ru/"
+                },
+                {
+                  "@type": "ListItem",
+                  "position": 2,
+                  "name": "Каталог",
+                  "item": "https://house-modular.ru/catalog"
+                }
+              ]
             }
           })}
         </script>

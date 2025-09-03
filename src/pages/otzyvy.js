@@ -33,6 +33,23 @@ export default function Otzyvy() {
             "name": "Отзывы наших клиентов",
             "description": "Реальные истории людей, которые уже живут в наших модульных домах. Видео отзывы и часто задаваемые вопросы.",
             "url": "https://house-modular.ru/otzyvy",
+            "breadcrumb": {
+              "@type": "BreadcrumbList",
+              "itemListElement": [
+                {
+                  "@type": "ListItem",
+                  "position": 1,
+                  "name": "Главная",
+                  "item": "https://house-modular.ru/"
+                },
+                {
+                  "@type": "ListItem",
+                  "position": 2,
+                  "name": "Отзывы",
+                  "item": "https://house-modular.ru/otzyvy"
+                }
+              ]
+            },
             "mainEntity": {
               "@type": "FAQPage",
               "mainEntity": [

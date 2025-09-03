@@ -143,32 +143,27 @@ ${formData.message}
         <script type="application/ld+json">
           {JSON.stringify({
             "@context": "https://schema.org",
-            "@type": "LocalBusiness",
-            "name": "Easy House",
-            "description": "Производство модульных домов",
-            "url": "https://house-modular.ru",
-            "telephone": "+79964179001",
-            "email": "info@easyhouse.ru",
-            "address": {
-              "@type": "PostalAddress",
-              "streetAddress": "ул. Севрюкова, 94",
-              "addressLocality": "Ставрополь",
-              "addressRegion": "Ставропольский край",
-              "postalCode": "355013",
-              "addressCountry": "RU"
-            },
-            "geo": {
-              "@type": "GeoCoordinates",
-              "latitude": 45.0448,
-              "longitude": 41.9691
-            },
-            "openingHours": [
-              "Mo-Fr 09:00-18:00",
-              "Sa 10:00-16:00"
-            ],
-            "sameAs": [
-              "https://wa.me/79964179001"
-            ]
+            "@type": "WebPage",
+            "name": "Контакты Easy House",
+            "description": "Контакты компании Easy House. Телефон 8(996)417-90-01, адрес, время работы. Свяжитесь с нами для заказа модульного дома.",
+            "url": "https://house-modular.ru/kontakty",
+            "breadcrumb": {
+              "@type": "BreadcrumbList",
+              "itemListElement": [
+                {
+                  "@type": "ListItem",
+                  "position": 1,
+                  "name": "Главная",
+                  "item": "https://house-modular.ru/"
+                },
+                {
+                  "@type": "ListItem",
+                  "position": 2,
+                  "name": "Контакты",
+                  "item": "https://house-modular.ru/kontakty"
+                }
+              ]
+            }
           })}
         </script>
         <script src="https://api-maps.yandex.ru/2.1/?apikey=c5bfbaa0-c71b-4913-a5e1-8e22a733a686&lang=ru_RU" async></script>
