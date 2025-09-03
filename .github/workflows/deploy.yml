@@ -18,12 +18,4 @@ jobs:
         username: ${{ secrets.FTP_USERNAME }}
         password: ${{ secrets.FTP_PASSWORD }}
         server-dir: ${{ secrets.FTP_REMOTE_PATH }}/
-        exclude: |
-          **/.git*
-          **/node_modules/**
-          **/src/**
-          package*.json
-          next.config.js
-          .env*
-          *.md
-          **/.next/cache/**
+        local-dir: ./out/
