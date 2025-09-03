@@ -111,13 +111,8 @@ const ContactForm = ({
         source: source
       };
 
-      // Пробуем отправить через Telegram, если не получится - через EmailJS
-      let result = await sendToTelegram(formDataToSend);
-      
-      // Если Telegram не настроен, пробуем EmailJS
-      if (!result.success || result.message.includes('демо режим')) {
-        result = await sendViaEmailJS(formDataToSend);
-      }
+      // Используем простой сервис для статического сайта
+      const result = await sendViaEmailJS(formDataToSend);
 
       if (result.success) {
         setIsSuccess(true);
