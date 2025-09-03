@@ -4,7 +4,8 @@ import styles from './ContactForm.module.css';
 const ContactForm = ({ 
   title = "Оставьте заявку", 
   source = "unknown",
-  className = ""
+  className = "",
+  productInfo = null
 }) => {
   const [formData, setFormData] = useState({
     name: '',
@@ -82,11 +83,22 @@ const ContactForm = ({
 
     setIsSubmitting(true);
 
-    const message = `🏠 Новая заявка с сайта
+    let message = `🏠 Новая заявка с сайта
 
 👤 Имя: ${formData.name}
 📞 Телефон: ${formData.phone}
-📍 Источник: ${source}
+📍 Источник: ${source}`;
+    
+    if (productInfo) {
+      message += `
+
+🏡 Информация о доме:
+🏷️ Название: ${productInfo.name}
+📏 Размер: ${productInfo.size}${productInfo.dimensions ? ` (${productInfo.dimensions})` : ''}
+💰 Цена: ${productInfo.price.toLocaleString('ru-RU')} руб.`;
+    }
+    
+    message += `
 ⏰ Время: ${new Date().toLocaleString('ru-RU')}`;
 
     try {
@@ -118,6 +130,9 @@ const ContactForm = ({
           }
           if (window.closeContactFormWhyChooseUs) {
             window.closeContactFormWhyChooseUs();
+          }
+          if (window.closeContactFormCatalog) {
+            window.closeContactFormCatalog();
           }
         }, 3000);
       } else {

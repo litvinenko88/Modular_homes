@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Layout from '../../components/Layout/Layout';
+import ContactForm from '../../components/ContactForm';
 import styles from '../projects/ProjectDetail.module.css';
 
 const projectsData = {
@@ -352,6 +353,7 @@ export default function CatalogDetail() {
   const [selectedSize, setSelectedSize] = useState(0);
   const [currentImage, setCurrentImage] = useState(0);
   const [showBlueprints, setShowBlueprints] = useState(false);
+  const [isContactFormOpen, setIsContactFormOpen] = useState(false);
 
   const project = projectsData[slug];
 
@@ -360,6 +362,24 @@ export default function CatalogDetail() {
       setSelectedSize(0);
     }
   }, [project]);
+
+  useEffect(() => {
+    if (isContactFormOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isContactFormOpen]);
+
+  useEffect(() => {
+    window.closeContactFormCatalog = () => setIsContactFormOpen(false);
+    return () => {
+      delete window.closeContactFormCatalog;
+    };
+  }, []);
 
   if (!project) {
     return (
@@ -471,7 +491,10 @@ export default function CatalogDetail() {
             </select>
           </div>
 
-          <button className={styles.orderButton}>
+          <button 
+            className={styles.orderButton}
+            onClick={() => setIsContactFormOpen(true)}
+          >
             Заказать
           </button>
 
@@ -496,6 +519,36 @@ export default function CatalogDetail() {
           </div>
         </div>
       </main>
+
+      {/* Модальное окно с формой */}
+      {isContactFormOpen && (
+        <div 
+          className={styles.modal} 
+          onClick={() => setIsContactFormOpen(false)}
+          onWheel={(e) => e.preventDefault()}
+          onTouchMove={(e) => e.preventDefault()}
+        >
+          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+            <button 
+              className={styles.modalClose}
+              onClick={() => setIsContactFormOpen(false)}
+              aria-label="Закрыть форму"
+            >
+              ×
+            </button>
+            <ContactForm 
+              title="Заказать дом"
+              source={`каталог - ${project.name}`}
+              productInfo={{
+                name: project.name,
+                size: project.sizes[selectedSize]?.area || '',
+                dimensions: project.sizes[selectedSize]?.dimensions || '',
+                price: project.sizes[selectedSize]?.price || 0
+              }}
+            />
+          </div>
+        </div>
+      )}
     </Layout>
   );
 }
