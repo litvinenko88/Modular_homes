@@ -82,12 +82,19 @@ const housesData = [
 ];
 
 export default function Bestsellers() {
+  const [isClient, setIsClient] = useState(false);
   const [visibleCards, setVisibleCards] = useState([]);
   const [isInView, setIsInView] = useState(false);
   const sectionRef = useRef(null);
   const router = useRouter();
 
   useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isClient) return;
+    
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -108,7 +115,7 @@ export default function Bestsellers() {
     }
 
     return () => observer.disconnect();
-  }, []);
+  }, [isClient]);
 
   const handleCardClick = (slug) => {
     if (typeof window !== 'undefined' && slug) {
@@ -152,7 +159,7 @@ export default function Bestsellers() {
               <article
                 key={house.id}
                 className={`${styles.card} ${
-                  visibleCards.includes(index) ? styles.visible : ""
+                  isClient && visibleCards.includes(index) ? styles.visible : ""
                 }`}
                 itemScope
                 itemType="https://schema.org/Product"

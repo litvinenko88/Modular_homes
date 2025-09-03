@@ -2,9 +2,16 @@ import { useState, useEffect } from "react";
 import styles from "./FloatingContacts.module.css";
 
 export default function FloatingContacts() {
+  const [isClient, setIsClient] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isClient) return;
+    
     const toggleVisibility = () => {
       if (window.pageYOffset > 300) {
         setIsVisible(true);
@@ -15,7 +22,11 @@ export default function FloatingContacts() {
 
     window.addEventListener("scroll", toggleVisibility);
     return () => window.removeEventListener("scroll", toggleVisibility);
-  }, []);
+  }, [isClient]);
+
+  if (!isClient) {
+    return null;
+  }
 
   return (
     <div

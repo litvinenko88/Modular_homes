@@ -2,9 +2,16 @@ import { useState, useEffect } from 'react';
 import styles from './ScrollToTop.module.css';
 
 export default function ScrollToTop() {
+  const [isClient, setIsClient] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isClient) return;
+    
     const toggleVisibility = () => {
       if (window.pageYOffset > 300) {
         setIsVisible(true);
@@ -15,7 +22,7 @@ export default function ScrollToTop() {
 
     window.addEventListener('scroll', toggleVisibility);
     return () => window.removeEventListener('scroll', toggleVisibility);
-  }, []);
+  }, [isClient]);
 
   const scrollToTop = () => {
     window.scrollTo({
@@ -23,6 +30,10 @@ export default function ScrollToTop() {
       behavior: 'smooth'
     });
   };
+
+  if (!isClient) {
+    return null;
+  }
 
   return (
     <button

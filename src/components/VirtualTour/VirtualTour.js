@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import styles from './VirtualTour.module.css'
 
 export default function VirtualTour() {
+  const [isClient, setIsClient] = useState(false)
   const [isVisible, setIsVisible] = useState(false)
 
   const handleTour65 = () => {
@@ -13,6 +14,12 @@ export default function VirtualTour() {
   }
 
   useEffect(() => {
+    setIsClient(true)
+  }, [])
+
+  useEffect(() => {
+    if (!isClient) return
+    
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -28,7 +35,7 @@ export default function VirtualTour() {
     }
 
     return () => observer.disconnect()
-  }, [])
+  }, [isClient])
 
   return (
     <section className={styles.virtualTour} role="region" aria-label="Виртуальная экскурсия по модульным домам">

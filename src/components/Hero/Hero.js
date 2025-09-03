@@ -102,19 +102,13 @@ export default function Hero() {
           
           <div className={styles.rightSection}>
             <div className={styles.videoContainer}>
-              <video 
+              <img 
                 className={styles.video}
-                autoPlay 
-                muted 
-                loop 
-                playsInline
-                aria-label="Демонстрационное видео модульных домов Easy House"
+                src="/img/New_Arkhangelsk/1.jpg"
+                alt="Модульный дом Easy House - пример готового проекта"
                 title="Модульные дома Easy House - строительство под ключ"
-              >
-                <source src="/video/glav2308.mp4" type="video/mp4" />
-                <track kind="captions" srcLang="ru" label="Русские субтитры" />
-                Ваш браузер не поддерживает видео. Посмотрите наши модульные дома на фотографиях в каталоге.
-              </video>
+                loading="lazy"
+              />
               <div className={styles.videoOverlay} aria-hidden="true"></div>
             </div>
           </div>

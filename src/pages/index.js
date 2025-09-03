@@ -14,6 +14,7 @@ import PhotoGallery from "../components/PhotoGallery/PhotoGallery";
 import FAQReviews from "../components/FAQReviews/FAQReviews";
 import VideoReviews from "../components/VideoReviews/VideoReviews";
 
+
 export default function Home() {
   const structuredData = {
     "@context": "https://schema.org",
@@ -148,7 +149,6 @@ export default function Home() {
         <Hero />
         <ProblemSolution />
         <Bestsellers />
-        <VideoReviews showViewAllButton={true} />
         <Features />
         <VirtualTour />
         <ProductionProcess />
@@ -157,6 +157,8 @@ export default function Home() {
         <Guarantees />
         <PhotoGallery />
         <DeliveryInstallation />
+        <FAQReviews />
+        <VideoReviews />
       </Layout>
     </>
   );

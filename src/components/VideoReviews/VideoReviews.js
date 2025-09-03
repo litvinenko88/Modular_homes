@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import styles from './VideoReviews.module.css'
 
 export default function VideoReviews({ showAllVideos = false, showViewAllButton = false }) {
+  const [isClient, setIsClient] = useState(false)
   const [isVisible, setIsVisible] = useState(false)
   const [playingVideo, setPlayingVideo] = useState(null)
   const [isPlaying, setIsPlaying] = useState({})
@@ -11,30 +12,28 @@ export default function VideoReviews({ showAllVideos = false, showViewAllButton 
   const audioRefs = useRef([])
 
   const baseVideos = [
-    { video: '/video/1.mp4', audio: '/audio/1.1.mp4', title: 'Обзор дома 1' },
-    { video: '/video/2.mp4', audio: '/audio/2.1.mp4', title: 'Обзор дома 2' },
-    { video: '/video/3.mp4', audio: '/audio/3.1.mp4', title: 'Обзор дома 3' },
-    { video: '/video/4.mp4', audio: '/audio/4.1.mp4', title: 'Обзор дома 4' }
+    { image: '/img/New_Arkhangelsk/1.jpg', title: 'Обзор дома Новый Архангельск' },
+    { image: '/img/Arkhangelsk_terrace/1.jpg', title: 'Обзор дома с террасой' },
+    { image: '/img/Barnhouse/1.jpg', title: 'Обзор барн-хауса' },
+    { image: '/img/Two_module_Lane/1.jpg', title: 'Обзор двухмодульного дома' }
   ]
 
   const additionalVideos = [
-    { video: '/video/5.mp4', audio: '/audio/5.1.mp4', title: 'Обзор дома 5' },
-    { video: '/video/6.mp4', audio: '/audio/6.1.mp4', title: 'Обзор дома 6' },
-    { video: '/video/7.mp4', audio: '/audio/7.1.mp4', title: 'Обзор дома 7' },
-    { video: '/video/8.mp4', title: 'Обзор дома 8' },
-    { video: '/video/9.mp4', audio: '/audio/9.1.mp4', title: 'Обзор дома 9' },
-    { video: '/video/10.mp4', audio: '/audio/10.1.mp4', title: 'Обзор дома 10' },
-    { video: '/video/11.mp4', title: 'Обзор дома 11' },
-    { video: '/video/12.mp4', title: 'Обзор дома 12' },
-    { video: '/video/13.mp4', title: 'Обзор дома 13' },
-    { video: '/video/14.mp4', title: 'Обзор дома 14' },
-    { video: '/video/15.mp4', title: 'Обзор дома 15' },
-    { video: '/video/16.mp4', title: 'Обзор дома 16' }
+    { image: '/img/Angular_Arkhangelsk/1.jpg', title: 'Обзор углового дома' },
+    { image: '/img/Four_Module_Barn/1.jpg', title: 'Обзор четырехмодульного барна' },
+    { image: '/img/Three_Module_Barn/1.jpg', title: 'Обзор трехмодульного барна' },
+    { image: '/img/Barn_House/1.jpg', title: 'Обзор барн-хауса' }
   ]
 
-  const videos = showAllVideos ? [...baseVideos, ...additionalVideos] : baseVideos
+  const items = showAllVideos ? [...baseVideos, ...additionalVideos] : baseVideos
 
   useEffect(() => {
+    setIsClient(true)
+  }, [])
+
+  useEffect(() => {
+    if (!isClient) return
+    
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -50,7 +49,7 @@ export default function VideoReviews({ showAllVideos = false, showViewAllButton 
     }
 
     return () => observer.disconnect()
-  }, [])
+  }, [isClient])
 
   const togglePlay = (index) => {
     const video = videoRefs.current[index]
@@ -160,6 +159,40 @@ export default function VideoReviews({ showAllVideos = false, showViewAllButton 
     }
   }
 
+  if (!isClient) {
+    return (
+      <section className={styles.videoReviews} aria-labelledby="video-reviews-title">
+        <div className={styles.container}>
+          <div className={styles.content}>
+            <h2 id="video-reviews-title" className={styles.title}>
+              Видеообзоры наших домов
+            </h2>
+            <p className={styles.description}>
+              Убедитесь в качестве и продуманности каждой детали
+            </p>
+            <div className={styles.videoGrid}>
+              {items.slice(0, 4).map((item, index) => (
+                <div key={index} className={styles.videoItem}>
+                  <div className={styles.videoContainer}>
+                    <img 
+                      src={item.image}
+                      alt={item.title}
+                      className={styles.video}
+                      style={{ width: '100%', height: '200px', objectFit: 'cover' }}
+                    />
+                    <div className={styles.imageOverlay}>
+                      <span>📹 {item.title}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+    )
+  }
+
   return (
     <section className={styles.videoReviews} aria-labelledby="video-reviews-title">
       <div className={styles.animatedBackground}>
@@ -188,101 +221,27 @@ export default function VideoReviews({ showAllVideos = false, showViewAllButton 
           </p>
           
           <div className={styles.videoGrid}>
-            {videos.map((item, index) => (
+            {items.map((item, index) => (
               <div key={index} className={styles.videoItem}>
                 <div className={styles.videoContainer}>
-                  <video
-                    ref={el => videoRefs.current[index] = el}
-                    src={item.video}
-                    muted
-                    preload="metadata"
-                    onPlay={() => handleVideoPlay(index)}
-                    onPause={() => handleVideoPause(index)}
-                    onTimeUpdate={() => handleTimeUpdate(index)}
-                    onLoadedMetadata={() => handleLoadedMetadata(index)}
-                    onCanPlay={() => handleCanPlay(index)}
-                    onDurationChange={() => handleLoadedMetadata(index)}
+                  <img 
+                    src={item.image}
+                    alt={item.title}
                     className={styles.video}
-                    aria-label={`Видеообзор модульного дома ${index + 1}`}
+                    aria-label={`Обзор модульного дома ${index + 1}`}
                     title={item.title}
                   />
-                  {item.audio && (
-                    <audio
-                      ref={el => audioRefs.current[index] = el}
-                      src={item.audio}
-                      preload="metadata"
-                    />
-                  )}
                   
-                  {!isPlaying[index] && (
-                    <div className={styles.centerPlayButton}>
-                      <button 
-                        className={styles.centerPlay}
-                        onClick={() => togglePlay(index)}
-                      >
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <div className={styles.imageOverlay}>
+                    <div className={styles.overlayContent}>
+                      <div className={styles.playIcon}>
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
                           <polygon points="8,5 19,12 8,19" fill="currentColor"/>
                         </svg>
-                      </button>
-                    </div>
-                  )}
-                  
-                  <div className={styles.customControls}>
-                    <button 
-                      className={styles.playButton}
-                      onClick={() => togglePlay(index)}
-                    >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                        {isPlaying[index] ? (
-                          <>
-                            <rect x="6" y="4" width="4" height="16" fill="currentColor"/>
-                            <rect x="14" y="4" width="4" height="16" fill="currentColor"/>
-                          </>
-                        ) : (
-                          <polygon points="5,3 19,12 5,21" fill="currentColor"/>
-                        )}
-                      </svg>
-                    </button>
-                    
-                    <div className={styles.progressContainer}>
-                      <div 
-                        className={styles.progressTrack}
-                        onClick={(e) => handleProgressClick(index, e)}
-                      >
-                        <div 
-                          className={styles.progressFill}
-                          style={{ 
-                            width: `${(() => {
-                              const video = videoRefs.current[index];
-                              return video?.duration ? ((currentTime[index] || 0) / video.duration) * 100 : 0;
-                            })()}%` 
-                          }}
-                        />
-                        <div 
-                          className={styles.progressThumb}
-                          style={{ 
-                            left: `${(() => {
-                              const video = videoRefs.current[index];
-                              return video?.duration ? ((currentTime[index] || 0) / video.duration) * 100 : 0;
-                            })()}%` 
-                          }}
-                        />
                       </div>
+                      <h3 className={styles.overlayTitle}>{item.title}</h3>
+                      <p className={styles.overlayDescription}>Посмотрите наши реальные проекты</p>
                     </div>
-                    
-                    <div className={styles.timeDisplay}>
-                      {formatTime(currentTime[index])} / {formatTime(videoRefs.current[index]?.duration)}
-                    </div>
-                    
-                    <button 
-                      className={styles.fullscreenButton}
-                      onClick={() => toggleFullscreen(index)}
-                      title="Полный экран"
-                    >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                        <path d="M7 14H5v5h5v-2H7v-3zM5 10h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z" fill="currentColor"/>
-                      </svg>
-                    </button>
                   </div>
                 </div>
               </div>
