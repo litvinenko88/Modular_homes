@@ -7,16 +7,10 @@ const nextConfig = {
   },
   poweredByHeader: false,
   env: {
-    SITE_URL: process.env.SITE_URL || 'https://your-domain.com'
+    SITE_URL: process.env.SITE_URL || 'https://your-domain.com',
+    NEXT_PUBLIC_TELEGRAM_BOT_TOKEN: process.env.NEXT_PUBLIC_TELEGRAM_BOT_TOKEN,
+    NEXT_PUBLIC_TELEGRAM_CHAT_ID: process.env.NEXT_PUBLIC_TELEGRAM_CHAT_ID
   },
-  // Исключаем API routes из статической генерации
-  exportPathMap: async function (defaultPathMap) {
-    const pathMap = { ...defaultPathMap };
-    // Удаляем API routes из экспорта
-    delete pathMap['/api/telegram'];
-    return pathMap;
-  },
-  // Отключаем API routes для статического экспорта
   experimental: {
     missingSuspenseWithCSRBailout: false,
   }
