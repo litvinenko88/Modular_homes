@@ -43,17 +43,25 @@
   font-weight: 700;
   color: var(--color-white);
   white-space: nowrap;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   background: linear-gradient(135deg, var(--color-white) 0%, var(--color-accent) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  outline: none;
+  text-decoration: none;
+}
+
+.logoText:focus {
+  outline: none;
+}
+
+.logoText:active {
+  outline: none;
 }
 
 .logoText:hover {
-  transform: scale(1.05);
-  filter: drop-shadow(0 0 10px rgba(223, 104, 43, 0.5));
+  /* Анимация убрана */
 }
 
 .nav {
