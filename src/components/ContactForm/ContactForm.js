@@ -111,8 +111,8 @@ const ContactForm = ({
         source: source
       };
 
-      // Используем простой сервис для статического сайта
-      const result = await sendViaEmailJS(formDataToSend);
+      // Отправляем через Telegram API
+      const result = await sendToTelegram(formDataToSend);
 
       if (result.success) {
         setIsSuccess(true);

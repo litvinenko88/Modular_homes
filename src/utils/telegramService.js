@@ -1,8 +1,5 @@
 import { validateFormData } from './security';
 
-const TELEGRAM_BOT_TOKEN = process.env.NEXT_PUBLIC_TELEGRAM_BOT_TOKEN;
-const TELEGRAM_CHAT_ID = process.env.NEXT_PUBLIC_TELEGRAM_CHAT_ID;
-
 const formSchema = {
   name: {
     required: true,
@@ -27,13 +24,12 @@ const formSchema = {
 };
 
 /**
- * Отправка данных формы через Telegram бота для статического сайта
+ * Отправка данных формы через внутренний API
  * @param {Object} formData - Данные формы
  * @returns {Promise<Object>} - Результат отправки
  */
 export async function sendToTelegram(formData) {
   try {
-    // Валидация данных
     const validation = validateFormData(formData, formSchema);
     
     if (!validation.isValid) {
@@ -44,30 +40,29 @@ export async function sendToTelegram(formData) {
       };
     }
 
-    const { name, phone, message = '', source = '' } = validation.data;
-
-    // Логируем данные для разработки
-    console.log('Form submission attempt:', {
-      name,
-      phone,
-      message,
-      source,
-      timestamp: new Date().toLocaleString('ru-RU')
+    const response = await fetch('/api/telegram', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(validation.data),
     });
 
-    // Для статического сайта всегда возвращаем успех
-    // Реальная отправка должна быть настроена через webhook или внешний сервис
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`);
+    }
+
+    const result = await response.json();
     return {
       success: true,
-      message: 'Заявка принята к обработке'
+      message: result.message || 'Заявка успешно отправлена'
     };
 
   } catch (error) {
-    console.error('Form service error:', error);
-    
+    console.error('Telegram service error:', error);
     return {
-      success: true,
-      message: 'Заявка принята к обработке'
+      success: false,
+      message: 'Ошибка отправки. Попробуйте еще раз.'
     };
   }
 }
