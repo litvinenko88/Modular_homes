@@ -17,7 +17,7 @@ export default function OKompanii() {
           name="keywords"
           content="о компании Easy House, производство модульных домов, преимущества, гарантии, качество строительства"
         />
-        <link rel="canonical" href="https://your-domain.com/o-kompanii" />
+        <link rel="canonical" href="https://house-modular.ru/o-kompanii" />
         <meta
           property="og:title"
           content="О компании Easy House - производитель модульных домов"
@@ -26,7 +26,7 @@ export default function OKompanii() {
           property="og:description"
           content="О компании Easy House. Производство модульных домов, наши преимущества, гарантии и процесс производства."
         />
-        <meta property="og:url" content="https://your-domain.com/o-kompanii" />
+        <meta property="og:url" content="https://house-modular.ru/o-kompanii" />
         <meta property="og:type" content="website" />
       </Head>
       <Breadcrumbs />

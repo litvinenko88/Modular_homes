@@ -21,8 +21,8 @@ export default function Home() {
     name: "Easy House",
     description:
       "Строительство модульных домов под ключ за 30 дней от 655 000 рублей",
-    url: "https://your-domain.com",
-    logo: "https://your-domain.com/favicon-house.ico",
+    url: "https://house-modular.ru",
+    logo: "https://house-modular.ru/favicon-house.ico",
     contactPoint: {
       "@type": "ContactPoint",
       contactType: "customer service",
@@ -85,11 +85,11 @@ export default function Home() {
           content="модульный дом под ключ, модульный дом цена, купить модульный дом, готовый модульный дом, производство модульных домов, модульный дом с отделкой, модульный дом с коммуникациями, строительство модульных домов, модульные дома Ставрополь, модульные дома Краснодар"
         />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="canonical" href="https://your-domain.com/" />
+        <link rel="canonical" href="https://house-modular.ru/" />
 
         {/* Open Graph / Facebook */}
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://your-domain.com/" />
+        <meta property="og:url" content="https://house-modular.ru/" />
         <meta
           property="og:title"
           content="Строительство модульных домов под ключ за 30 дней | От 655 000₽"
@@ -100,7 +100,7 @@ export default function Home() {
         />
         <meta
           property="og:image"
-          content="https://your-domain.com/og-image.jpg"
+          content="https://house-modular.ru/og-image.jpg"
         />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
@@ -109,7 +109,7 @@ export default function Home() {
 
         {/* Twitter */}
         <meta property="twitter:card" content="summary_large_image" />
-        <meta property="twitter:url" content="https://your-domain.com/" />
+        <meta property="twitter:url" content="https://house-modular.ru/" />
         <meta
           property="twitter:title"
           content="Строительство модульных домов под ключ за 30 дней | От 655 000₽"
@@ -120,7 +120,7 @@ export default function Home() {
         />
         <meta
           property="twitter:image"
-          content="https://your-domain.com/og-image.jpg"
+          content="https://house-modular.ru/og-image.jpg"
         />
 
         {/* Additional SEO */}
@@ -133,7 +133,7 @@ export default function Home() {
         <meta name="robots" content="index, follow" />
         <meta name="author" content="Easy House" />
         <meta name="language" content="ru" />
-        <link rel="alternate" hrefLang="ru" href="https://your-domain.com/" />
+        <link rel="alternate" hrefLang="ru" href="https://house-modular.ru/" />
 
         {/* Structured Data */}
         <script

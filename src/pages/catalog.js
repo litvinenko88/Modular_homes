@@ -179,19 +179,19 @@ export default function Catalog() {
           content="Каталог модульных домов Easy House от 855 000 руб. 11 готовых проектов площадью от 15 до 80 м². Строительство под ключ с гарантией качества."
         />
         <meta name="keywords" content="каталог модульных домов, проекты домов, цены на модульные дома, готовые проекты, строительство под ключ, модульные дома цены, каркасные дома" />
-        <link rel="canonical" href="https://your-domain.com/catalog" />
+        <link rel="canonical" href="https://house-modular.ru/catalog" />
         <meta property="og:title" content="Каталог модульных домов под ключ от 855 000 руб | Easy House" />
         <meta property="og:description" content="Каталог модульных домов Easy House от 855 000 руб. 11 готовых проектов площадью от 15 до 80 м². Строительство под ключ с гарантией качества." />
-        <meta property="og:url" content="https://your-domain.com/catalog" />
+        <meta property="og:url" content="https://house-modular.ru/catalog" />
         <meta property="og:type" content="website" />
-        <meta property="og:image" content="https://your-domain.com/img/catalog-preview.jpg" />
+        <meta property="og:image" content="https://house-modular.ru/img/catalog-preview.jpg" />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
         <meta property="og:image:alt" content="Каталог модульных домов Easy House" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Каталог модульных домов под ключ от 855 000 руб" />
         <meta name="twitter:description" content="Каталог модульных домов Easy House от 855 000 руб. 11 готовых проектов площадью от 15 до 80 м²." />
-        <meta name="twitter:image" content="https://your-domain.com/img/catalog-preview.jpg" />
+        <meta name="twitter:image" content="https://house-modular.ru/img/catalog-preview.jpg" />
         <meta name="robots" content="index, follow" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <script type="application/ld+json">
@@ -200,7 +200,7 @@ export default function Catalog() {
             "@type": "CollectionPage",
             "name": "Каталог модульных домов Easy House",
             "description": "Каталог готовых проектов модульных домов от 855 000 руб. Строительство под ключ.",
-            "url": "https://your-domain.com/catalog",
+            "url": "https://house-modular.ru/catalog",
             "mainEntity": {
               "@type": "ItemList",
               "numberOfItems": allHousesData.length,
@@ -209,7 +209,7 @@ export default function Catalog() {
                 "position": index + 1,
                 "name": house.name,
                 "description": house.description,
-                "image": `https://your-domain.com${house.image}`,
+                "image": `https://house-modular.ru${house.image}`,
                 "offers": {
                   "@type": "Offer",
                   "price": house.price?.replace(/[^0-9]/g, '') || '0',

@@ -445,12 +445,12 @@ export default function CatalogDetail() {
         <title>{project.name} - модульный дом от {formattedPrice} руб | Easy House</title>
         <meta name="description" content={`Модульный дом ${project.name} от ${formattedPrice} руб. Подробные характеристики, фото, чертежи и комплектация. Строительство под ключ.`} />
         <meta name="keywords" content={`${project.name}, модульный дом, цена, характеристики, купить, строительство под ключ`} />
-        <link rel="canonical" href={`https://your-domain.com/catalog/${sanitizedSlug}`} />
+        <link rel="canonical" href={`https://house-modular.ru/catalog/${sanitizedSlug}`} />
         <meta property="og:title" content={`${project.name} - модульный дом от ${formattedPrice} руб | Easy House`} />
         <meta property="og:description" content={`Модульный дом ${project.name} от ${formattedPrice} руб. Подробные характеристики, фото, чертежи и комплектация.`} />
-        <meta property="og:url" content={`https://your-domain.com/catalog/${sanitizedSlug}`} />
+        <meta property="og:url" content={`https://house-modular.ru/catalog/${sanitizedSlug}`} />
         <meta property="og:type" content="product" />
-        <meta property="og:image" content={`https://your-domain.com${project.images?.[0] || '/img/default-house.jpg'}`} />
+        <meta property="og:image" content={`https://house-modular.ru${project.images?.[0] || '/img/default-house.jpg'}`} />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
         <meta property="og:image:alt" content={`Модульный дом ${project.name}`} />
@@ -459,14 +459,14 @@ export default function CatalogDetail() {
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={`${project.name} - модульный дом от ${formattedPrice} руб`} />
         <meta name="twitter:description" content={`Модульный дом ${project.name} от ${formattedPrice} руб. Подробные характеристики, фото, чертежи и комплектация.`} />
-        <meta name="twitter:image" content={`https://your-domain.com${project.images?.[0] || '/img/default-house.jpg'}`} />
+        <meta name="twitter:image" content={`https://house-modular.ru${project.images?.[0] || '/img/default-house.jpg'}`} />
         <script type="application/ld+json">
           {JSON.stringify({
             "@context": "https://schema.org",
             "@type": "Product",
             "name": project.name,
             "description": `Модульный дом ${project.name}. Площадь ${project.sizes?.[selectedSize]?.area || 'не указана'}. Подробные характеристики, фото и комплектация.`,
-            "image": project.images?.map(img => `https://your-domain.com${img}`) || [],
+            "image": project.images?.map(img => `https://house-modular.ru${img}`) || [],
             "brand": {
               "@type": "Brand",
               "name": "Easy House"
@@ -498,7 +498,7 @@ export default function CatalogDetail() {
               "seller": {
                 "@type": "Organization",
                 "name": "Easy House",
-                "url": "https://your-domain.com"
+                "url": "https://house-modular.ru"
               }
             },
             "aggregateRating": {

@@ -126,19 +126,19 @@ ${formData.message}
         <title>Контакты Easy House - модульные дома</title>
         <meta name="description" content="Контакты компании Easy House. Телефон 8(996)417-90-01, адрес, время работы. Свяжитесь с нами для заказа модульного дома." />
         <meta name="keywords" content="контакты Easy House, телефон, адрес, связь, консультация, заказ модульного дома" />
-        <link rel="canonical" href="https://your-domain.com/kontakty" />
+        <link rel="canonical" href="https://house-modular.ru/kontakty" />
         <meta property="og:title" content="Контакты Easy House - модульные дома" />
         <meta property="og:description" content="Контакты компании Easy House. Телефон 8(996)417-90-01, адрес, время работы. Свяжитесь с нами для заказа модульного дома." />
-        <meta property="og:url" content="https://your-domain.com/kontakty" />
+        <meta property="og:url" content="https://house-modular.ru/kontakty" />
         <meta property="og:type" content="website" />
-        <meta property="og:image" content="https://your-domain.com/img/contacts-preview.jpg" />
+        <meta property="og:image" content="https://house-modular.ru/img/contacts-preview.jpg" />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
         <meta property="og:image:alt" content="Контакты Easy House - модульные дома" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Контакты Easy House - модульные дома" />
         <meta name="twitter:description" content="Контакты компании Easy House. Телефон 8(996)417-90-01, адрес, время работы. Свяжитесь с нами для заказа модульного дома." />
-        <meta name="twitter:image" content="https://your-domain.com/img/contacts-preview.jpg" />
+        <meta name="twitter:image" content="https://house-modular.ru/img/contacts-preview.jpg" />
         <meta name="robots" content="index, follow" />
         <script type="application/ld+json">
           {JSON.stringify({
@@ -146,7 +146,7 @@ ${formData.message}
             "@type": "LocalBusiness",
             "name": "Easy House",
             "description": "Производство модульных домов",
-            "url": "https://your-domain.com",
+            "url": "https://house-modular.ru",
             "telephone": "+79964179001",
             "email": "info@easyhouse.ru",
             "address": {

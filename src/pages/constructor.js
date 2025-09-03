@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Head from "next/head";
 import Layout from "../components/Layout/Layout";
+import Breadcrumbs from '../components/Breadcrumbs/Breadcrumbs';
 import ModularConstructor from "../components/ConstructorApp/constructor/ModularConstructor";
 
 export default function Constructor() {
@@ -25,9 +26,16 @@ export default function Constructor() {
           name="description"
           content="Спроектируйте свой идеальный модульный дом с помощью нашего 3D конструктора"
         />
+        <meta name="keywords" content="3D конструктор домов, проектирование модульных домов, создать проект дома, планировка дома онлайн" />
+        <link rel="canonical" href="https://house-modular.ru/constructor" />
+        <meta property="og:title" content="Конструктор модульных домов | Easy House" />
+        <meta property="og:description" content="Спроектируйте свой идеальный модульный дом с помощью нашего 3D конструктора" />
+        <meta property="og:url" content="https://house-modular.ru/constructor" />
+        <meta property="og:type" content="website" />
       </Head>
 
       <Layout>
+        <Breadcrumbs />
         <div style={{ padding: '2rem', textAlign: 'center' }}>
           <h1>Конструктор модульных домов</h1>
           <p>Спроектируйте свой идеальный дом с помощью 3D конструктора</p>

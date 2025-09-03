@@ -9,10 +9,10 @@ export default function Konstruktor() {
         <title>Конструктор модульных домов | Easy House</title>
         <meta name="description" content="Создайте свой уникальный модульный дом с помощью нашего конструктора. Выберите размер, планировку и комплектацию." />
         <meta name="keywords" content="конструктор домов, создать проект дома, планировка модульного дома, индивидуальный проект, расчет стоимости" />
-        <link rel="canonical" href="https://your-domain.com/konstruktor" />
+        <link rel="canonical" href="https://house-modular.ru/konstruktor" />
         <meta property="og:title" content="Конструктор модульных домов | Easy House" />
         <meta property="og:description" content="Создайте свой уникальный модульный дом с помощью нашего конструктора. Выберите размер, планировку и комплектацию." />
-        <meta property="og:url" content="https://your-domain.com/konstruktor" />
+        <meta property="og:url" content="https://house-modular.ru/konstruktor" />
         <meta property="og:type" content="website" />
       </Head>
       <main>

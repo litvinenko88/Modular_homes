@@ -35,7 +35,7 @@ const Breadcrumbs = () => {
       "@type": "ListItem",
       "position": index + 1,
       "name": item.name,
-      "item": `${process.env.NEXT_PUBLIC_SITE_URL || 'https://your-domain.com'}${item.href}`
+      "item": `${process.env.NEXT_PUBLIC_SITE_URL || 'https://house-modular.ru'}${item.href}`
     }))
   }
 
