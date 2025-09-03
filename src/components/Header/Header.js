@@ -159,7 +159,6 @@ const Header = ({ onConstructorOpen }) => {
                     key={index}
                     onClick={onConstructorOpen}
                     className={styles.navLink}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer' }}
                     title={`Открыть конструктор`}>
                     {item}
                   </button>
@@ -320,7 +319,7 @@ const Header = ({ onConstructorOpen }) => {
                       closeMobileMenu();
                     }}
                     className={styles.mobileNavLink}
-                    style={{ animationDelay: `${index * 0.1}s`, background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', width: '100%' }}>
+                    style={{ animationDelay: `${index * 0.1}s`, textAlign: 'left', width: '100%' }}>
                     {item}
                   </button>
                 );
