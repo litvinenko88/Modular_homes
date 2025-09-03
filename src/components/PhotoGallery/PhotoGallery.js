@@ -38,7 +38,7 @@ const PhotoGallery = () => {
   }, []);
 
   return (
-    <section className={styles.section}>
+    <section className={styles.section} aria-labelledby="gallery-title">
       <div className={styles.animatedBackground}>
         <div className={styles.particle}></div>
         <div className={styles.particle}></div>
@@ -46,7 +46,7 @@ const PhotoGallery = () => {
       </div>
       <div className={styles.container}>
         <div className={styles.header}>
-          <h2 className={styles.title}>
+          <h2 id="gallery-title" className={styles.title}>
             Наши модульные дома в реальной жизни
           </h2>
           <p className={styles.subtitle}>
@@ -61,8 +61,9 @@ const PhotoGallery = () => {
                 <div key={index} className={styles.slide}>
                   <img
                     src={photo}
-                    alt={`Модульный дом ${(index % photos.length) + 1}`}
+                    alt={`Готовый модульный дом Easy House - фото ${(index % photos.length) + 1}`}
                     className={styles.image}
+                    loading="lazy"
                   />
                 </div>
               ))}

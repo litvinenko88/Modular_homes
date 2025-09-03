@@ -27,9 +27,9 @@ const ProblemSolution = () => {
   }, []);
 
   return (
-    <section id="problem-solution" className={`${styles.section} ${isVisible ? styles.visible : ''}`}>
+    <section id="problem-solution" className={`${styles.section} ${isVisible ? styles.visible : ''}`} aria-labelledby="problem-solution-title">
       <div className={styles.container}>
-        <h2 className={styles.title}>
+        <h2 id="problem-solution-title" className={styles.title}>
           Строительство дома - это сложно? <span className={styles.accent}>Мы решили проблему</span>
         </h2>
         

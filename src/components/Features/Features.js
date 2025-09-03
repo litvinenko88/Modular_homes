@@ -137,9 +137,9 @@ const Features = () => {
   ];
 
   return (
-    <section className={styles.features}>
-      <h2 style={{ textAlign: "center", padding: "20px", fontSize: "32px" }}>
-        Что вы получаете при покупки модульного дома
+    <section className={styles.features} aria-labelledby="features-title">
+      <h2 id="features-title" style={{ textAlign: "center", padding: "20px", fontSize: "32px" }}>
+        Что вы получаете при покупке модульного дома
       </h2>
       <div className={styles.container} ref={containerRef}>
         <div className={`${styles.featuresGrid} ${isExpanded ? styles.expanded : styles.collapsed}`}>
@@ -161,8 +161,9 @@ const Features = () => {
                     <div className={styles.imageContainer}>
                       <img
                         src={feature.image}
-                        alt={feature.title}
+                        alt={`Особенность модульного дома: ${feature.title}`}
                         className={styles.image}
+                        loading="lazy"
                       />
                     </div>
                     <div className={styles.textContent}>

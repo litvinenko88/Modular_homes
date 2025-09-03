@@ -130,6 +130,10 @@ export default function Home() {
         <meta name="revisit-after" content="7 days" />
         <meta name="rating" content="general" />
         <meta name="distribution" content="global" />
+        <meta name="robots" content="index, follow" />
+        <meta name="author" content="Easy House" />
+        <meta name="language" content="ru" />
+        <link rel="alternate" hrefLang="ru" href="https://your-domain.com/" />
 
         {/* Structured Data */}
         <script

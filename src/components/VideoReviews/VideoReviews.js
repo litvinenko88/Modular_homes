@@ -157,7 +157,7 @@ export default function VideoReviews({ showAllVideos = false, showViewAllButton 
   }
 
   return (
-    <section className={styles.videoReviews}>
+    <section className={styles.videoReviews} aria-labelledby="video-reviews-title">
       <div className={styles.animatedBackground}>
         <div className={styles.particle}></div>
         <div className={styles.particle}></div>
@@ -175,7 +175,7 @@ export default function VideoReviews({ showAllVideos = false, showViewAllButton 
       
       <div className={styles.container}>
         <div className={`${styles.content} ${isVisible ? styles.visible : ''}`}>
-          <h2 className={styles.title}>
+          <h2 id="video-reviews-title" className={styles.title}>
             Видеообзоры наших домов
           </h2>
           
@@ -199,6 +199,8 @@ export default function VideoReviews({ showAllVideos = false, showViewAllButton 
                     onCanPlay={() => handleCanPlay(index)}
                     onDurationChange={() => handleLoadedMetadata(index)}
                     className={styles.video}
+                    aria-label={`Видеообзор модульного дома ${index + 1}`}
+                    title={item.title}
                   />
                   {item.audio && (
                     <audio
