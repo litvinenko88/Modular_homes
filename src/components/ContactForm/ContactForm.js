@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import styles from './ContactForm.module.css';
 import { sendToTelegram } from '../../utils/telegramService';
+import { sendViaEmailJS } from '../../utils/emailService';
 
 const ContactForm = ({ 
   title = "Оставьте заявку", 
@@ -103,14 +104,20 @@ const ContactForm = ({
 ⏰ Время: ${new Date().toLocaleString('ru-RU')}`;
 
     try {
-      const telegramData = {
+      const formDataToSend = {
         name: formData.name,
         phone: formData.phone,
         message: productInfo ? `Интерес к дому: ${productInfo.name} (${productInfo.size}, ${productInfo.price.toLocaleString('ru-RU')} руб.)` : '',
         source: source
       };
 
-      const result = await sendToTelegram(telegramData);
+      // Пробуем отправить через Telegram, если не получится - через EmailJS
+      let result = await sendToTelegram(formDataToSend);
+      
+      // Если Telegram не настроен, пробуем EmailJS
+      if (!result.success || result.message.includes('демо режим')) {
+        result = await sendViaEmailJS(formDataToSend);
+      }
 
       if (result.success) {
         setIsSuccess(true);
