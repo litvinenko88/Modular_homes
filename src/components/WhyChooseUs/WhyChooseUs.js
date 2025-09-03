@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import styles from "./WhyChooseUs.module.css";
+import ContactForm from '../ContactForm';
 
 const WhyChooseUs = () => {
   const [visibleItems, setVisibleItems] = useState(new Set());
+  const [isContactFormOpen, setIsContactFormOpen] = useState(false);
   const sectionRef = useRef(null);
   const itemsRef = useRef([]);
 
@@ -79,6 +81,24 @@ const WhyChooseUs = () => {
     return () => observer.disconnect();
   }, []);
 
+  useEffect(() => {
+    if (isContactFormOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isContactFormOpen]);
+
+  useEffect(() => {
+    window.closeContactFormWhyChooseUs = () => setIsContactFormOpen(false);
+    return () => {
+      delete window.closeContactFormWhyChooseUs;
+    };
+  }, []);
+
   return (
     <section className={styles.section} ref={sectionRef}>
       <div className={styles.container}>
@@ -123,13 +143,40 @@ const WhyChooseUs = () => {
             <p className={styles.ctaText}>
               Получите персональный расчет стоимости вашего модульного дома
             </p>
-            <button className={styles.ctaButton}>
+            <button 
+              className={styles.ctaButton}
+              onClick={() => setIsContactFormOpen(true)}
+            >
               <span>Рассчитать стоимость</span>
               <div className={styles.buttonGlow}></div>
             </button>
           </div>
         </div>
       </div>
+
+      {/* Модальное окно с формой */}
+      {isContactFormOpen && (
+        <div 
+          className={styles.modal} 
+          onClick={() => setIsContactFormOpen(false)}
+          onWheel={(e) => e.preventDefault()}
+          onTouchMove={(e) => e.preventDefault()}
+        >
+          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+            <button 
+              className={styles.modalClose}
+              onClick={() => setIsContactFormOpen(false)}
+              aria-label="Закрыть форму"
+            >
+              ×
+            </button>
+            <ContactForm 
+              title="Рассчитать стоимость"
+              source="блок преимуществ - кнопка рассчитать стоимость"
+            />
+          </div>
+        </div>
+      )}
     </section>
   );
 };

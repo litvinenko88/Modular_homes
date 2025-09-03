@@ -116,6 +116,9 @@ const ContactForm = ({
           if (window.closeContactFormHero) {
             window.closeContactFormHero();
           }
+          if (window.closeContactFormWhyChooseUs) {
+            window.closeContactFormWhyChooseUs();
+          }
         }, 3000);
       } else {
         throw new Error('Ошибка отправки');
