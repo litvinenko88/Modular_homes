@@ -362,6 +362,12 @@ export default function CatalogDetail() {
   }, [slug]);
 
   const project = projectsData[sanitizedSlug];
+  const currentPrice = project?.sizes?.[selectedSize]?.price || 0;
+  
+  // Memoize formatted price to avoid recalculation
+  const formattedPrice = useMemo(() => {
+    return currentPrice.toLocaleString('ru-RU');
+  }, [currentPrice]);
 
   useEffect(() => {
     if (project && project.sizes.length > 0) {
@@ -431,13 +437,7 @@ export default function CatalogDetail() {
     );
   }
 
-  const currentPrice = project?.sizes?.[selectedSize]?.price || 0;
   const displayImages = showBlueprints ? (project?.blueprints || []) : (project?.images || []);
-  
-  // Memoize formatted price to avoid recalculation
-  const formattedPrice = useMemo(() => {
-    return currentPrice.toLocaleString('ru-RU');
-  }, [currentPrice]);
 
   return (
     <Layout>
