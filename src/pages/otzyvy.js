@@ -9,12 +9,12 @@ export default function Otzyvy() {
   return (
     <Layout>
       <Head>
-        <title>Отзывы клиентов о модульных домах | Easy House</title>
-        <meta name="description" content="Отзывы наших клиентов о модульных домах Easy House. Видео отзывы и часто задаваемые вопросы." />
+        <title>Отзывы наших клиентов | Easy House</title>
+        <meta name="description" content="Реальные истории людей, которые уже живут в наших модульных домах. Видео отзывы и часто задаваемые вопросы." />
         <meta name="keywords" content="отзывы о модульных домах, видео отзывы, мнения клиентов, качество строительства, Easy House отзывы" />
         <link rel="canonical" href="https://your-domain.com/otzyvy" />
-        <meta property="og:title" content="Отзывы клиентов о модульных домах | Easy House" />
-        <meta property="og:description" content="Отзывы наших клиентов о модульных домах Easy House. Видео отзывы и часто задаваемые вопросы." />
+        <meta property="og:title" content="Отзывы наших клиентов | Easy House" />
+        <meta property="og:description" content="Реальные истории людей, которые уже живут в наших модульных домах. Видео отзывы и часто задаваемые вопросы." />
         <meta property="og:url" content="https://your-domain.com/otzyvy" />
         <meta property="og:type" content="website" />
         <meta property="og:image" content="https://your-domain.com/img/reviews-preview.jpg" />
@@ -22,16 +22,16 @@ export default function Otzyvy() {
         <meta property="og:image:height" content="630" />
         <meta property="og:image:alt" content="Отзывы клиентов о модульных домах Easy House" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Отзывы клиентов о модульных домах | Easy House" />
-        <meta name="twitter:description" content="Отзывы наших клиентов о модульных домах Easy House. Видео отзывы и часто задаваемые вопросы." />
+        <meta name="twitter:title" content="Отзывы наших клиентов | Easy House" />
+        <meta name="twitter:description" content="Реальные истории людей, которые уже живут в наших модульных домах. Видео отзывы и часто задаваемые вопросы." />
         <meta name="twitter:image" content="https://your-domain.com/img/reviews-preview.jpg" />
         <meta name="robots" content="index, follow" />
         <script type="application/ld+json">
           {JSON.stringify({
             "@context": "https://schema.org",
             "@type": "WebPage",
-            "name": "Отзывы клиентов о модульных домах Easy House",
-            "description": "Отзывы наших клиентов о модульных домах Easy House. Видео отзывы и часто задаваемые вопросы.",
+            "name": "Отзывы наших клиентов",
+            "description": "Реальные истории людей, которые уже живут в наших модульных домах. Видео отзывы и часто задаваемые вопросы.",
             "url": "https://your-domain.com/otzyvy",
             "mainEntity": {
               "@type": "FAQPage",
@@ -59,24 +59,7 @@ export default function Otzyvy() {
       </Head>
       <Breadcrumbs />
       <main style={{ paddingTop: '80px' }}>
-        <header style={{
-          textAlign: 'center',
-          padding: '40px 20px',
-          backgroundColor: '#f8f9fa'
-        }}>
-          <h1 style={{
-            fontSize: '2.5rem',
-            fontWeight: 'bold',
-            marginBottom: '20px',
-            color: '#333'
-          }}>Отзывы клиентов о модульных домах Easy House</h1>
-          <p style={{
-            fontSize: '1.1rem',
-            color: '#666',
-            maxWidth: '600px',
-            margin: '0 auto'
-          }}>Реальные истории наших клиентов, видео отзывы и ответы на популярные вопросы</p>
-        </header>
+
         <VideoTestimonials />
         <VideoReviews showAllVideos={true} />
         <FAQReviews />

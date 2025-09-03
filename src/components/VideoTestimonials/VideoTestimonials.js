@@ -97,7 +97,7 @@ export default function VideoTestimonials() {
     <section ref={sectionRef} className={styles.videoTestimonials}>
       <div className={styles.container}>
         <div className={styles.header}>
-          <h2 className={styles.title}>Отзывы наших клиентов</h2>
+          <h1 className={styles.title}>Отзывы наших клиентов</h1>
           <p className={styles.subtitle}>
             Реальные истории людей, которые уже живут в наших модульных домах
           </p>
