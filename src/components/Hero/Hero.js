@@ -1,11 +1,31 @@
 import { useState, useEffect } from 'react'
 import styles from './Hero.module.css'
+import ContactForm from '../ContactForm'
 
 export default function Hero() {
   const [isVisible, setIsVisible] = useState(false)
+  const [isContactFormOpen, setIsContactFormOpen] = useState(false)
 
   useEffect(() => {
     setIsVisible(true)
+  }, [])
+
+  useEffect(() => {
+    if (isContactFormOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = 'unset'
+    }
+    return () => {
+      document.body.style.overflow = 'unset'
+    }
+  }, [isContactFormOpen])
+
+  useEffect(() => {
+    window.closeContactFormHero = () => setIsContactFormOpen(false)
+    return () => {
+      delete window.closeContactFormHero
+    }
   }, [])
 
   return (
@@ -66,7 +86,12 @@ export default function Hero() {
             </ul>
             
             <div className={styles.buttons} role="group" aria-label="Действия">
-              <button className={`${styles.btn} ${styles.btnPrimary}`} type="button" aria-label="Рассчитать стоимость модульного дома">
+              <button 
+                className={`${styles.btn} ${styles.btnPrimary}`} 
+                type="button" 
+                onClick={() => setIsContactFormOpen(true)}
+                aria-label="Рассчитать стоимость модульного дома"
+              >
                 Рассчитать стоимость
               </button>
               <button className={`${styles.btn} ${styles.btnSecondary}`} type="button" aria-label="Посмотреть каталог модульных домов">
@@ -95,6 +120,30 @@ export default function Hero() {
           </div>
         </div>
       </div>
+
+      {/* Модальное окно с формой */}
+      {isContactFormOpen && (
+        <div 
+          className={styles.modal} 
+          onClick={() => setIsContactFormOpen(false)}
+          onWheel={(e) => e.preventDefault()}
+          onTouchMove={(e) => e.preventDefault()}
+        >
+          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+            <button 
+              className={styles.modalClose}
+              onClick={() => setIsContactFormOpen(false)}
+              aria-label="Закрыть форму"
+            >
+              ×
+            </button>
+            <ContactForm 
+              title="Рассчитать стоимость"
+              source="главная страница - кнопка рассчитать стоимость"
+            />
+          </div>
+        </div>
+      )}
     </section>
   )
 }

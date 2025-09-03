@@ -113,6 +113,9 @@ const ContactForm = ({
           if (window.closeContactForm) {
             window.closeContactForm();
           }
+          if (window.closeContactFormHero) {
+            window.closeContactFormHero();
+          }
         }, 3000);
       } else {
         throw new Error('Ошибка отправки');
