@@ -11,20 +11,26 @@ export default function Hero() {
   }, [])
 
   useEffect(() => {
-    if (isContactFormOpen) {
-      document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = 'unset'
+    if (typeof window !== 'undefined') {
+      if (isContactFormOpen) {
+        document.body.style.overflow = 'hidden'
+      } else {
+        document.body.style.overflow = 'unset'
+      }
     }
     return () => {
-      document.body.style.overflow = 'unset'
+      if (typeof window !== 'undefined') {
+        document.body.style.overflow = 'unset'
+      }
     }
   }, [isContactFormOpen])
 
   useEffect(() => {
-    window.closeContactFormHero = () => setIsContactFormOpen(false)
-    return () => {
-      delete window.closeContactFormHero
+    if (typeof window !== 'undefined') {
+      window.closeContactFormHero = () => setIsContactFormOpen(false)
+      return () => {
+        delete window.closeContactFormHero
+      }
     }
   }, [])
 

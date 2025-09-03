@@ -23,24 +23,23 @@ export default function VideoTestimonials() {
 
 
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          videoData.forEach((_, index) => {
-            setTimeout(() => {
-              setVisibleCards(prev => [...prev, index]);
-            }, index * 100);
-          });
-        }
-      },
-      { threshold: 0.1 }
-    );
+    if (typeof window !== 'undefined' && sectionRef.current) {
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) {
+            videoData.forEach((_, index) => {
+              setTimeout(() => {
+                setVisibleCards(prev => [...prev, index]);
+              }, index * 100);
+            });
+          }
+        },
+        { threshold: 0.1 }
+      );
 
-    if (sectionRef.current) {
       observer.observe(sectionRef.current);
+      return () => observer.disconnect();
     }
-
-    return () => observer.disconnect();
   }, []);
 
   const handlePlay = async (videoId) => {

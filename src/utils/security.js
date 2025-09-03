@@ -36,7 +36,8 @@ export const isValidUrl = (url) => {
   }
   
   try {
-    const urlObj = new URL(url, window.location.origin);
+    const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://localhost:3000';
+    const urlObj = new URL(url, baseUrl);
     // Разрешаем только HTTP/HTTPS протоколы
     return ['http:', 'https:'].includes(urlObj.protocol);
   } catch {

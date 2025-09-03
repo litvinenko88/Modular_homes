@@ -1,8 +1,14 @@
 import Script from 'next/script'
+import { useIsClient } from '../../hooks/useIsClient'
 
 const Analytics = () => {
+  const isClient = useIsClient()
   const GA_ID = process.env.NEXT_PUBLIC_GA_ID
   const YANDEX_ID = process.env.NEXT_PUBLIC_YANDEX_METRICA_ID
+
+  if (!isClient) {
+    return null
+  }
 
   return (
     <>

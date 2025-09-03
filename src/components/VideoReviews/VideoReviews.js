@@ -35,21 +35,23 @@ export default function VideoReviews({ showAllVideos = false, showViewAllButton 
   const videos = showAllVideos ? [...baseVideos, ...additionalVideos] : baseVideos
 
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true)
-        }
-      },
-      { threshold: 0.3 }
-    )
+    if (typeof window !== 'undefined') {
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) {
+            setIsVisible(true)
+          }
+        },
+        { threshold: 0.3 }
+      )
 
-    const element = document.querySelector(`.${styles.videoReviews}`)
-    if (element) {
-      observer.observe(element)
+      const element = document.querySelector(`.${styles.videoReviews}`)
+      if (element) {
+        observer.observe(element)
+      }
+
+      return () => observer.disconnect()
     }
-
-    return () => observer.disconnect()
   }, [])
 
   const togglePlay = (index) => {
@@ -148,6 +150,8 @@ export default function VideoReviews({ showAllVideos = false, showViewAllButton 
   }
 
   const toggleFullscreen = (index) => {
+    if (typeof window === 'undefined') return
+    
     const videoContainer = videoRefs.current[index]?.parentElement
     if (!videoContainer) return
 

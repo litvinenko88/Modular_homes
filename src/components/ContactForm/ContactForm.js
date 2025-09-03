@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import styles from './ContactForm.module.css';
+import { sendToTelegram } from '../../utils/telegramService';
 
 const ContactForm = ({ 
   title = "Оставьте заявку", 
@@ -102,19 +103,16 @@ const ContactForm = ({
 ⏰ Время: ${new Date().toLocaleString('ru-RU')}`;
 
     try {
-      const response = await fetch(`https://api.telegram.org/bot8498114010:AAFcJmkf9AOaA2p6xUgaQ0edyNJPOIgY2DI/sendMessage`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          chat_id: '682859146',
-          text: message,
-          parse_mode: 'HTML'
-        })
-      });
+      const telegramData = {
+        name: formData.name,
+        phone: formData.phone,
+        message: productInfo ? `Интерес к дому: ${productInfo.name} (${productInfo.size}, ${productInfo.price.toLocaleString('ru-RU')} руб.)` : '',
+        source: source
+      };
 
-      if (response.ok) {
+      const result = await sendToTelegram(telegramData);
+
+      if (result.success) {
         setIsSuccess(true);
         setFormData({ name: '', phone: '', consent: false });
         setPhoneError('');
@@ -122,23 +120,26 @@ const ContactForm = ({
         setTimeout(() => {
           setIsSuccess(false);
           // Закрываем форму через родительский компонент
-          if (window.closeContactForm) {
-            window.closeContactForm();
-          }
-          if (window.closeContactFormHero) {
-            window.closeContactFormHero();
-          }
-          if (window.closeContactFormWhyChooseUs) {
-            window.closeContactFormWhyChooseUs();
-          }
-          if (window.closeContactFormCatalog) {
-            window.closeContactFormCatalog();
+          if (typeof window !== 'undefined') {
+            if (window.closeContactForm) {
+              window.closeContactForm();
+            }
+            if (window.closeContactFormHero) {
+              window.closeContactFormHero();
+            }
+            if (window.closeContactFormWhyChooseUs) {
+              window.closeContactFormWhyChooseUs();
+            }
+            if (window.closeContactFormCatalog) {
+              window.closeContactFormCatalog();
+            }
           }
         }, 3000);
       } else {
-        throw new Error('Ошибка отправки');
+        throw new Error(result.message || 'Ошибка отправки');
       }
     } catch (error) {
+      console.error('Form submission error:', error);
       alert('Произошла ошибка при отправке. Попробуйте еще раз.');
     } finally {
       setIsSubmitting(false);

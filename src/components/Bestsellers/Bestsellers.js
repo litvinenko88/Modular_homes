@@ -88,26 +88,25 @@ export default function Bestsellers() {
   const router = useRouter();
 
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsInView(true);
-          // Анимация появления карточек с задержкой
-          housesData.forEach((_, index) => {
-            setTimeout(() => {
-              setVisibleCards((prev) => [...prev, index]);
-            }, index * 150);
-          });
-        }
-      },
-      { threshold: 0.1 }
-    );
+    if (typeof window !== 'undefined' && sectionRef.current) {
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) {
+            setIsInView(true);
+            // Анимация появления карточек с задержкой
+            housesData.forEach((_, index) => {
+              setTimeout(() => {
+                setVisibleCards((prev) => [...prev, index]);
+              }, index * 150);
+            });
+          }
+        },
+        { threshold: 0.1 }
+      );
 
-    if (sectionRef.current) {
       observer.observe(sectionRef.current);
+      return () => observer.disconnect();
     }
-
-    return () => observer.disconnect();
   }, []);
 
   const handleCardClick = (slug) => {
