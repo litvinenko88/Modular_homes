@@ -11,6 +11,16 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     
+    - name: Prepare files for static hosting
+      run: |
+        mkdir -p deploy
+        cp -r public/* deploy/
+        cp -r .next/static deploy/_next/static
+        cp .next/server/pages/*.html deploy/
+        mkdir -p deploy/catalog deploy/projects
+        cp .next/server/pages/catalog/*.html deploy/catalog/
+        cp .next/server/pages/projects/*.html deploy/projects/
+        
     - name: Deploy to FTP
       uses: SamKirkland/FTP-Deploy-Action@4.3.3
       with:
@@ -18,13 +28,4 @@ jobs:
         username: ${{ secrets.FTP_USERNAME }}
         password: ${{ secrets.FTP_PASSWORD }}
         server-dir: ${{ secrets.FTP_REMOTE_PATH }}/
-        exclude: |
-          **/.git*
-          **/.git*/**
-          **/node_modules/**
-          **/.next/cache/**
-          **/src/**
-          package*.json
-          next.config.js
-          .env*
-          *.md
+        local-dir: ./deploy/
